@@ -30,7 +30,9 @@ describe('HelpPanel', () => {
     );
 
     cy.contains('Help').should('be.visible');
-    cy.contains('Get started').should('be.visible');
+    cy.contains('Find help').should('be.visible');
+    // Should default to Learn tab
+    cy.contains('Find product documentation, quick starts, learning paths, and more', { timeout: 10000 }).should('be.visible');
   })
 
   it('should not display sub tabs hidden by FF', () => {
@@ -46,7 +48,7 @@ describe('HelpPanel', () => {
     );
 
     cy.contains('Help').should('be.visible');
-    cy.contains('Get started').should('be.visible');
+    cy.contains('Find help').should('be.visible');
     cy.contains('Knowledge base').should('not.exist');
   })
 
@@ -212,6 +214,7 @@ describe('HelpPanel', () => {
       cy.get('.pf-v6-c-tabs__item').should('have.length', 1)
     });
 
-    cy.get('#help-panel-search').should('be.visible');
+    // Should show Learn panel content after closing the extra tab
+    cy.contains('Find product documentation, quick starts, learning paths, and more').should('be.visible');
   })
 });
