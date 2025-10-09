@@ -36,10 +36,10 @@ type SubTab = Omit<TabDefinition, 'id'> & {
 
 const baseTabs: TabDefinition[] = [
   {
-    id: 'get-started',
-    title: 'Get started',
+    id: 'find-help',
+    title: 'Find help',
     closeable: false,
-    tabType: TabType.search,
+    tabType: TabType.learn,
   },
 ];
 
@@ -284,7 +284,7 @@ const HelpPanelCustomTabs = () => {
           title={<TabTitleText>{tab.title}</TabTitleText>}
         >
           <SubTabs
-            activeSubTabKey={tab.tabType ?? TabType.search}
+            activeSubTabKey={tab.tabType ?? TabType.learn}
             setActiveSubTabKey={(tabType) => {
               const nextTab = {
                 ...tab,
