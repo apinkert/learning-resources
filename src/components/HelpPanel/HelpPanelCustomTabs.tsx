@@ -260,8 +260,22 @@ const HelpPanelCustomTabs = () => {
 
   const handleClose = (_e: unknown, tabId: number | string) => {
     if (typeof tabId === 'string') {
+      const closingTabIndex = tabs.findIndex((tab) => tab.id === tabId);
+      const isClosingActiveTab = activeTab.id === tabId;
+
       removeTab(tabId);
-      setActiveTab(tabs[0]);
+      if (isClosingActiveTab) {
+        const remainingTabs = tabs.filter((tab) => tab.id !== tabId);
+
+        if (remainingTabs.length > 0) {
+          const newActiveIndex =
+            closingTabIndex >= remainingTabs.length
+              ? remainingTabs.length - 1
+              : closingTabIndex;
+
+          setActiveTab(remainingTabs[newActiveIndex]);
+        }
+      }
     }
   };
 
