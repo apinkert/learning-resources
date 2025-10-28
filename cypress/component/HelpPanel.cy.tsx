@@ -20,6 +20,7 @@ const Wrapper = ({ children, flags = defaultFlags }: { children: React.ReactNode
     {children}
   </FlagProvider>
 );
+
 describe('HelpPanel', () => {
   it('should display basic setup', () => {
     const toggleDrawerSpy = cy.spy();
@@ -217,4 +218,49 @@ describe('HelpPanel', () => {
     // Should show Learn panel content after closing the extra tab
     cy.contains('Find product documentation, quick starts, learning paths, and more').should('be.visible');
   })
+
+  it('should change tab title when switching sub-tabs', () => {
+    const toggleDrawerSpy = cy.spy();
+    cy.mount(
+      <Wrapper>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+    cy.contains('Find help').should('be.visible');
+    cy.contains('Knowledge base').click();
+
+    cy.get('.lr-c-help-panel-custom-tabs').within(() => {
+      cy.get('.pf-v6-c-tabs__item').first().should('contain.text', 'Knowledge base');
+    });
+  });
+
+  it('should create new tab and maintain focus when closing different tab', () => {
+    const toggleDrawerSpy = cy.spy();
+    cy.mount(
+      <Wrapper>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+
+    cy.get('[aria-label="Add tab"]').click();
+    cy.get('[aria-label="Add tab"]').click();
+
+    cy.get('.lr-c-help-panel-custom-tabs').within(() => {
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 3);
+    });
+
+    cy.get('.lr-c-help-panel-custom-tabs').within(() => {
+      cy.get('.pf-v6-c-tabs__item').last().click();
+    });
+
+    cy.get('.lr-c-help-panel-custom-tabs').within(() => {
+      cy.get('.pf-v6-c-tabs__item').eq(1).within(() => {
+        cy.get('[aria-label="Close tab"]').click();
+      });
+    });
+
+    cy.get('.lr-c-help-panel-custom-tabs').within(() => {
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 2);
+    });
+  });
 });

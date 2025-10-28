@@ -7,6 +7,14 @@
       width: 0;
     }
   }
+
+  // Add max-width to tab titles while keeping them dynamically sized
+  .pf-v6-c-tabs__item-text {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .lr-c-help-panel-custom-tabs.pf-v6-c-tabs {
