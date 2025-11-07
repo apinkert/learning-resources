@@ -4,6 +4,19 @@ import Editor from '@monaco-editor/react';
 import './CreatorYAMLView.scss';
 
 const CreatorYAMLView: React.FC = () => {
+  const configureMonacoEnvironment = () => {
+    // Disable Monaco workers to prevent CDN fetching in CI environments
+    self.MonacoEnvironment = {
+      getWorker() {
+        return new Worker(
+          URL.createObjectURL(
+            new Blob(['self.onmessage = () => {}'], { type: 'text/javascript' })
+          )
+        );
+      },
+    };
+  };
+
   return (
     <PageSection className="lr-c-creator-yaml-view">
       <div className="lr-c-creator-yaml-view__editor">
@@ -14,6 +27,7 @@ const CreatorYAMLView: React.FC = () => {
           defaultValue={
             '# YAML Quickstart Definition\n# Start typing or paste your YAML here\n'
           }
+          beforeMount={configureMonacoEnvironment}
           options={{
             automaticLayout: true,
             minimap: { enabled: true },
