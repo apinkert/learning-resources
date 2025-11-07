@@ -1,24 +1,45 @@
 import React from 'react';
-import {
-  EmptyState,
-  EmptyStateBody,
-  PageSection,
-} from '@patternfly/react-core';
-import { CodeIcon } from '@patternfly/react-icons';
+import { PageSection } from '@patternfly/react-core';
+import Editor from '@monaco-editor/react';
+import './CreatorYAMLView.scss';
 
 const CreatorYAMLView: React.FC = () => {
+  const configureMonacoEnvironment = () => {
+    // Disable Monaco workers to prevent CDN fetching in CI environments
+    self.MonacoEnvironment = {
+      getWorker() {
+        return new Worker(
+          URL.createObjectURL(
+            new Blob(['self.onmessage = () => {}'], { type: 'text/javascript' })
+          )
+        );
+      },
+    };
+  };
+
   return (
-    <PageSection>
-      <EmptyState
-        variant="lg"
-        icon={CodeIcon}
-        titleText="Creator Mode (YAML)"
-        headingLevel="h4"
-      >
-        <EmptyStateBody>
-          The YAML editor will be implemented here.
-        </EmptyStateBody>
-      </EmptyState>
+    <PageSection className="lr-c-creator-yaml-view">
+      <div className="lr-c-creator-yaml-view__editor">
+        <Editor
+          height="100%"
+          language="yaml"
+          theme="vs"
+          defaultValue={
+            '# YAML Quickstart Definition\n# Start typing or paste your YAML here\n'
+          }
+          beforeMount={configureMonacoEnvironment}
+          options={{
+            automaticLayout: true,
+            minimap: { enabled: true },
+            scrollBeyondLastLine: false,
+            wordWrap: 'on',
+            fontSize: 14,
+            lineNumbers: 'on',
+            folding: true,
+            renderWhitespace: 'selection',
+          }}
+        />
+      </div>
     </PageSection>
   );
 };
