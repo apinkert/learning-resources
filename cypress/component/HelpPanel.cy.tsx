@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FlagProvider, IConfig } from '@unleash/proxy-client-react';
 import * as chrome from '@redhat-cloud-services/frontend-components/useChrome';
 import HelpPanel from '../../src/components/HelpPanel';
+import ScalprumProvider from '@scalprum/react-core';
+import { initialize, removeScalprum } from '@scalprum/core';
 
 const defaultFlags: IConfig['bootstrap'] = [{
       name: 'platform.chrome.help-panel_knowledge-base',
@@ -10,16 +12,49 @@ const defaultFlags: IConfig['bootstrap'] = [{
       variant: {name: 'disabled', enabled: false},
     }]
 
-const Wrapper = ({ children, flags = defaultFlags }: { children: React.ReactNode, flags?: IConfig['bootstrap'] }) => (
-  <FlagProvider config={{
-    appName: 'test-app',
-    url: 'https://unleash.example.com/api/',
-    clientKey: '123',
-    bootstrap: flags
-  }}>
-    {children}
-  </FlagProvider>
-);
+const Wrapper = ({ children, flags = defaultFlags }: { children: React.ReactNode, flags?: IConfig['bootstrap'] }) => {
+  const [isReady, setIsReady] = useState(false);
+  const scalprum = useRef(
+    initialize({
+      appsConfig: {
+        virtualAssistant: {
+          name: 'virtualAssistant',
+          manifestLocation: '/foo/bar.json',
+        },
+      },
+    })
+  );
+
+  useEffect(() => {
+    // mock the module
+    scalprum.current.exposedModules['virtualAssistant#state/globalState'] = {
+      default: {foo: 'bar'},
+      useVirtualAssistant: () => ([]),
+      Models: {}
+    };
+
+    setIsReady(true);
+    return () => {
+      removeScalprum();
+    };
+  }, []);
+
+  if (!isReady) {
+    return null;
+  }
+  return (
+    <ScalprumProvider scalprum={scalprum.current}>
+      <FlagProvider config={{
+        appName: 'test-app',
+        url: 'https://unleash.example.com/api/',
+        clientKey: '123',
+        bootstrap: flags
+      }}>
+        {children}  
+      </FlagProvider>
+    </ScalprumProvider>
+  );
+}
 
 describe('HelpPanel', () => {
   it('should display basic setup', () => {
