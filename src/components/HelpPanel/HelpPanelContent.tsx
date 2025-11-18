@@ -115,6 +115,7 @@ const HelpPanelContentWrapper = (props: { toggleDrawer: () => void }) => {
     {
       scope: 'virtualAssistant',
       module: './state/globalState',
+      importName: 'Models',
     },
     {}
   );
@@ -123,7 +124,7 @@ const HelpPanelContentWrapper = (props: { toggleDrawer: () => void }) => {
     return 'Loading...';
   }
 
-  const { Models } = module as { Models: ModelsType };
+  const Models = module as ModelsType;
 
   const [, setState] = hookResult || [];
   return (
