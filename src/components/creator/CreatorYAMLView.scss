@@ -1,4 +1,8 @@
 .lr-c-creator-yaml-view {
+  &__toolbar {
+    margin-bottom: var(--pf-v5-global--spacer--md);
+  }
+
   &__editor {
     height: 600px;
     max-height: 70vh;
