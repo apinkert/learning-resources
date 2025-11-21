@@ -1,0 +1,29 @@
+export const DEFAULT_QUICKSTART_YAML = `apiVersion: console.openshift.io/v1
+kind: QuickStarts
+metadata:
+  name: sample-interactive-quickstart
+spec:
+  version: 0.1
+  displayName: Sample Interactive QuickStart
+  durationMinutes: 10
+  type:
+    text: Quick start
+    color: green
+  icon: ~
+  description: >-
+    This is a sample description. This text appears on the card in the catalog.
+  introduction: |
+    Welcome to the tutorial!
+    This text appears in the side panel when you start the quick start.
+  tasks:
+    - title: First Task
+      description: |
+        This is the instruction for the first task.
+        1. Click on the "Home" button.
+        2. Navigate to the "Overview" page.
+      review:
+        instructions: |
+          Did you see the Overview page load?
+        failedTaskHelp: |
+          If the page didn't load, try refreshing.
+`;
