@@ -186,6 +186,39 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           {parseError}. Showing previous valid state in preview.
         </Alert>
       )}
+  const handleLoadSample = () => {
+    const currentContent = yamlContent.trim();
+
+    // If content exists and is not empty, confirm before overwriting
+    if (currentContent && currentContent !== '') {
+      const confirmed = window.confirm(
+        'This will overwrite your current work. Are you sure?'
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    setYamlContent(DEFAULT_QUICKSTART_YAML);
+  };
+
+  return (
+    <PageSection className="lr-c-creator-yaml-view">
+      <Flex
+        spaceItems={{ default: 'spaceItemsSm' }}
+        className="lr-c-creator-yaml-view__toolbar"
+      >
+        <FlexItem>
+          <Button
+            variant="secondary"
+            icon={<FileImportIcon />}
+            onClick={handleLoadSample}
+            size="sm"
+          >
+            Load Sample Template
+          </Button>
+        </FlexItem>
+      </Flex>
       <div className="lr-c-creator-yaml-view__editor">
         <Editor
           height="100%"
