@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PageSection, Alert } from '@patternfly/react-core';
+import { PageSection, Alert, Flex, FlexItem, Button } from '@patternfly/react-core';
+import { FileImportIcon } from '@patternfly/react-icons';
 import Editor from '@monaco-editor/react';
 import YAML from 'yaml';
 import { QuickStartSpec } from '@patternfly/quickstarts';
@@ -174,18 +175,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     parseAndUpdateQuickstart(DEFAULT_YAML);
   }, []);
 
-  return (
-    <PageSection className="lr-c-creator-yaml-view">
-      {parseError && (
-        <Alert
-          variant="warning"
-          title="YAML Parse Error"
-          className="pf-v6-u-mb-md"
-          isInline
-        >
-          {parseError}. Showing previous valid state in preview.
-        </Alert>
-      )}
   const handleLoadSample = () => {
     const currentContent = yamlContent.trim();
 
@@ -199,11 +188,21 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       }
     }
 
-    setYamlContent(DEFAULT_QUICKSTART_YAML);
+    setYamlContent(DEFAULT_YAML);
   };
 
   return (
     <PageSection className="lr-c-creator-yaml-view">
+      {parseError && (
+        <Alert
+          variant="warning"
+          title="YAML Parse Error"
+          className="pf-v6-u-mb-md"
+          isInline
+        >
+          {parseError}. Showing previous valid state in preview.
+        </Alert>
+      )}
       <Flex
         spaceItems={{ default: 'spaceItemsSm' }}
         className="lr-c-creator-yaml-view__toolbar"
