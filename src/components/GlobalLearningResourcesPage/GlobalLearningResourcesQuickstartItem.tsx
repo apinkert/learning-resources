@@ -1,5 +1,5 @@
 import React, { SyntheticEvent, useState } from 'react';
-import { QuickStart, QuickStartType } from '@patternfly/quickstarts';
+import { QuickStart } from '@patternfly/quickstarts';
 import {
   Button,
   Card,
@@ -40,10 +40,6 @@ const GlobalLearningResourcesQuickstartItem: React.FC<
     quickStart.spec.link?.href ?? 'https://console.redhat.com/'
   );
   const labelColor = quickStart.spec.type?.color;
-  const QUICK_START_TYPE: QuickStartType = {
-    text: 'Quick start',
-    color: 'green',
-  };
 
   // Helper function to check if this is a quickstart type (case-insensitive, space-insensitive)
   const isQuickstartType = (typeText?: string): boolean => {

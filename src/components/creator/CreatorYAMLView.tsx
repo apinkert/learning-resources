@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { PageSection, Alert, Flex, FlexItem, Button } from '@patternfly/react-core';
+import {
+  Alert,
+  Button,
+  Flex,
+  FlexItem,
+  PageSection,
+} from '@patternfly/react-core';
 import { FileImportIcon } from '@patternfly/react-icons';
 import Editor from '@monaco-editor/react';
 import YAML from 'yaml';
@@ -43,7 +49,6 @@ spec:
 `;
 
 const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
-  onChangeKind,
   onChangeQuickStartSpec,
   onChangeBundles,
   onChangeTags,
@@ -51,8 +56,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 }) => {
   const [yamlContent, setYamlContent] = useState<string>(DEFAULT_YAML);
   const [parseError, setParseError] = useState<string | null>(null);
-  const [lastValidQuickstart, setLastValidQuickstart] = useState<ExtendedQuickstart | null>(null);
-  
+
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const configureMonacoEnvironment = () => {
@@ -71,7 +75,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   const parseAndUpdateQuickstart = (content: string) => {
     try {
       const parsed = YAML.parse(content);
-      
+
       if (!parsed) {
         setParseError('Empty YAML content');
         return;
@@ -101,7 +105,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       };
 
       // Update state
-      setLastValidQuickstart(quickstart);
       setParseError(null);
 
       // Extract bundles and tags
@@ -140,7 +143,8 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
         onChangeQuickStartSpec(quickstart.spec);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Invalid YAML syntax';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Invalid YAML syntax';
       setParseError(errorMessage);
       // Keep using the last valid quickstart state on error
     }
