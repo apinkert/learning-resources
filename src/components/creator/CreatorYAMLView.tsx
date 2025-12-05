@@ -13,6 +13,7 @@ import { QuickStartSpec } from '@patternfly/quickstarts';
 import { ItemKind } from './meta';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 import './CreatorYAMLView.scss';
+import { DEFAULT_QUICKSTART_YAML } from '../../data/quickstart-templates';
 
 export type CreatorYAMLViewProps = {
   onChangeKind?: (newKind: ItemKind | null) => void;
@@ -22,39 +23,15 @@ export type CreatorYAMLViewProps = {
   onChangeMetadataTags?: (tags: Array<{ kind: string; value: string }>) => void;
 };
 
-const DEFAULT_YAML = `# YAML Quickstart Definition
-# Example structure:
-metadata:
-  tags:
-    - kind: bundle
-      value: application-services
-    - kind: product-families
-      value: ansible
-  name: test
-spec:
-  displayName: Test
-  description: "123"
-  type:
-    text: Quickstart
-    color: green
-  durationMinutes: 1
-  prerequisites:
-    - null
-  introduction: |-
-    # This is a test
-    - one
-  tasks:
-    - title: ""
-      description: First Task
-`;
-
 const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   onChangeQuickStartSpec,
   onChangeBundles,
   onChangeTags,
   onChangeMetadataTags,
 }) => {
-  const [yamlContent, setYamlContent] = useState<string>(DEFAULT_YAML);
+  const [yamlContent, setYamlContent] = useState<string>(
+    '# YAML Quickstart Definition\n# Start typing or paste your YAML here\n'
+  );
   const [parseError, setParseError] = useState<string | null>(null);
 
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -174,11 +151,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     };
   }, []);
 
-  // Parse initial YAML on mount
-  useEffect(() => {
-    parseAndUpdateQuickstart(DEFAULT_YAML);
-  }, []);
-
   const handleLoadSample = () => {
     const currentContent = yamlContent.trim();
 
@@ -192,7 +164,8 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       }
     }
 
-    setYamlContent(DEFAULT_YAML);
+    setYamlContent(DEFAULT_QUICKSTART_YAML);
+    parseAndUpdateQuickstart(DEFAULT_QUICKSTART_YAML);
   };
 
   return (
