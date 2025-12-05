@@ -159,7 +159,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       clearTimeout(debounceTimerRef.current);
     }
 
-    // Set new debounced update (400ms delay)
+    // Set new debounced update (200ms delay)
     debounceTimerRef.current = setTimeout(() => {
       parseAndUpdateQuickstart(content);
     }, 200);
