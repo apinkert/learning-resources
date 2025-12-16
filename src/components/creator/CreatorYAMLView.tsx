@@ -10,13 +10,11 @@ import { FileImportIcon } from '@patternfly/react-icons';
 import Editor from '@monaco-editor/react';
 import YAML from 'yaml';
 import { QuickStartSpec } from '@patternfly/quickstarts';
-import { ItemKind } from './meta';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 import './CreatorYAMLView.scss';
 import { DEFAULT_QUICKSTART_YAML } from '../../data/quickstart-templates';
 
 export type CreatorYAMLViewProps = {
-  onChangeKind?: (newKind: ItemKind | null) => void;
   onChangeQuickStartSpec?: (newValue: QuickStartSpec) => void;
   onChangeBundles?: (newValue: string[]) => void;
   onChangeTags?: (tags: { [kind: string]: string[] }) => void;

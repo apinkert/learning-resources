@@ -63,22 +63,17 @@ describe('CreatorYAMLView', () => {
 
   describe('YAML parsing and updates', () => {
     it('should call callbacks when valid YAML is entered', () => {
-      const onChangeKind = cy.stub().as('onChangeKind');
       const onChangeQuickStartSpec = cy.stub().as('onChangeQuickStartSpec');
       const onChangeBundles = cy.stub().as('onChangeBundles');
       const onChangeTags = cy.stub().as('onChangeTags');
 
       cy.mount(
         <CreatorYAMLView
-          onChangeKind={onChangeKind}
           onChangeQuickStartSpec={onChangeQuickStartSpec}
           onChangeBundles={onChangeBundles}
           onChangeTags={onChangeTags}
         />
       );
-
-      // Wait for initial parsing of default YAML
-      cy.wait(500);
 
       // Verify callbacks were called with initial values
       cy.get('@onChangeQuickStartSpec').should('have.been.called');
@@ -190,6 +185,9 @@ describe('CreatorYAMLView', () => {
 
       // Verify error is cleared
       cy.get('.pf-v6-c-alert[class*="warning"]').should('not.exist');
+    });
+  });
+
   describe('Load Sample Template feature', () => {
     it('should render the "Load Sample Template" button', () => {
       // Verify the button exists and has correct text

@@ -405,7 +405,6 @@ const CreatorWizard = ({
         </FormRenderer>
       ) : (
         <CreatorYAMLView
-          onChangeKind={onChangeKind}
           onChangeQuickStartSpec={onChangeQuickStartSpec}
           onChangeBundles={onChangeBundles}
           onChangeTags={onChangeTags}
