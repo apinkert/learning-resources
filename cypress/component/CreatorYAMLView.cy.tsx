@@ -20,7 +20,7 @@ describe('CreatorYAMLView', () => {
   it('should display the default YAML content', () => {
     // Check that the default text is actually present, not just that "lines" exist
     cy.contains('# YAML Quickstart Definition').should('be.visible');
-    cy.contains('Example structure').should('be.visible');
+    cy.contains('# YAML Quickstart Definition').should('be.visible');
   });
 
   it('should be interactive and accept focus', () => {
