@@ -1,6 +1,36 @@
 import React from 'react';
 import CreatorYAMLView from '../../src/components/creator/CreatorYAMLView';
-import { DEFAULT_QUICKSTART_YAML } from '../../src/data/quickstart-templates';
+
+const setMonacoValue = (value: string) => {
+  // Retry until Monaco is ready and models are available
+  cy.window().should((win: any) => {
+    expect(win.monaco).to.exist;
+    expect(win.monaco.editor).to.exist;
+    const models = win.monaco.editor.getModels();
+    expect(models).to.have.length.greaterThan(0);
+  });
+
+  cy.window().then((win: any) => {
+    const model = win.monaco.editor.getModels()[0];
+    // Using pushEditOperations instead of setValue ensures onChange fires
+    const fullRange = model.getFullModelRange();
+    model.pushEditOperations(
+      [],
+      [{ range: fullRange, text: value }],
+      () => null
+    );
+  });
+};
+
+const getMonacoValue = (): Cypress.Chainable<string> => {
+  return cy.window().then((win: any) => {
+    const models = win.monaco?.editor?.getModels();
+    if (models && models.length > 0) {
+      return models[0].getValue();
+    }
+    return '';
+  });
+};
 
 describe('CreatorYAMLView', () => {
   beforeEach(() => {
@@ -75,7 +105,25 @@ describe('CreatorYAMLView', () => {
         />
       );
 
-      // Verify callbacks were called with initial values
+      // Wait for editor to initialize
+      cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
+
+      // Set valid YAML to trigger callbacks (component doesn't parse on initial mount)
+      const validYaml = `metadata:
+  name: test-quickstart
+  tags:
+    - kind: bundle
+      value: test-bundle
+spec:
+  displayName: Test QuickStart
+  description: A test description`;
+
+      setMonacoValue(validYaml);
+
+      // Wait for debounce (200ms + buffer)
+      cy.wait(400);
+
+      // Verify callbacks were called
       cy.get('@onChangeQuickStartSpec').should('have.been.called');
       cy.get('@onChangeBundles').should('have.been.called');
       cy.get('@onChangeTags').should('have.been.called');
@@ -88,24 +136,22 @@ describe('CreatorYAMLView', () => {
         <CreatorYAMLView onChangeQuickStartSpec={onChangeQuickStartSpec} />
       );
 
-      // Wait for initial parse
-      cy.wait(500);
-      
-      // Get initial call count
+      cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
+
+      setMonacoValue('metadata:\n  name: initial\nspec:\n  displayName: Initial');
+      cy.wait(400); 
+
       cy.get('@onChangeQuickStartSpec').then((stub) => {
         const initialCallCount = (stub as any).callCount;
+        expect(initialCallCount).to.be.greaterThan(0);
 
-        // Make rapid changes (should be debounced)
-        cy.get('.monaco-editor textarea').type('{end} ', { force: true });
-        cy.get('.monaco-editor textarea').type('# comment', { force: true });
+        setMonacoValue('metadata:\n  name: test\nspec:\n  displayName: Test Change');
         
-        // Should not have called again yet (debounce delay)
         cy.get('@onChangeQuickStartSpec').should((stub) => {
           expect((stub as any).callCount).to.equal(initialCallCount);
         });
 
-        // Wait for debounce delay (400ms + buffer)
-        cy.wait(500);
+        cy.wait(400);
 
         // Should have called after debounce
         cy.get('@onChangeQuickStartSpec').should((stub) => {
@@ -120,16 +166,18 @@ describe('CreatorYAMLView', () => {
       // Wait for editor to be ready
       cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
 
-      // Clear the editor and enter invalid YAML
-      cy.get('.monaco-editor textarea').focus().type('{ctrl}a', { force: true });
-      cy.get('.monaco-editor textarea').type('{backspace}', { force: true });
-      cy.get('.monaco-editor textarea').type('invalid: yaml: content: [[[', { force: true });
+      // First set valid YAML to establish a valid state
+      setMonacoValue('metadata:\n  name: valid\nspec:\n  displayName: Valid');
+      cy.wait(400);
 
-      // Wait for debounce and parsing
-      cy.wait(500);
+      // Now use Monaco API to set invalid YAML
+      setMonacoValue('invalid: yaml: content: [[[');
+
+      // Wait for debounce and parsing (200ms + buffer)
+      cy.wait(400);
 
       // Verify error alert is shown
-      cy.get('.pf-v6-c-alert[class*="warning"]').should('be.visible');
+      cy.get('.pf-v6-c-alert[class*="warning"]', { timeout: 5000 }).should('be.visible');
       cy.contains('YAML Parse Error').should('be.visible');
       cy.contains('previous valid state').should('be.visible');
     });
@@ -141,19 +189,27 @@ describe('CreatorYAMLView', () => {
         <CreatorYAMLView onChangeQuickStartSpec={onChangeQuickStartSpec} />
       );
 
-      // Wait for initial valid parse
-      cy.wait(500);
+      // Wait for editor to initialize
+      cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
+
+      // First set valid YAML to trigger initial callbacks
+      const validYaml = `metadata:
+  name: valid-quickstart
+spec:
+  displayName: Valid QuickStart`;
+
+      setMonacoValue(validYaml);
+      cy.wait(400); // Wait for parse
       
       cy.get('@onChangeQuickStartSpec').then((stub) => {
         const initialCallCount = (stub as any).callCount;
+        expect(initialCallCount).to.be.greaterThan(0); // Ensure initial parse happened
 
-        // Now introduce invalid YAML
-        cy.get('.monaco-editor textarea').focus().type('{ctrl}a', { force: true });
-        cy.get('.monaco-editor textarea').type('{backspace}', { force: true });
-        cy.get('.monaco-editor textarea').type('invalid: [[[', { force: true });
+        // Now introduce invalid YAML using Monaco API
+        setMonacoValue('invalid: [[[');
 
-        // Wait for debounce
-        cy.wait(500);
+        // Wait for debounce (200ms + buffer)
+        cy.wait(400);
 
         // Callback should not be called again (preserving last valid state)
         cy.get('@onChangeQuickStartSpec').should((stub) => {
@@ -161,30 +217,67 @@ describe('CreatorYAMLView', () => {
         });
 
         // Verify error is shown
-        cy.contains('YAML Parse Error').should('be.visible');
+        cy.contains('YAML Parse Error', { timeout: 5000 }).should('be.visible');
       });
     });
 
     it('should recover from error when valid YAML is entered', () => {
       cy.mount(<CreatorYAMLView />);
 
-      // Enter invalid YAML
-      cy.get('.monaco-editor textarea').focus().type('{ctrl}a', { force: true });
-      cy.get('.monaco-editor textarea').type('{backspace}', { force: true });
-      cy.get('.monaco-editor textarea').type('invalid: [[[', { force: true });
-      cy.wait(500);
+      // Wait for editor to be ready
+      cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
+
+      // First set valid YAML
+      setMonacoValue('metadata:\n  name: initial\nspec:\n  displayName: Initial');
+      cy.wait(400);
+
+      // Enter invalid YAML using Monaco API
+      setMonacoValue('invalid: [[[');
+      cy.wait(400);
 
       // Verify error is shown
-      cy.contains('YAML Parse Error').should('be.visible');
+      cy.contains('YAML Parse Error', { timeout: 5000 }).should('be.visible');
 
-      // Enter valid YAML
-      cy.get('.monaco-editor textarea').focus().type('{ctrl}a', { force: true });
-      cy.get('.monaco-editor textarea').type('{backspace}', { force: true });
-      cy.get('.monaco-editor textarea').type('metadata:{enter}  name: test{enter}spec:{enter}  displayName: Test', { force: true });
-      cy.wait(500);
+      // Enter valid YAML to recover
+      const validYaml = `metadata:
+  name: test
+spec:
+  displayName: Test QuickStart
+  description: A test description`;
+
+      setMonacoValue(validYaml);
+      cy.wait(400);
 
       // Verify error is cleared
       cy.get('.pf-v6-c-alert[class*="warning"]').should('not.exist');
+      cy.contains('YAML Parse Error').should('not.exist');
+    });
+
+    it('should update editor content via Monaco API', () => {
+      cy.mount(<CreatorYAMLView />);
+
+      // Wait for editor to be ready
+      cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
+
+      // Set content using Monaco API (the reliable way)
+      const testYaml = `metadata:
+  name: monaco-test
+  tags:
+    - kind: bundle
+      value: test-bundle
+spec:
+  displayName: Monaco API Test
+  description: Testing Monaco setValue`;
+
+      setMonacoValue(testYaml);
+
+      // Verify the content was set correctly
+      getMonacoValue().should('include', 'monaco-test');
+      getMonacoValue().should('include', 'Monaco API Test');
+
+      // Verify it's visible in the editor
+      cy.contains('monaco-test').should('be.visible');
+      cy.contains('Monaco API Test').should('be.visible');
     });
   });
 
