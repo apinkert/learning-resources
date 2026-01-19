@@ -16,6 +16,7 @@
     "patch:hosts": "fec patch-etc-hosts",
     "start": "fec dev-proxy",
     "static": "fec static",
+    "test": "jest --passWithNoTests",
     "verify": "npm-run-all build lint test",
     "postinstall": "ts-patch install"
   },
