@@ -114,14 +114,22 @@ const SearchPanel = ({
 
   // Get current bundle context on component mount
   useEffect(() => {
-    // FIXME: Add missing type to the types lib
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const { bundleTitle: currentBundleTitle, bundleId: currentBundleId } =
-      chrome.getBundleData();
-    setBundleTitle(currentBundleTitle);
-    setBundleId(currentBundleId);
-  }, []);
+    const loadBundleData = async () => {
+      try {
+        // FIXME: Add missing type to the types lib
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const { bundleTitle: currentBundleTitle, bundleId: currentBundleId } =
+          chrome.getBundleData();
+        setBundleTitle(currentBundleTitle);
+        setBundleId(currentBundleId);
+      } catch (error) {
+        console.error('Failed to load bundle data:', error);
+      }
+    };
+
+    loadBundleData();
+  }, [chrome]);
 
   const isHomePage =
     !bundleTitle ||

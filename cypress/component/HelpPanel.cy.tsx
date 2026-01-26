@@ -12,6 +12,11 @@ const defaultFlags: IConfig['bootstrap'] = [{
       enabled: true,
       impressionData: false,
       variant: {name: 'disabled', enabled: false},
+    }, {
+      name: 'platform.chrome.help-panel_search',
+      enabled: true,
+      impressionData: false,
+      variant: {name: 'disabled', enabled: false},
     }]
 
 // Helper function to get message text for testing
@@ -309,4 +314,119 @@ describe('HelpPanel', () => {
       cy.get('.pf-v6-c-tabs__item').should('have.length', 2);
     });
   });
+
+  it('should display search tab when feature flag is enabled', () => {
+    const toggleDrawerSpy = cy.spy();
+    cy.stub(chrome, 'useChrome').returns({
+      getBundleData: () => ({
+        bundleId: 'rhel',
+        bundleTitle: 'RHEL',
+      }),
+    } as any);
+    cy.mount(
+      <Wrapper>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-search"]').should('be.visible');
+  });
+
+  it('should not display search tab when feature flag is disabled', () => {
+    const toggleDrawerSpy = cy.spy();
+    const disabledFlags = [
+      {
+        name: 'platform.chrome.help-panel_knowledge-base',
+        enabled: true,
+        impressionData: false,
+        variant: { name: 'disabled', enabled: false },
+      },
+      {
+        name: 'platform.chrome.help-panel_search',
+        enabled: false,
+        impressionData: false,
+        variant: { name: 'disabled', enabled: false },
+      },
+    ];
+
+    cy.stub(chrome, 'useChrome').returns({
+      getBundleData: () => ({
+        bundleId: 'rhel',
+        bundleTitle: 'RHEL',
+      }),
+    } as any);
+
+    cy.mount(
+      <Wrapper flags={disabledFlags}>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-search"]').should('not.exist');
+  });
+
+  it('should verify search tab accessibility and interactions', () => {
+    const toggleDrawerSpy = cy.spy();
+
+    cy.stub(chrome, 'useChrome').returns({
+      getBundleData: () => ({
+        bundleId: 'rhel',
+        bundleTitle: 'RHEL',
+      }),
+    } as any);
+
+    cy.mount(
+      <Wrapper>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-search"]').should('be.visible');
+    cy.get('[data-ouia-component-id="help-panel-subtab-search"]')
+      .should('have.attr', 'role', 'tab')
+      .should('have.attr', 'aria-selected');
+
+    cy.contains('Learn').click({ force: true });
+    cy.contains(getMessageText('learnPanelDescription'), { timeout: 10000 }).should('be.visible');
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-search"]').should('be.visible');
+  });
+
+  it('should click search tab and see search panel description', () => {
+    const toggleDrawerSpy = cy.spy();
+    cy.stub(chrome, 'useChrome').returns({
+      getBundleData: () => ({
+        bundleId: 'rhel',
+        bundleTitle: 'RHEL',
+      }),
+    } as any);
+
+    cy.intercept('GET', '/api/learning-resources/v1/quickstarts*', {
+      statusCode: 200,
+      body: [],
+    });
+
+    cy.intercept('GET', '/api/chrome-service/v1/static/api-specs-generated.json', {
+      statusCode: 200,
+      body: [],
+    });
+
+    cy.intercept('GET', '/api/chrome-service/v1/static/bundles-generated.json', {
+      statusCode: 200,
+      body: [],
+    });
+
+    cy.mount(
+      <Wrapper>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-search"]').should('be.visible');
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-search"]').click();
+
+    cy.contains(getMessageText('searchPanelDescription')).should('be.visible');
+  });
+
 });
