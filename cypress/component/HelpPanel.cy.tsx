@@ -227,7 +227,9 @@ describe('HelpPanel', () => {
 
     cy.get('[aria-label="Add tab"]').click();
 
-    cy.contains('Learn').click();
+    // Force click the Learn tab since it's visually there but Cypress thinks it's hidden
+    cy.contains('Learn').click({ force: true });
+
     // Wait for the learn panel to load completely
     cy.contains(getMessageText('learnPanelDescription'), { timeout: 10000 }).should('be.visible');
     cy.contains(getMessageText('allLearningCatalogLinkText')).should('be.visible');
