@@ -62,6 +62,25 @@ objects:
             - id: learningResourcesSettings
               title: Learning Resources
               href: /settings/learning-resources
+        - segmentId: learning-resources-global
+          position: 1000
+          bundleId: staging
+          navItems:
+            - id: globalLearningResourcesPage
+              title: Learning Resources
+              href: /learning-resources
+        - segmentId: learning-resources-creator
+          position: 2000
+          bundleId: staging
+          navItems:
+            - id: learningResourcesCreator
+              title: Learning Resources Creator
+              href: /learning-resources/creator
+              permissions:
+                - method: featureFlag
+                  args:
+                    - platform.chrome.quickstarts.creator
+                    - true
       module:
         manifestLocation: /apps/learning-resources/fed-mods.json
         modules:
