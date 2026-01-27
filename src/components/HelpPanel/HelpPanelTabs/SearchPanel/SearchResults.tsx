@@ -120,7 +120,9 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           {!isHomePage && bundleId && (
             <FlexItem>
               <ToggleGroup
-                aria-label="Filter search results by scope"
+                aria-label={intl.formatMessage(
+                  messages.searchScopeToggleAriaLabel
+                )}
                 data-ouia-component-id="help-panel-search-scope-toggle"
               >
                 <ToggleGroupItem

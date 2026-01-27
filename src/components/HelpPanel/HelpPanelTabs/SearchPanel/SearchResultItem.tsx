@@ -46,7 +46,7 @@ const SearchResultItem: React.FC<{
       const resourceName = result.id.replace('lr-', '');
       chrome.quickStarts.activateQuickstart(resourceName);
     } else if (result.url) {
-      window.open(result.url, '_blank');
+      window.open(result.url, '_blank', 'noopener,noreferrer');
     }
   };
 

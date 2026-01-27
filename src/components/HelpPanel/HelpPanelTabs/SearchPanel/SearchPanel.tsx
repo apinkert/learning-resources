@@ -120,13 +120,12 @@ const SearchPanel = ({
     { value: 'services', label: 'Services' },
     { value: 'documentation', label: 'Documentation' },
     { value: 'quickstart', label: 'Quick starts' },
-    { value: 'learning-paths', label: 'Learning paths' },
     { value: 'kb', label: 'Knowledgebase' },
     { value: 'api', label: 'API Documentation' },
     { value: 'support', label: 'Support cases' },
   ];
 
-  const debouncedSearchText = useDebounce(searchText, 300);
+  const debouncedSearchText = useDebounce(searchText, 500);
 
   // Client-side filtered results (no API call needed)
   const filteredSearchResults = useMemo(() => {
@@ -149,9 +148,6 @@ const SearchPanel = ({
             return result.type === 'support';
           case 'services':
             return result.type === 'service';
-          case 'learning-paths':
-            // This doesn't have direct mapping yet, but include for future
-            return false;
           default:
             return false;
         }

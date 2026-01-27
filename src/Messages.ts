@@ -201,6 +201,10 @@ const messages = defineMessages({
     id: 'helpPanel.recommendedContent.filterByScope',
     defaultMessage: 'Filter by scope',
   },
+  searchScopeToggleAriaLabel: {
+    id: 'helpPanel.search.scopeToggleAriaLabel',
+    defaultMessage: 'Filter search results by scope',
+  },
 });
 
 export default messages;

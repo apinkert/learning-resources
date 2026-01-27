@@ -199,6 +199,11 @@ const SubTabs = ({
                     : tab.title}
                 </TabTitleText>
               }
+              aria-label={
+                tab.icon && tab.tabType === TabType.search
+                  ? (tab.title as string)
+                  : undefined
+              }
               data-ouia-component-id={`help-panel-subtab-${tab.tabType}`}
             />
           ))}
