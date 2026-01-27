@@ -49,7 +49,10 @@ const SearchForm: React.FC<SearchFormProps> = ({
 }) => {
   const intl = useIntl();
 
-  const handleTextInputChange = (_e: unknown, value: string) => {
+  const handleTextInputChange = (
+    _event: React.FormEvent<HTMLInputElement>,
+    value: string
+  ) => {
     onSearchChange(value);
   };
 

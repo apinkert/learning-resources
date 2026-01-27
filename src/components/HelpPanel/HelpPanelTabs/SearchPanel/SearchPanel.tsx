@@ -16,13 +16,14 @@ import {
 } from '@patternfly/react-core';
 import { useIntl } from 'react-intl';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
+import Fuse from 'fuse.js';
 import messages from '../../../../Messages';
 import fetchAllData from '../../../../utils/fetchAllData';
 import {
   fetchBundleInfo,
   fetchBundles,
 } from '../../../../utils/fetchBundleInfoAPI';
-import { FiltersMetadata } from '../../../../utils/FiltersCategoryInterface';
+import { getBundleDisplayName } from '../../../../utils/bundleUtils';
 import SearchResultItem, { SearchResult } from './SearchResultItem';
 import SearchForm from './SearchForm';
 import SearchResults from './SearchResults';
@@ -44,40 +45,17 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
-// Fuzzy search helper
-const fuzzySearch = (query: string, text: string): number => {
-  if (!text || !query) return 0;
-
-  const queryLower = query.toLowerCase();
-  const textLower = text.toLowerCase();
-
-  // Exact match gets highest score
-  if (textLower.includes(queryLower)) return 100;
-
-  // Calculate fuzzy match score
-  let score = 0;
-  let queryIndex = 0;
-
-  for (let i = 0; i < textLower.length && queryIndex < queryLower.length; i++) {
-    if (textLower[i] === queryLower[queryIndex]) {
-      score += 1;
-      queryIndex++;
-    }
-  }
-
-  return queryIndex === queryLower.length
-    ? (score / queryLower.length) * 50
-    : 0;
-};
-
-// Bundle name mapping to get abbreviated names
-const getBundleDisplayName = (bundleValue: string): string => {
-  const fullName = FiltersMetadata[bundleValue];
-  if (!fullName)
-    return bundleValue.charAt(0).toUpperCase() + bundleValue.slice(1);
-
-  // Extract abbreviated name by taking the part before parentheses
-  return fullName.split(' (')[0];
+// Create Fuse.js search index for fuzzy searching
+const createSearchIndex = (data: SearchResult[]) => {
+  return new Fuse(data, {
+    keys: [
+      { name: 'title', weight: 1.0 },
+      { name: 'description', weight: 0.7 },
+      { name: 'tags', weight: 0.5 },
+    ],
+    threshold: 0.3,
+    includeScore: true,
+  });
 };
 
 const SearchPanel = ({
@@ -294,26 +272,15 @@ const SearchPanel = ({
         });
       });
 
-      // Apply fuzzy search scoring
-      const filteredResults = results
-        .map((result) => {
-          const titleScore = fuzzySearch(query, result.title);
-          const descriptionScore = fuzzySearch(query, result.description) * 0.7;
-          const tagsScore =
-            result.tags?.reduce(
-              (acc, tag) => acc + fuzzySearch(query, tag) * 0.5,
-              0
-            ) || 0;
+      // Apply Fuse.js fuzzy search
+      const fuse = createSearchIndex(results);
+      const searchResults = fuse.search(query);
 
-          const totalScore = titleScore + descriptionScore + tagsScore;
-
-          return {
-            ...result,
-            relevanceScore: totalScore,
-          };
-        })
-        .filter((result) => result.relevanceScore! > 0)
-        .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
+      // Convert Fuse.js results back to SearchResult format with scores
+      const filteredResults = searchResults.map((fuseResult) => ({
+        ...fuseResult.item,
+        relevanceScore: fuseResult.score ? (1 - fuseResult.score) * 100 : 0, // Convert Fuse score to 0-100 range
+      }));
 
       return filteredResults;
     } catch (error) {
@@ -331,7 +298,7 @@ const SearchPanel = ({
 
       // Filter by bundle if bundle toggle is active and not on home page
       if (activeToggle === 'bundle' && !isHomePage && bundleId) {
-        filteredResources = quickStarts.filter((resource) =>
+        filteredResources = filteredResources.filter((resource) =>
           resource.metadata.tags?.some(
             (tag) => tag.kind === 'bundle' && tag.value === bundleId
           )
@@ -469,10 +436,7 @@ const SearchPanel = ({
   };
 
   const handleToggleChange = (
-    _event:
-      | React.MouseEvent<MouseEvent>
-      | React.KeyboardEvent<Element>
-      | MouseEvent,
+    _event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
     isSelected: boolean,
     value: string
   ) => {

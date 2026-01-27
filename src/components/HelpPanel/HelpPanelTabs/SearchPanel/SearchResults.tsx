@@ -23,17 +23,7 @@ import { SearchIcon } from '@patternfly/react-icons';
 import { useIntl } from 'react-intl';
 import SearchResultItem, { SearchResult } from './SearchResultItem';
 import messages from '../../../../Messages';
-import { FiltersMetadata } from '../../../../utils/FiltersCategoryInterface';
-
-// Bundle name mapping to get abbreviated names
-const getBundleDisplayName = (bundleValue: string): string => {
-  const fullName = FiltersMetadata[bundleValue];
-  if (!fullName)
-    return bundleValue.charAt(0).toUpperCase() + bundleValue.slice(1);
-
-  // Extract abbreviated name by taking the part before parentheses
-  return fullName.split(' (')[0];
-};
+import { getBundleDisplayName } from '../../../../utils/bundleUtils';
 
 interface SearchResultsProps {
   searchText: string;
@@ -96,24 +86,20 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   }, [bundleFilteredResults, page, perPage]);
 
   const handleToggleChange = (
-    event:
-      | React.MouseEvent<MouseEvent>
-      | React.KeyboardEvent<Element>
-      | MouseEvent,
+    event: React.MouseEvent | React.KeyboardEvent | MouseEvent,
     isSelected: boolean,
     value: string
   ) => {
     if (isSelected) {
       setActiveToggle(value);
       // Reset to page 1 when toggle changes
-      onSetPage(
-        event as React.MouseEvent | React.KeyboardEvent | MouseEvent,
-        1
-      );
+      onSetPage(event, 1);
     }
   };
 
-  const displayBundleName = bundleId ? getBundleDisplayName(bundleId) : '';
+  const displayBundleName = bundleId
+    ? getBundleDisplayName(bundleId, { allowFallback: true })
+    : '';
 
   if (!searchText) {
     return null;

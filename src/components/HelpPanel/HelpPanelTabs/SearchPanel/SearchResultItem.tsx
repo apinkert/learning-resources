@@ -19,19 +19,8 @@ import {
 } from '@patternfly/react-icons';
 import { useIntl } from 'react-intl';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { FiltersMetadata } from '../../../../utils/FiltersCategoryInterface';
+import { getBundleDisplayName } from '../../../../utils/bundleUtils';
 import messages from '../../../../Messages';
-
-// Bundle name mapping to get abbreviated names
-const getBundleDisplayName = (bundleValue: string): string | null => {
-  const fullName = FiltersMetadata[bundleValue];
-  if (!fullName) {
-    return null; // Only show bundle tags that are explicitly mapped
-  }
-
-  // Extract abbreviated name by taking the part before parentheses
-  return fullName.split(' (')[0];
-};
 
 // Search result types
 export interface SearchResult {
@@ -172,7 +161,9 @@ const SearchResultItem: React.FC<{
             <FlexItem>
               <Flex spaceItems={{ default: 'spaceItemsXs' }}>
                 {result.bundleTags.map((tag, index: number) => {
-                  const displayName = getBundleDisplayName(tag);
+                  const displayName = getBundleDisplayName(tag, {
+                    allowFallback: false,
+                  });
                   if (!displayName) return null; // Hide unknown bundle tags
 
                   return (
