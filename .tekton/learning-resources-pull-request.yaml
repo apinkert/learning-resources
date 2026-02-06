@@ -41,7 +41,11 @@ spec:
   - name: chrome-port
     value: "9912"
   - name: unit-tests-script
-    value: ""
+    value: |
+      #!/bin/bash
+      set -ex
+
+      npm install
   - name: run-app-script
     value: |
       #!/bin/sh
@@ -56,13 +60,6 @@ spec:
       #!/bin/bash
       set -ex
 
-      # Clone repository for running tests
-      echo "Cloning repository..."
-      cd /tmp
-      git clone {{source_url}} test-repo
-      cd test-repo
-      git checkout {{revision}}
-
       echo "E2E_USER is ${E2E_USER}"
       getent hosts stage.foo.redhat.com
       timeout 120s bash -c 'until curl -k https://stage.foo.redhat.com:1337 > /dev/null 2>&1; do
@@ -71,14 +68,11 @@ spec:
       done'
       echo "Dev server ready!"
 
-      echo "Installing dependencies..."
-      npm install
-
       echo "Installing Playwright browsers..."
-      npx playwright install --with-deps
+      ./node_modules/.bin/playwright install --with-deps
 
       echo "Running Playwright tests ..."
-      npx playwright test
+      ./node_modules/.bin/playwright test
   - name: e2e-credentials-secret
     value: learning-resources-credentials-secret
   - name: frontend-proxy-routes-configmap
@@ -127,7 +121,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 1Gi
+            storage: 3Gi
       status: {}
   - name: git-auth
     secret:
