@@ -78,7 +78,11 @@ const GlobalLearningResourcesQuickstartItem: React.FC<
             if (isQuickstartType(quickStart.spec.type?.text)) {
               chrome.quickStarts.activateQuickstart(quickStart.metadata.name);
             } else {
-              window.open(quickStart.spec.link?.href, '_blank');
+              window.open(
+                quickStart.spec.link?.href,
+                '_blank',
+                'noopener,noreferrer'
+              );
             }
           }}
         >
