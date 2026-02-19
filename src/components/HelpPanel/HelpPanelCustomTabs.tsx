@@ -20,7 +20,11 @@ import './HelpPanelCustomTabs.scss';
 import HelpPanelTabContainer from './HelpPanelTabs/HelpPanelTabContainer';
 import { TabType } from './HelpPanelTabs/helpPanelTabsMapper';
 import { useFlag, useFlags } from '@unleash/proxy-client-react';
-import { ExternalLinkAltIcon, SearchIcon } from '@patternfly/react-icons';
+import {
+  ExternalLinkAltIcon,
+  OutlinedCommentsIcon,
+  SearchIcon,
+} from '@patternfly/react-icons';
 
 type TabDefinition = {
   id: string;
@@ -52,6 +56,12 @@ const subTabs: SubTab[] = [
     tabType: TabType.search,
     icon: <SearchIcon />,
     featureFlag: 'platform.chrome.help-panel_search',
+  },
+  {
+    title: 'Virtual Assistant',
+    tabType: TabType.va,
+    icon: <OutlinedCommentsIcon />,
+    featureFlag: 'platform.chrome.help-panel_chatbot',
   },
   {
     title: 'Learn',
@@ -193,17 +203,9 @@ const SubTabs = ({
               eventKey={tab.tabType}
               key={tab.tabType}
               title={
-                <TabTitleText>
-                  {tab.icon && tab.tabType === TabType.search
-                    ? tab.icon
-                    : tab.title}
-                </TabTitleText>
+                <TabTitleText>{tab.icon ? tab.icon : tab.title}</TabTitleText>
               }
-              aria-label={
-                tab.icon && tab.tabType === TabType.search
-                  ? (tab.title as string)
-                  : undefined
-              }
+              aria-label={tab.title as string}
               data-ouia-component-id={`help-panel-subtab-${tab.tabType}`}
             />
           ))}
