@@ -136,6 +136,13 @@ const messages = defineMessages({
     defaultMessage: 'Knowledge base',
   },
 
+  // Virtual Assistant Panel
+  virtualAssistantNotAvailable: {
+    id: 'helpPanel.va.notAvailable',
+    defaultMessage:
+      'Virtual Assistant is temporarily unavailable. Please try again later.',
+  },
+
   // Content Types
   contentTypeDocumentation: {
     id: 'helpPanel.contentType.documentation',

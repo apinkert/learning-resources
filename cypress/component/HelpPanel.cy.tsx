@@ -17,6 +17,11 @@ const defaultFlags: IConfig['bootstrap'] = [{
       enabled: true,
       impressionData: false,
       variant: {name: 'disabled', enabled: false},
+    }, {
+      name: 'platform.chrome.help-panel_chatbot',
+      enabled: true,
+      impressionData: false,
+      variant: {name: 'disabled', enabled: false},
     }]
 
 // Helper function to get message text for testing
@@ -434,6 +439,49 @@ describe('HelpPanel', () => {
     cy.get('[data-ouia-component-id="help-panel-subtab-search"]').click();
 
     cy.contains(getMessageText('searchPanelDescription')).should('be.visible');
+  });
+
+  it('should display virtual assistant tab when feature flag is enabled', () => {
+    const toggleDrawerSpy = cy.spy();
+    cy.mount(
+      <Wrapper>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').should('be.visible');
+  });
+
+  it('should not display virtual assistant tab when feature flag is disabled', () => {
+    const toggleDrawerSpy = cy.spy();
+    const disabledFlags = [
+      {
+        name: 'platform.chrome.help-panel_knowledge-base',
+        enabled: true,
+        impressionData: false,
+        variant: { name: 'disabled', enabled: false },
+      },
+      {
+        name: 'platform.chrome.help-panel_search',
+        enabled: true,
+        impressionData: false,
+        variant: { name: 'disabled', enabled: false },
+      },
+      {
+        name: 'platform.chrome.help-panel_chatbot',
+        enabled: false,
+        impressionData: false,
+        variant: { name: 'disabled', enabled: false },
+      },
+    ];
+
+    cy.mount(
+      <Wrapper flags={disabledFlags}>
+        <HelpPanel toggleDrawer={toggleDrawerSpy} />
+      </Wrapper>
+    );
+
+    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').should('not.exist');
   });
 
   it('should display Virtual Assistant tab and render VA Panel', () => {
