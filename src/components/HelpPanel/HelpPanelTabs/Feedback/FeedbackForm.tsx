@@ -166,7 +166,11 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
                 id="feedback-description-text"
                 autoResize
                 aria-label={intl.formatMessage(messages.feedbackAriaLabel)}
-                placeholder={intl.formatMessage(messages.feedbackPlaceholder)}
+                placeholder={intl.formatMessage(
+                  feedbackType === 'Bug'
+                    ? messages.bugReportPlaceholder
+                    : messages.feedbackPlaceholder
+                )}
               />
             </FormGroup>
           )}

@@ -296,6 +296,10 @@ const messages = defineMessages({
     id: 'helpPanel.feedback.placeholder',
     defaultMessage: 'Add your general feedback here',
   },
+  bugReportPlaceholder: {
+    id: 'helpPanel.feedback.bugReportPlaceholder',
+    defaultMessage: 'Share the details of the bug here',
+  },
   feedbackAriaLabel: {
     id: 'helpPanel.feedback.ariaLabel',
     defaultMessage: 'Feedback text',
