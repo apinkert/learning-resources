@@ -84,7 +84,6 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
     try {
       if (!isAvailable) {
         console.log('Submitting feedback only works in prod and stage');
-        onSubmit();
         return;
       }
 
