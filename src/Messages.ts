@@ -245,6 +245,11 @@ const messages = defineMessages({
     id: 'helpPanel.feedback.shareFeedback',
     defaultMessage: 'Share general feedback',
   },
+  shareFeedbackDescription: {
+    id: 'helpPanel.feedback.shareFeedbackDescription',
+    defaultMessage:
+      'Share your feedback with us! Do not include any personal information or other sensitive information.',
+  },
   shareFeedbackTabTitle: {
     id: 'helpPanel.feedback.shareFeedbackTabTitle',
     defaultMessage: 'Share feedback',
@@ -259,7 +264,8 @@ const messages = defineMessages({
   },
   describeBugUrgentCases: {
     id: 'helpPanel.feedback.describeBug',
-    defaultMessage: 'Describe the bug you encountered.',
+    defaultMessage:
+      'Describe the bug you encountered. Include where it is located and what action caused it. If this issue is urgent or blocking your workflow,',
   },
   openSupportCase: {
     id: 'helpPanel.feedback.openSupportCase',
@@ -282,18 +288,13 @@ const messages = defineMessages({
     id: 'helpPanel.feedback.shareYourFeedback',
     defaultMessage: 'Share your feedback',
   },
-  enterFeedback: {
-    id: 'helpPanel.feedback.enterFeedback',
-    defaultMessage: 'Enter your feedback',
-  },
   submitFeedback: {
     id: 'helpPanel.feedback.submitFeedback',
     defaultMessage: 'Submit feedback',
   },
-  describeReportBug: {
-    id: 'helpPanel.feedback.describeReportBug',
-    defaultMessage:
-      'Describe the bug you encountered. For urgent issues, please',
+  feedbackPlaceholder: {
+    id: 'helpPanel.feedback.placeholder',
+    defaultMessage: 'Add your general feedback here',
   },
   weNeverSharePersonalInformation: {
     id: 'helpPanel.feedback.weNeverShareInfo',
@@ -305,16 +306,17 @@ const messages = defineMessages({
   },
   informDirectionDescription: {
     id: 'helpPanel.feedback.informDirectionDescription',
-    defaultMessage: 'Our',
+    defaultMessage:
+      'By participating in feedback sessions, usability tests, and interviews with our',
   },
   userResearchTeam: {
     id: 'helpPanel.feedback.userResearchTeam',
-    defaultMessage: 'user research team',
+    defaultMessage: 'User Research Team',
   },
   directInfluence: {
     id: 'helpPanel.feedback.directInfluence',
     defaultMessage:
-      ' works with customers like you to have direct influence on our product roadmaps.',
+      ", your feedback will directly influence the future of Red Hat's products. Opt in below to hear about future research opportunities via email.",
   },
   feedbackSent: {
     id: 'helpPanel.feedback.feedbackSent',

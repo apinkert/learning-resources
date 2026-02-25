@@ -108,16 +108,16 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
         </>
       ) : (
         <>
-          {intl.formatMessage(messages.describeReportBug)}{' '}
+          {intl.formatMessage(messages.describeBugUrgentCases)}{' '}
           <Content
             component="a"
             href={SUPPORT_CASE_URL}
             target="_blank"
             rel="noreferrer"
           >
-            {intl.formatMessage(messages.openSupportCase)}{' '}
-            <ExternalLinkAltIcon />
+            {intl.formatMessage(messages.openSupportCaseText)}
           </Content>
+          .
         </>
       )}
     </Content>
@@ -197,7 +197,9 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
             }}
             onError={() => setModalPage('feedbackError')}
             modalTitle={intl.formatMessage(messages.shareFeedback)}
-            textareaLabel={intl.formatMessage(messages.enterFeedback)}
+            modalDescription={intl.formatMessage(
+              messages.shareFeedbackDescription
+            )}
             feedbackType="Feedback"
             checkboxDescription={intl.formatMessage(
               messages.researchOpportunities

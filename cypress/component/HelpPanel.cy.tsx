@@ -676,7 +676,6 @@ describe('HelpPanel', () => {
 
     // Should show the feedback form
     cy.contains(getMessageText('shareFeedback')).should('be.visible');
-    cy.contains(getMessageText('enterFeedback')).should('be.visible');
   });
 
   it('should handle feedback form interactions', () => {

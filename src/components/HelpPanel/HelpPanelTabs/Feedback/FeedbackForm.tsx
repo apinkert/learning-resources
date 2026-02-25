@@ -5,7 +5,6 @@ import {
   Button,
   Checkbox,
   Content,
-  ContentVariants,
   Flex,
   FlexItem,
   Form,
@@ -28,7 +27,6 @@ export type FeedbackFormProps = {
   onError: () => void;
   modalTitle: string;
   modalDescription?: string | ReactNode;
-  textareaLabel?: string;
   feedbackType: 'Feedback' | 'Bug' | '[Research Opportunities]';
   checkboxDescription: string;
   textAreaHidden?: boolean;
@@ -47,7 +45,6 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
   onError,
   modalTitle,
   modalDescription,
-  textareaLabel,
   feedbackType,
   checkboxDescription,
   textAreaHidden = false,
@@ -147,27 +144,24 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
           </Breadcrumb>
         </StackItem>
       )}
-      <StackItem>
-        <Content>
-          <Content component={ContentVariants.h2}>{modalTitle}</Content>
-          {modalDescription && <div>{modalDescription}</div>}
-        </Content>
-      </StackItem>
+      {modalDescription && (
+        <StackItem>
+          <Content component="p">{modalDescription}</Content>
+        </StackItem>
+      )}
 
       <StackItem>
         <Form>
           {!textAreaHidden && (
-            <FormGroup
-              label={textareaLabel}
-              fieldId="feedback-description-text"
-            >
+            <FormGroup fieldId="feedback-description-text">
               <TextArea
                 value={textAreaValue}
                 onChange={(_event, value) => setTextAreaValue(value)}
                 name="feedback-description-text"
                 id="feedback-description-text"
                 autoResize
-                aria-label={textareaLabel || 'Feedback text'}
+                aria-label="Feedback text"
+                placeholder={intl.formatMessage(messages.feedbackPlaceholder)}
               />
             </FormGroup>
           )}
