@@ -226,7 +226,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
               variant="primary"
               isDisabled={
                 feedbackType !== '[Research Opportunities]'
-                  ? textAreaValue.length <= 1
+                  ? textAreaValue.trim().length === 0
                   : !checked
               }
               isLoading={isSubmitting}
