@@ -226,6 +226,176 @@ const messages = defineMessages({
     id: 'helpPanel.search.scopeToggleAriaLabel',
     defaultMessage: 'Filter search results by scope',
   },
+
+  // Feedback Panel
+  feedback: {
+    id: 'helpPanel.feedback.title',
+    defaultMessage: 'Feedback',
+  },
+  tellAboutExperience: {
+    id: 'helpPanel.feedback.tellAboutExperience',
+    defaultMessage: 'Tell us about your experience',
+  },
+  helpUsImproveHCC: {
+    id: 'helpPanel.feedback.helpUsImprove',
+    defaultMessage:
+      'Help us improve the Red Hat Hybrid Cloud Console by sharing your experience. For urgent issues, open a support case.',
+  },
+  shareFeedback: {
+    id: 'helpPanel.feedback.shareFeedback',
+    defaultMessage: 'Share general feedback',
+  },
+  shareFeedbackTabTitle: {
+    id: 'helpPanel.feedback.shareFeedbackTabTitle',
+    defaultMessage: 'Share feedback',
+  },
+  howIsConsoleExperience: {
+    id: 'helpPanel.feedback.howIsExperience',
+    defaultMessage: 'What has your console experience been like so far?',
+  },
+  reportABug: {
+    id: 'helpPanel.feedback.reportBug',
+    defaultMessage: 'Report a bug',
+  },
+  describeBugUrgentCases: {
+    id: 'helpPanel.feedback.describeBug',
+    defaultMessage: 'Describe the bug you encountered.',
+  },
+  openSupportCase: {
+    id: 'helpPanel.feedback.openSupportCase',
+    defaultMessage: 'Open support case',
+  },
+  getSupport: {
+    id: 'helpPanel.feedback.getSupport',
+    defaultMessage: 'Get technical help from Red Hat Support.',
+  },
+  informRedhatDirection: {
+    id: 'helpPanel.feedback.informDirection',
+    defaultMessage: 'Inform the direction of Red Hat',
+  },
+  researchOpportunities: {
+    id: 'helpPanel.feedback.researchOpportunities',
+    defaultMessage:
+      'Learn about opportunities to share your feedback with our User Research Team.',
+  },
+  shareYourFeedback: {
+    id: 'helpPanel.feedback.shareYourFeedback',
+    defaultMessage: 'Share your feedback',
+  },
+  enterFeedback: {
+    id: 'helpPanel.feedback.enterFeedback',
+    defaultMessage: 'Enter your feedback',
+  },
+  submitFeedback: {
+    id: 'helpPanel.feedback.submitFeedback',
+    defaultMessage: 'Submit feedback',
+  },
+  describeReportBug: {
+    id: 'helpPanel.feedback.describeReportBug',
+    defaultMessage:
+      'Describe the bug you encountered. For urgent issues, please',
+  },
+  weNeverSharePersonalInformation: {
+    id: 'helpPanel.feedback.weNeverShareInfo',
+    defaultMessage: 'We never share your personal information.',
+  },
+  joinMailingList: {
+    id: 'helpPanel.feedback.joinMailingList',
+    defaultMessage: 'Join mailing list',
+  },
+  informDirectionDescription: {
+    id: 'helpPanel.feedback.informDirectionDescription',
+    defaultMessage: 'Our',
+  },
+  userResearchTeam: {
+    id: 'helpPanel.feedback.userResearchTeam',
+    defaultMessage: 'user research team',
+  },
+  directInfluence: {
+    id: 'helpPanel.feedback.directInfluence',
+    defaultMessage:
+      ' works with customers like you to have direct influence on our product roadmaps.',
+  },
+  feedbackSent: {
+    id: 'helpPanel.feedback.feedbackSent',
+    defaultMessage: 'Feedback shared successfully',
+  },
+  thankYouForFeedback: {
+    id: 'helpPanel.feedback.thankYouForFeedback',
+    defaultMessage:
+      'Thank you, we appreciate your feedback and will review it as soon as possible.',
+  },
+  bugReported: {
+    id: 'helpPanel.feedback.bugReported',
+    defaultMessage: 'Bug successfully reported',
+  },
+  responseSent: {
+    id: 'helpPanel.feedback.responseSent',
+    defaultMessage: "You've been added to the mailing list",
+  },
+  thankYouForInterest: {
+    id: 'helpPanel.feedback.thankYouForInterest',
+    defaultMessage:
+      "Thanks for expressing interest in user research with Red Hat. We'll send you an email if a study is occurring for which you'd be a good fit.",
+  },
+  somethingWentWrong: {
+    id: 'helpPanel.feedback.somethingWentWrong',
+    defaultMessage: 'Something went wrong',
+  },
+  problemProcessingRequest: {
+    id: 'helpPanel.feedback.problemProcessingRequest',
+    defaultMessage:
+      'We had a problem processing your request. You can reach out to',
+  },
+  redHatSupport: {
+    id: 'helpPanel.feedback.redHatSupport',
+    defaultMessage: 'Red Hat support',
+  },
+  submitOnlyInStageProd: {
+    id: 'helpPanel.feedback.submitOnlyInStageProd',
+    defaultMessage:
+      'Feedback can only be submitted in prod and stage environments.',
+  },
+  email: {
+    id: 'helpPanel.feedback.email',
+    defaultMessage: 'Email',
+  },
+  back: {
+    id: 'helpPanel.feedback.back',
+    defaultMessage: 'Back',
+  },
+  cancel: {
+    id: 'helpPanel.feedback.cancel',
+    defaultMessage: 'Cancel',
+  },
+  close: {
+    id: 'helpPanel.feedback.close',
+    defaultMessage: 'Close',
+  },
+  feedbackType: {
+    id: 'helpPanel.feedback.type.feedback',
+    defaultMessage: 'Feedback',
+  },
+  bugType: {
+    id: 'helpPanel.feedback.type.bug',
+    defaultMessage: 'Bug',
+  },
+  researchOpportunitiesType: {
+    id: 'helpPanel.feedback.type.researchOpportunities',
+    defaultMessage: '[Research Opportunities]',
+  },
+  openSupportCaseText: {
+    id: 'helpPanel.feedback.openSupportCaseText',
+    defaultMessage: 'open a support case',
+  },
+  shareMoreFeedback: {
+    id: 'helpPanel.feedback.shareMoreFeedback',
+    defaultMessage: 'Share more feedback',
+  },
+  breadcrumbShareFeedback: {
+    id: 'helpPanel.feedback.breadcrumbShareFeedback',
+    defaultMessage: 'Share feedback',
+  },
 });
 
 export default messages;
