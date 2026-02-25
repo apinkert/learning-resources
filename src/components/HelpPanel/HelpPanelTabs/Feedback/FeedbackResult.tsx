@@ -136,11 +136,9 @@ const FeedbackResult: React.FC<FeedbackResultProps> = ({
           </Dropdown>
         </div>
       )}
-      {!isSuccess && (
-        <Button variant="primary" onClick={onBack}>
-          {buttonText}
-        </Button>
-      )}
+      <Button variant="primary" onClick={onBack}>
+        {buttonText}
+      </Button>
     </div>
   );
 };

@@ -65,11 +65,16 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
       chrome.auth
         .getUser()
         .then((user) =>
-          setUserEmail(user?.identity?.user?.email || 'Unable to load email')
+          setUserEmail(
+            user?.identity?.user?.email ||
+              intl.formatMessage(messages.emailUnavailable)
+          )
         )
-        .catch(() => setUserEmail('Unable to load email'));
+        .catch(() =>
+          setUserEmail(intl.formatMessage(messages.emailUnavailable))
+        );
     } else if (checked) {
-      setUserEmail('Unable to load email');
+      setUserEmail(intl.formatMessage(messages.emailUnavailable));
     }
   }, [checked, chrome.auth]);
 
@@ -160,7 +165,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
                 name="feedback-description-text"
                 id="feedback-description-text"
                 autoResize
-                aria-label="Feedback text"
+                aria-label={intl.formatMessage(messages.feedbackAriaLabel)}
                 placeholder={intl.formatMessage(messages.feedbackPlaceholder)}
               />
             </FormGroup>
@@ -186,7 +191,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
           <Panel variant="raised">
             <PanelMain>
               <PanelMainBody className="pf-v6-u-py-sm">
-                {userEmail || 'Loading...'}
+                {userEmail || intl.formatMessage(messages.loadingEmail)}
               </PanelMainBody>
             </PanelMain>
           </Panel>

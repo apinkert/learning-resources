@@ -239,7 +239,7 @@ const messages = defineMessages({
   helpUsImproveHCC: {
     id: 'helpPanel.feedback.helpUsImprove',
     defaultMessage:
-      'Help us improve the Red Hat Hybrid Cloud Console by sharing your experience. For urgent issues, open a support case.',
+      'Help us improve the Red Hat Hybrid Cloud Console by sharing your experience. For urgent issues, {supportLink}.',
   },
   shareFeedback: {
     id: 'helpPanel.feedback.shareFeedback',
@@ -295,6 +295,18 @@ const messages = defineMessages({
   feedbackPlaceholder: {
     id: 'helpPanel.feedback.placeholder',
     defaultMessage: 'Add your general feedback here',
+  },
+  feedbackAriaLabel: {
+    id: 'helpPanel.feedback.ariaLabel',
+    defaultMessage: 'Feedback text',
+  },
+  emailUnavailable: {
+    id: 'helpPanel.feedback.emailUnavailable',
+    defaultMessage: 'Unable to load email',
+  },
+  loadingEmail: {
+    id: 'helpPanel.feedback.loadingEmail',
+    defaultMessage: 'Loading...',
   },
   weNeverSharePersonalInformation: {
     id: 'helpPanel.feedback.weNeverShareInfo',

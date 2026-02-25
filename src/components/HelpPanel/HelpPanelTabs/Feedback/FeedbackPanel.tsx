@@ -16,7 +16,7 @@ import {
   ExternalLinkAltIcon,
   RouteIcon,
 } from '@patternfly/react-icons';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import messages from '../../../../Messages';
 import { SubTabProps } from '../helpPanelTabsMapper';
 import FeedbackForm from './FeedbackForm';
@@ -134,23 +134,22 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
                   {intl.formatMessage(messages.tellAboutExperience)}
                 </Content>
                 <Content component="p">
-                  {
-                    intl
-                      .formatMessage(messages.helpUsImproveHCC)
-                      .split(
-                        intl.formatMessage(messages.openSupportCaseText)
-                      )[0]
-                  }
-                  <Content
-                    component="a"
-                    href={SUPPORT_CASE_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {intl.formatMessage(messages.openSupportCaseText)}
-                    <ExternalLinkAltIcon className="feedback-external-link-icon" />
-                  </Content>
-                  .
+                  <FormattedMessage
+                    {...messages.helpUsImproveHCC}
+                    values={{
+                      supportLink: (
+                        <Content
+                          component="a"
+                          href={SUPPORT_CASE_URL}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {intl.formatMessage(messages.openSupportCaseText)}
+                          <ExternalLinkAltIcon className="feedback-external-link-icon" />
+                        </Content>
+                      ),
+                    }}
+                  />
                 </Content>
               </Content>
             </StackItem>

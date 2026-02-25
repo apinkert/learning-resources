@@ -622,7 +622,7 @@ describe('HelpPanel', () => {
 
     // Verify feedback panel content is displayed
     cy.contains(getMessageText('tellAboutExperience')).should('be.visible');
-    cy.contains(getMessageText('helpUsImproveHCC')).should('be.visible');
+    cy.contains('Help us improve the Red Hat Hybrid Cloud Console by sharing your experience').should('be.visible');
   });
 
   it('should display feedback options and handle card interactions', () => {
