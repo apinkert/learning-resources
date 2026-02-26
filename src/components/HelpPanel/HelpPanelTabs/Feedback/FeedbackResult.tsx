@@ -2,17 +2,24 @@ import React, { ReactNode } from 'react';
 import {
   Button,
   Content,
-  ContentVariants,
   Dropdown,
   DropdownItem,
   DropdownList,
-  Icon,
+  EmptyState,
+  EmptyStateActions,
+  EmptyStateBody,
+  EmptyStateFooter,
   MenuToggle,
   MenuToggleElement,
+  Title,
 } from '@patternfly/react-core';
-import { CheckIcon, ExclamationTriangleIcon } from '@patternfly/react-icons';
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+} from '@patternfly/react-icons';
 import { useIntl } from 'react-intl';
 import messages from '../../../../Messages';
+import './FeedbackResult.scss';
 
 type ResultType = 'success' | 'error';
 
@@ -42,10 +49,7 @@ const FeedbackResult: React.FC<FeedbackResultProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
   const isSuccess = type === 'success';
-  const IconComponent = isSuccess ? CheckIcon : ExclamationTriangleIcon;
-  const iconColor = isSuccess
-    ? 'var(--pf-t--global--icon--color--status--success--default)'
-    : 'var(--pf-t--global--icon--color--status--danger--default)';
+  const IconComponent = isSuccess ? CheckCircleIcon : ExclamationTriangleIcon;
   const buttonText = isSuccess
     ? intl.formatMessage(messages.close)
     : intl.formatMessage(messages.back);
@@ -116,30 +120,41 @@ const FeedbackResult: React.FC<FeedbackResultProps> = ({
   );
 
   return (
-    <div className="pf-v6-u-text-align-center pf-v6-u-mt-lg">
-      <Icon size="lg" className="pf-v6-u-mb-md">
-        <IconComponent color={iconColor} />
-      </Icon>
-      <Content>
-        <Content component={ContentVariants.h2}>{title}</Content>
-        {renderDescription()}
-      </Content>
-      {isSuccess && (
-        <div className="pf-v6-u-mb-md">
-          <Dropdown
-            isOpen={isDropdownOpen}
-            onSelect={() => setIsDropdownOpen(false)}
-            onOpenChange={setIsDropdownOpen}
-            toggle={toggle}
-          >
-            <DropdownList>{dropdownItems}</DropdownList>
-          </Dropdown>
-        </div>
-      )}
-      <Button variant="primary" onClick={onBack}>
-        {buttonText}
-      </Button>
-    </div>
+    <EmptyState>
+      <IconComponent
+        size={72}
+        className="feedback-result-icon"
+        color={
+          isSuccess
+            ? 'var(--pf-t--global--icon--color--status--success--default)'
+            : 'var(--pf-t--global--icon--color--status--danger--default)'
+        }
+      />
+      <Title headingLevel="h2" size="lg">
+        {title}
+      </Title>
+      <EmptyStateBody>{renderDescription()}</EmptyStateBody>
+      <EmptyStateFooter>
+        {isSuccess ? (
+          <EmptyStateActions>
+            <Dropdown
+              isOpen={isDropdownOpen}
+              onSelect={() => setIsDropdownOpen(false)}
+              onOpenChange={setIsDropdownOpen}
+              toggle={toggle}
+            >
+              <DropdownList>{dropdownItems}</DropdownList>
+            </Dropdown>
+          </EmptyStateActions>
+        ) : (
+          <EmptyStateActions>
+            <Button variant="primary" onClick={onBack}>
+              {buttonText}
+            </Button>
+          </EmptyStateActions>
+        )}
+      </EmptyStateFooter>
+    </EmptyState>
   );
 };
 
