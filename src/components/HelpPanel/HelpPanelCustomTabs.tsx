@@ -84,6 +84,11 @@ const subTabs: SubTab[] = [
     tabTitle: 'Support',
     tabType: TabType.support,
   },
+  {
+    title: 'Feedback',
+    tabTitle: 'Share feedback',
+    tabType: TabType.feedback,
+  },
 ];
 
 // Helper function to get sub-tab title by TabType (intl optional for translatable titles)
