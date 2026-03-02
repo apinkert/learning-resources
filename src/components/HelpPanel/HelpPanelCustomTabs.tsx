@@ -3,6 +3,7 @@ import {
   Tab,
   TabTitleText,
   Tabs,
+  Tooltip,
   debounce,
 } from '@patternfly/react-core';
 import React, {
@@ -183,6 +184,7 @@ const SubTabs = ({
   activeSubTabKey: TabType;
   setActiveSubTabKey: (key: TabType) => void;
 }>) => {
+  const intl = useIntl();
   const flags = useFlags();
   const filteredSubTabs = useMemo(() => {
     return subTabs.filter((tab) => {
@@ -224,19 +226,21 @@ const SubTabs = ({
             />
           ))}
           {showStatusPageButton && (
-            <Button
-              variant="link"
-              component="a"
-              href="https://status.redhat.com/"
-              target="_blank"
-              isInline
-              className="pf-v6-u-font-size-sm pf-v6-u-font-weight-normal pf-v6-u-ml-md lr-c-status-page-button"
-              icon={<ExternalLinkAltIcon />}
-              iconPosition="end"
-              data-ouia-component-id="help-panel-status-page-subtabs-button"
-            >
-              Red Hat status page
-            </Button>
+            <Tooltip content={intl.formatMessage(messages.statusPageTooltip)}>
+              <Button
+                variant="link"
+                component="a"
+                href="https://status.redhat.com/"
+                target="_blank"
+                isInline
+                className="lr-c-status-page-button"
+                icon={<ExternalLinkAltIcon />}
+                iconPosition="end"
+                data-ouia-component-id="help-panel-status-page-subtabs-button"
+              >
+                {intl.formatMessage(messages.statusPage)}
+              </Button>
+            </Tooltip>
           )}
         </>
       </Tabs>
