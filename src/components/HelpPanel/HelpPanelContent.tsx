@@ -57,7 +57,7 @@ const HelpPanelContent = ({
               iconPosition="end"
               data-ouia-component-id="help-panel-status-page-header-button"
             >
-              {intl.formatMessage(messages.redHatStatusPage)}
+              {intl.formatMessage(messages.statusPage)}
             </Button>
           )}
         </Title>

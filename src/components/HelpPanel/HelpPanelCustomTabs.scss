@@ -128,7 +128,18 @@
   }
 }
 
-// Align Red Hat status page button with tabs
+// Status page button styling
 .lr-c-status-page-button {
   transform: translateY(8px) !important;
+  font-size: var(--pf-t--global--font--size--xs) !important;
+  font-weight: var(--pf-t--global--font--weight--normal) !important;
+  margin-left: var(--pf-t--global--spacer--sm) !important;
+  padding: var(--pf-t--global--spacer--xs) !important;
+}
+
+// Prevent horizontal overflow in subtabs by hiding overflow scrollbars
+[data-ouia-component-id="help-panel-subtabs"] {
+  .pf-v6-c-tabs__scroll-button {
+    display: none !important;
+  }
 }
