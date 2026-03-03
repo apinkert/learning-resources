@@ -1,0 +1,621 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Documentation/Storybook Guide" />
+
+# Help Panel Storybook Guide
+
+This guide explains how to create effective Storybook stories for Help Panel components and best practices for documenting the contextual help system.
+
+## 🎨 What Makes This Storybook Special
+
+### Help Panel Focus
+- **Contextual Stories** - Stories that demonstrate components in realistic application contexts
+- **Interactive Learning Flows** - Complete user journeys from discovery to completion
+- **Multi-State Testing** - Components tested across different user permissions and contexts
+- **Responsive Testing** - Help panel behavior across different screen sizes
+
+### Enhanced Development Experience
+- **MSW Integration** - Realistic API responses for learning resources
+- **Context Simulation** - Test components in different bundle contexts (Insights, Automation, etc.)
+- **Permission Testing** - Validate component behavior for different user roles
+- **Internationalization Testing** - All text content properly localized
+
+## 🎯 Story Development Best Practices
+
+### **Focus on User Journeys**
+
+Help Panel stories should demonstrate complete user workflows:
+
+```typescript
+// ✅ Good: User journey focused
+export const LearnTabDiscoveryFlow: Story = {
+  name: 'Discovery to Learning Flow',
+  parameters: {
+    docs: {
+      description: {
+        story: `
+          Demonstrates the complete user journey from discovering learning resources
+          to interacting with content in the Learn tab.
+        `
+      }
+    }
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // User opens help panel
+    await userEvent.click(canvas.getByLabelText('Open help panel'));
+
+    // User explores content filters
+    await userEvent.click(canvas.getByLabelText('Content type'));
+    await userEvent.click(canvas.getByText('Quick starts'));
+
+    // User bookmarks a resource
+    await userEvent.click(canvas.getByLabelText(/bookmark.*getting started/i));
+
+    // User opens the resource
+    await userEvent.click(canvas.getByText('Getting Started with Red Hat Insights'));
+  }
+};
+```
+
+### **Context-Aware Testing**
+
+```typescript
+// Test components in different application contexts
+export const InsightsContext: Story = {
+  args: {
+    bundleName: 'Red Hat Insights'
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        // Mock API with Insights-specific content
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          return HttpResponse.json(insightsLearningResources);
+        })
+      ]
+    }
+  }
+};
+
+export const AutomationContext: Story = {
+  args: {
+    bundleName: 'Red Hat Ansible Automation Platform'
+  },
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          return HttpResponse.json(automationLearningResources);
+        })
+      ]
+    }
+  }
+};
+```
+
+### **Realistic Data Patterns**
+
+```typescript
+// Use realistic, comprehensive test data
+const mockLearningResources: ExtendedQuickstart[] = [
+  {
+    apiVersion: 'console.openshift.io/v1',
+    kind: 'ConsoleQuickStart',
+    metadata: {
+      name: 'getting-started-insights',
+      favorite: false,
+      tags: [
+        { kind: 'bundle', value: 'insights' },
+        { kind: 'application', value: 'dashboard' }
+      ]
+    },
+    spec: {
+      displayName: 'Getting Started with Red Hat Insights',
+      durationMinutes: 10,
+      description: 'Learn the basics of Red Hat Insights...',
+      type: { text: 'Quick start' },
+      tasks: [
+        {
+          title: 'Explore the Dashboard',
+          description: 'Get familiar with the main dashboard interface.'
+        }
+      ]
+    }
+  }
+  // Include multiple resource types, different states, edge cases
+];
+```
+
+## 🧪 Interactive Testing Strategies
+
+### **MSW API Mocking**
+
+```typescript
+// Comprehensive API mocking for realistic testing
+const handlers = [
+  // Learning resources endpoint
+  http.get('/api/quickstarts/v1/quickstarts', () => {
+    return HttpResponse.json(mockLearningResources);
+  }),
+
+  // User progress tracking
+  http.get('/api/quickstarts/v1/progress/:user', ({ params }) => {
+    return HttpResponse.json({
+      [params.user]: {
+        'getting-started-insights': {
+          status: 'In Progress',
+          taskNumber: 2
+        }
+      }
+    });
+  }),
+
+  // Bookmark management
+  http.post('/api/quickstarts/v1/favorites', async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      success: true,
+      quickstartName: body.quickstartName,
+      favorite: body.favorite
+    });
+  }),
+
+  // Error scenarios
+  http.get('/api/quickstarts/v1/quickstarts', () => {
+    return new HttpResponse(null, { status: 500 });
+  }, { once: true })
+];
+```
+
+### **Permission-Based Testing**
+
+```typescript
+// Test components with different user permission sets
+export const AdminUser: Story = {
+  parameters: {
+    permissions: ['learning-resources:*:*', 'insights:*:*'],
+    userIdentity: {
+      user: {
+        is_org_admin: true,
+        username: 'admin@example.com'
+      }
+    }
+  }
+};
+
+export const ReadOnlyUser: Story = {
+  parameters: {
+    permissions: ['learning-resources:read'],
+    userIdentity: {
+      user: {
+        is_org_admin: false,
+        username: 'viewer@example.com'
+      }
+    }
+  }
+};
+```
+
+### **State Management Testing**
+
+```typescript
+// Test bookmark state changes
+export const BookmarkInteraction: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Initial state: resource not bookmarked
+    const bookmarkBtn = canvas.getByLabelText(/bookmark.*getting started/i);
+    expect(bookmarkBtn).toHaveAttribute('aria-pressed', 'false');
+
+    // User bookmarks the resource
+    await userEvent.click(bookmarkBtn);
+
+    // Wait for API call and state update
+    await waitFor(() => {
+      expect(bookmarkBtn).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    // Test bookmark filter
+    await userEvent.click(canvas.getByLabelText('Show bookmarked only'));
+
+    // Verify only bookmarked items are shown
+    await waitFor(() => {
+      expect(canvas.getByText('Getting Started with Red Hat Insights')).toBeInTheDocument();
+      expect(canvas.queryByText('Advanced Configuration Guide')).not.toBeInTheDocument();
+    });
+  }
+};
+```
+
+## 🎨 Visual Design Testing
+
+### **Responsive Behavior**
+
+```typescript
+// Test help panel across different screen sizes
+export const MobileView: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1'
+    },
+    docs: {
+      description: {
+        story: 'Help panel optimized for mobile devices with touch-friendly interactions.'
+      }
+    }
+  }
+};
+
+export const TabletView: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'tablet'
+    }
+  }
+};
+```
+
+### **Theme Testing**
+
+```typescript
+// Test with different backgrounds and themes
+export const DarkBackground: Story = {
+  parameters: {
+    backgrounds: {
+      default: 'dark'
+    }
+  }
+};
+
+export const LightBackground: Story = {
+  parameters: {
+    backgrounds: {
+      default: 'light'
+    }
+  }
+};
+```
+
+## 📱 Accessibility Testing
+
+### **Keyboard Navigation**
+
+```typescript
+export const KeyboardNavigation: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Test tab navigation through help panel
+    await userEvent.keyboard('{Tab}');
+    expect(canvas.getByLabelText('Content type')).toHaveFocus();
+
+    await userEvent.keyboard('{Tab}');
+    expect(canvas.getByLabelText('Show bookmarked only')).toHaveFocus();
+
+    // Test keyboard activation
+    await userEvent.keyboard('{Enter}');
+    // Verify bookmark filter was activated
+  }
+};
+```
+
+### **Screen Reader Testing**
+
+```typescript
+export const ScreenReaderExperience: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+          Tests the help panel experience for screen reader users:
+          - Proper heading structure
+          - ARIA labels and descriptions
+          - Live regions for dynamic content updates
+          - Semantic markup for lists and navigation
+        `
+      }
+    }
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Verify semantic structure
+    expect(canvas.getByRole('main')).toBeInTheDocument();
+    expect(canvas.getByRole('navigation')).toBeInTheDocument();
+    expect(canvas.getByRole('list', { name: /learning resources/i })).toBeInTheDocument();
+
+    // Test live region updates
+    await userEvent.click(canvas.getByLabelText('Content type'));
+    await userEvent.click(canvas.getByText('Quick starts'));
+
+    const liveRegion = canvas.getByRole('status');
+    await waitFor(() => {
+      expect(liveRegion).toHaveTextContent(/learning resources.*updated/i);
+    });
+  }
+};
+```
+
+## 🔄 State and Error Testing
+
+### **Loading States**
+
+```typescript
+export const LoadingState: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', async () => {
+          // Simulate slow API response
+          await delay(3000);
+          return HttpResponse.json(mockLearningResources);
+        })
+      ]
+    }
+  }
+};
+```
+
+### **Error Scenarios**
+
+```typescript
+export const APIError: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          return new HttpResponse(null, { status: 500 });
+        })
+      ]
+    },
+    docs: {
+      description: {
+        story: 'Tests help panel behavior when the learning resources API is unavailable.'
+      }
+    }
+  }
+};
+
+export const EmptyState: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          return HttpResponse.json([]);
+        })
+      ]
+    }
+  }
+};
+```
+
+### **Edge Cases**
+
+```typescript
+export const VeryLongResourceNames: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          return HttpResponse.json([
+            {
+              ...mockQuickStart,
+              spec: {
+                ...mockQuickStart.spec,
+                displayName: 'This is an extremely long learning resource title that should test text wrapping and truncation behavior in the help panel interface'
+              }
+            }
+          ]);
+        })
+      ]
+    }
+  }
+};
+```
+
+## 📝 Documentation Best Practices
+
+### **Component Props Documentation**
+
+```typescript
+interface LearnPanelProps {
+  /**
+   * Callback function called when the help panel title should be updated.
+   * This is used to communicate with the parent help panel container.
+   *
+   * @param title - The new title to display in the help panel header
+   * @example
+   * ```typescript
+   * const handleTitleUpdate = (title: string) => {
+   *   console.log(`Help panel title updated to: ${title}`);
+   * };
+   *
+   * <LearnPanel setNewActionTitle={handleTitleUpdate} />
+   * ```
+   */
+  setNewActionTitle: (title: string) => void;
+}
+```
+
+### **Usage Examples**
+
+```typescript
+export const BasicUsage: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+          Basic usage of the Learn Panel within a help panel context:
+
+          \`\`\`typescript
+          import { LearnPanel } from './LearnPanel';
+
+          function HelpPanel() {
+            const [title, setTitle] = useState('Learn');
+
+            return (
+              <div>
+                <h2>{title}</h2>
+                <LearnPanel setNewActionTitle={setTitle} />
+              </div>
+            );
+          }
+          \`\`\`
+        `
+      }
+    }
+  }
+};
+```
+
+## 🚀 Performance Testing
+
+### **Large Data Sets**
+
+```typescript
+export const LargeResourceList: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          // Generate 100+ learning resources to test pagination and performance
+          const resources = Array.from({ length: 150 }, (_, i) => ({
+            ...mockQuickStart,
+            metadata: {
+              ...mockQuickStart.metadata,
+              name: `resource-${i}`,
+            },
+            spec: {
+              ...mockQuickStart.spec,
+              displayName: `Learning Resource ${i + 1}`
+            }
+          }));
+          return HttpResponse.json(resources);
+        })
+      ]
+    }
+  }
+};
+```
+
+### **Memory Leak Testing**
+
+```typescript
+export const RepeatedInteractions: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Simulate repeated user interactions to test for memory leaks
+    for (let i = 0; i < 10; i++) {
+      // Open and close filters
+      await userEvent.click(canvas.getByLabelText('Content type'));
+      await userEvent.click(canvas.getByText('Quick starts'));
+      await userEvent.keyboard('{Escape}');
+
+      // Toggle bookmarks
+      await userEvent.click(canvas.getByLabelText('Show bookmarked only'));
+      await userEvent.click(canvas.getByLabelText('Show bookmarked only'));
+    }
+  }
+};
+```
+
+## 🎭 Advanced Story Patterns
+
+### **Story Composition**
+
+```typescript
+// Base story for common setup
+const BaseLearnPanel: Story = {
+  args: {
+    bundleName: 'Red Hat Insights'
+  },
+  parameters: {
+    msw: {
+      handlers: defaultHandlers
+    }
+  }
+};
+
+// Compose specialized stories
+export const WithManyBookmarks: Story = {
+  ...BaseLearnPanel,
+  parameters: {
+    ...BaseLearnPanel.parameters,
+    msw: {
+      handlers: [
+        ...defaultHandlers,
+        // Override favorites endpoint
+        http.get('/api/quickstarts/v1/favorites', () => {
+          return HttpResponse.json(['resource-1', 'resource-2', 'resource-3']);
+        })
+      ]
+    }
+  }
+};
+```
+
+### **Cross-Component Testing**
+
+```typescript
+export const HelpPanelIntegration: Story = {
+  render: () => (
+    <HelpPanelCustomTabs>
+      {/* Test LearnPanel within full help panel context */}
+    </HelpPanelCustomTabs>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Test tab switching to Learn panel
+    await userEvent.click(canvas.getByRole('tab', { name: 'Learn' }));
+
+    // Test that Learn panel content is loaded
+    expect(canvas.getByText(/find product documentation/i)).toBeInTheDocument();
+  }
+};
+```
+
+## 📋 Story Checklist
+
+Before submitting a Help Panel story, ensure:
+
+### ✅ **Functionality**
+- [ ] Component renders without errors
+- [ ] All interactive elements work as expected
+- [ ] API integration is properly mocked
+- [ ] Error states are handled gracefully
+
+### ✅ **Accessibility**
+- [ ] Keyboard navigation works correctly
+- [ ] Screen reader experience is optimized
+- [ ] Color contrast meets WCAG standards
+- [ ] Focus management is appropriate
+
+### ✅ **User Experience**
+- [ ] Realistic user scenarios are covered
+- [ ] Loading and error states are included
+- [ ] Responsive behavior is tested
+- [ ] Performance is acceptable with large datasets
+
+### ✅ **Documentation**
+- [ ] Component purpose is clearly explained
+- [ ] Usage examples are provided
+- [ ] Props are fully documented
+- [ ] Edge cases are noted
+
+## 🎯 Future Enhancements
+
+### **Planned Improvements**
+- **Visual Regression Testing** - Automated screenshot comparison
+- **Performance Profiling** - Built-in performance metrics in stories
+- **Accessibility Scoring** - Automated accessibility audits
+- **User Journey Analytics** - Track story interaction patterns
+
+### **Advanced Testing**
+- **Cross-Browser Testing** - Automated testing across browsers
+- **Internationalization Testing** - Multi-language story variations
+- **Feature Flag Testing** - Dynamic feature toggling in stories

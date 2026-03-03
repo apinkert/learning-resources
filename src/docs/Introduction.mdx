@@ -1,0 +1,148 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Documentation/Introduction" />
+
+# Welcome to Help Panel Storybook
+
+Welcome to the **Red Hat Console Help Panel UI** component library! This Storybook showcases all the components, design patterns, and documentation for the contextual help and learning system.
+
+## 🎯 What is the Help Panel?
+
+The Help Panel is a comprehensive assistance system that provides users with contextual help, learning resources, and support options directly within the Red Hat Console interface. It includes:
+
+- **Learn Tab** - Access to learning resources, quick starts, and documentation
+- **Search Functionality** - Find relevant help content across all Red Hat services
+- **API Documentation** - Interactive API documentation and examples
+- **Support Integration** - Direct access to support resources and ticket creation
+- **Feedback System** - Collect user feedback and improve the experience
+
+## 🏗️ Architecture Overview
+
+The Help Panel is built with modern React patterns and integrates seamlessly with the Red Hat Console platform:
+
+### Key Technologies
+- **React** with functional components and hooks
+- **PatternFly 6** for design system and components
+- **React Intl** for internationalization
+- **MSW (Mock Service Worker)** for API mocking in Storybook
+- **TypeScript** for type safety
+- **Storybook v9** for component development and documentation
+
+### Integration Points
+- **Red Hat Console Chrome** - Platform integration and navigation
+- **Learning Resources API** - Quick starts, tutorials, and documentation
+- **User Preferences** - Bookmark management and personalization
+- **Analytics** - User behavior tracking and optimization
+- **Feature Flags (Unleash)** - Conditional feature rendering
+
+## 📚 How to Use This Storybook
+
+### 🎨 Component Stories
+Browse through our components organized by category:
+- **Help Panel Components** - Core help panel functionality
+- **Learning Components** - Educational content and interactions
+- **User Journey Stories** - Complete user workflows and scenarios
+
+### 🔧 Interactive Controls
+Most stories include interactive controls that let you:
+- Toggle different content types and filters
+- Test bookmark functionality
+- Experiment with different application contexts
+- Simulate various user permission levels
+
+### 📖 Documentation
+Each component includes:
+- **Props Documentation** - Complete prop specifications
+- **Usage Examples** - Real-world implementation patterns
+- **Accessibility Notes** - WCAG compliance and keyboard navigation
+- **Design Guidelines** - Visual design principles and usage rules
+
+## 🎨 Design Principles
+
+### Contextual Relevance
+- Content is filtered based on current application context
+- Learning resources adapt to user's current workflow
+- Help suggestions are relevant to the active page or feature
+
+### Progressive Disclosure
+- Information is presented in digestible layers
+- Quick access to essential help with details on demand
+- Advanced options available for power users
+
+### Accessibility First
+- Full keyboard navigation support
+- Screen reader compatibility with proper ARIA labels
+- High contrast mode support
+- Responsive design for all screen sizes
+
+## 🚀 Getting Started
+
+### Development Workflow
+1. **Browse Components** - Explore existing help panel components
+2. **Understand Patterns** - Review established design patterns
+3. **Create Stories** - Document new components with comprehensive stories
+4. **Test Interactions** - Use interactive controls to test component behavior
+
+### Key Components
+- **Learn Panel** - Main learning resource interface
+- **Search Panel** - Content discovery and search functionality
+- **Help Panel Tabs** - Tab navigation and organization
+- **Content Filters** - Dynamic content filtering and organization
+
+## 🧩 Component Organization
+
+### Core Components
+- **HelpPanelCustomTabs** - Main help panel container with tab navigation
+- **LearnPanel** - Learning resources discovery and management
+- **SearchPanel** - Help content search and discovery
+
+### Supporting Components
+- **Content Type Filters** - Filter learning resources by type
+- **Bookmark Management** - Save and organize favorite resources
+- **Resource Cards** - Display individual learning items
+
+## 📱 Responsive Design
+
+The Help Panel is designed to work across all device sizes:
+- **Desktop** - Full-featured panel with rich interactions
+- **Tablet** - Optimized touch interactions and simplified navigation
+- **Mobile** - Streamlined interface with essential functionality
+
+## 🔍 Testing & Quality
+
+### Story Testing
+- **Interactive Stories** - Test component behavior with real data
+- **Mock API Integration** - Realistic API responses using MSW
+- **Accessibility Testing** - Built-in accessibility validation
+- **Visual Regression** - Ensure consistent visual appearance
+
+### User Experience Testing
+- **User Journey Stories** - Complete workflow validation
+- **Context Switching** - Test behavior across different applications
+- **Permission Testing** - Validate behavior for different user roles
+
+## 💡 Best Practices
+
+### Story Development
+- Focus on realistic user scenarios
+- Include comprehensive prop documentation
+- Test edge cases and error states
+- Provide clear usage examples
+
+### Component Design
+- Follow PatternFly design patterns
+- Ensure keyboard accessibility
+- Support internationalization
+- Optimize for performance
+
+## 🤝 Contributing
+
+When developing Help Panel components:
+1. **Start with Stories** - Document the component behavior first
+2. **Test Thoroughly** - Include all interaction states and edge cases
+3. **Follow Patterns** - Use established design and code patterns
+4. **Document Well** - Provide clear examples and usage guidelines
+
+---
+
+**Ready to explore?** Start with the component stories to see the Help Panel in action, or dive into the documentation to understand the underlying architecture and patterns.
