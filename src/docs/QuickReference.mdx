@@ -1,0 +1,623 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Documentation/Quick Reference" />
+
+# Quick Reference - Help Panel Development
+
+*Copy-paste ready commands, patterns, and prompts for efficient Help Panel development*
+
+## 📋 **Essential Commands**
+
+### **Storybook Development**
+
+```bash
+# Start Storybook development server
+npm run storybook
+
+# Build Storybook for production
+npm run build-storybook
+
+# Run Storybook tests
+npm run test-storybook
+
+# Run Storybook tests in CI mode
+npm run test-storybook:ci
+```
+
+### **Component Development**
+
+```bash
+# Create new component directory
+mkdir -p src/components/HelpPanel/NewComponent
+
+# Create story file
+touch src/components/HelpPanel/NewComponent/NewComponent.stories.tsx
+
+# Run type checking
+npm run typecheck
+
+# Run linting
+npm run lint
+
+# Fix linting issues
+npm run lint:js:fix
+```
+
+## 🎨 **Story Templates**
+
+### **Basic Component Story**
+
+```typescript
+import type { Meta, StoryObj } from '@storybook/react';
+import { ComponentName } from './ComponentName';
+
+const meta: Meta<typeof ComponentName> = {
+  component: ComponentName,
+  parameters: {
+    layout: 'padded',
+    docs: {
+      description: {
+        component: `
+          Brief description of what this component does and how it fits
+          into the Help Panel ecosystem.
+        `,
+      },
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof ComponentName>;
+
+export const Default: Story = {
+  args: {
+    // Default props
+  },
+};
+
+export const Interactive: Story = {
+  args: {
+    // Interactive variant props
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Test interactions
+  },
+};
+```
+
+### **Help Panel Integration Story**
+
+```typescript
+import type { Meta, StoryObj } from '@storybook/react';
+import { http, HttpResponse } from 'msw';
+import { HelpPanelComponent } from './HelpPanelComponent';
+
+const meta: Meta<typeof HelpPanelComponent> = {
+  component: HelpPanelComponent,
+  parameters: {
+    layout: 'fullscreen',
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          return HttpResponse.json(mockLearningResources);
+        }),
+      ],
+    },
+  },
+};
+
+export default meta;
+type Story = StoryObj<typeof HelpPanelComponent>;
+
+export const LearnTabWorkflow: Story = {
+  name: 'Learn Tab - Complete Workflow',
+  parameters: {
+    docs: {
+      description: {
+        story: 'Demonstrates the complete user journey through the Learn tab.',
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Test complete user workflow
+    await userEvent.click(canvas.getByLabelText('Open help panel'));
+    await userEvent.click(canvas.getByRole('tab', { name: 'Learn' }));
+
+    // Continue testing workflow...
+  },
+};
+```
+
+### **MSW API Mock Template**
+
+```typescript
+import { http, HttpResponse } from 'msw';
+
+// Learning resources API
+export const learningResourcesHandlers = [
+  http.get('/api/quickstarts/v1/quickstarts', () => {
+    return HttpResponse.json([
+      {
+        apiVersion: 'console.openshift.io/v1',
+        kind: 'ConsoleQuickStart',
+        metadata: {
+          name: 'example-quickstart',
+          favorite: false,
+          tags: [
+            { kind: 'bundle', value: 'insights' },
+            { kind: 'application', value: 'dashboard' },
+          ],
+        },
+        spec: {
+          displayName: 'Example Learning Resource',
+          durationMinutes: 10,
+          description: 'Example description',
+          type: { text: 'Quick start' },
+        },
+      },
+    ]);
+  }),
+
+  http.get('/api/quickstarts/v1/favorites', () => {
+    return HttpResponse.json(['example-quickstart']);
+  }),
+
+  http.post('/api/quickstarts/v1/favorites', async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      success: true,
+      quickstartName: body.quickstartName,
+      favorite: body.favorite,
+    });
+  }),
+];
+
+// Error scenarios
+export const errorHandlers = [
+  http.get('/api/quickstarts/v1/quickstarts', () => {
+    return new HttpResponse(null, { status: 500 });
+  }),
+];
+
+// Loading scenarios
+export const loadingHandlers = [
+  http.get('/api/quickstarts/v1/quickstarts', async () => {
+    await delay(2000); // Simulate slow response
+    return HttpResponse.json(mockLearningResources);
+  }),
+];
+```
+
+## 🧪 **Testing Patterns**
+
+### **User Interaction Testing**
+
+```typescript
+import { userEvent } from '@storybook/test';
+import { within, waitFor } from '@storybook/test';
+
+export const InteractiveTest: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Click interactions
+    await userEvent.click(canvas.getByLabelText('Content type'));
+    await userEvent.click(canvas.getByText('Quick starts'));
+
+    // Keyboard interactions
+    await userEvent.keyboard('{Tab}');
+    await userEvent.keyboard('{Enter}');
+
+    // Form interactions
+    await userEvent.type(canvas.getByLabelText('Search'), 'insights');
+
+    // Wait for async updates
+    await waitFor(() => {
+      expect(canvas.getByText('Search results')).toBeInTheDocument();
+    });
+
+    // Assert final state
+    expect(canvas.getByText('5 results found')).toBeInTheDocument();
+  },
+};
+```
+
+### **Accessibility Testing**
+
+```typescript
+export const AccessibilityTest: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Test keyboard navigation
+    await userEvent.keyboard('{Tab}');
+    expect(canvas.getByLabelText('Content type')).toHaveFocus();
+
+    // Test ARIA attributes
+    expect(canvas.getByRole('main')).toHaveAttribute('aria-label', 'Help panel content');
+
+    // Test screen reader announcements
+    const liveRegion = canvas.getByRole('status');
+    await userEvent.click(canvas.getByText('Quick starts'));
+
+    await waitFor(() => {
+      expect(liveRegion).toHaveTextContent(/filtered to show.*quick starts/i);
+    });
+  },
+};
+```
+
+### **Error State Testing**
+
+```typescript
+export const ErrorState: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get('/api/quickstarts/v1/quickstarts', () => {
+          return new HttpResponse(null, { status: 500 });
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Verify error message is displayed
+    await waitFor(() => {
+      expect(canvas.getByText(/failed to load/i)).toBeInTheDocument();
+    });
+
+    // Test retry functionality if available
+    const retryButton = canvas.queryByText('Retry');
+    if (retryButton) {
+      await userEvent.click(retryButton);
+    }
+  },
+};
+```
+
+## 📱 **Responsive Testing**
+
+### **Mobile Viewport**
+
+```typescript
+export const MobileView: Story = {
+  parameters: {
+    viewport: {
+      defaultViewport: 'mobile1',
+    },
+    docs: {
+      description: {
+        story: 'Help panel optimized for mobile devices with touch interactions.',
+      },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    // Test mobile-specific interactions
+    // Touch targets should be at least 44px
+    const buttons = canvas.getAllByRole('button');
+    buttons.forEach(button => {
+      const rect = button.getBoundingClientRect();
+      expect(Math.max(rect.width, rect.height)).toBeGreaterThanOrEqual(44);
+    });
+  },
+};
+```
+
+### **Custom Viewports**
+
+```typescript
+// In .storybook/preview.tsx
+export const parameters = {
+  viewport: {
+    viewports: {
+      helpPanelMobile: {
+        name: 'Help Panel Mobile',
+        styles: {
+          width: '375px',
+          height: '667px',
+        },
+      },
+      helpPanelTablet: {
+        name: 'Help Panel Tablet',
+        styles: {
+          width: '768px',
+          height: '1024px',
+        },
+      },
+      helpPanelDesktop: {
+        name: 'Help Panel Desktop',
+        styles: {
+          width: '1200px',
+          height: '800px',
+        },
+      },
+    },
+  },
+};
+```
+
+## 🎨 **Styling and Theming**
+
+### **CSS Custom Properties**
+
+```css
+/* Help Panel specific variables */
+:root {
+  --help-panel-width-mobile: 100vw;
+  --help-panel-width-tablet: 400px;
+  --help-panel-width-desktop: 500px;
+  --help-panel-header-height: 64px;
+  --help-panel-content-padding: var(--pf-v6-global--spacer--md);
+}
+```
+
+### **Responsive Breakpoints**
+
+```scss
+// Use PatternFly breakpoints consistently
+.help-panel {
+  width: var(--help-panel-width-mobile);
+
+  @media screen and (min-width: $pf-v6-global--breakpoint--md) {
+    width: var(--help-panel-width-tablet);
+  }
+
+  @media screen and (min-width: $pf-v6-global--breakpoint--lg) {
+    width: var(--help-panel-width-desktop);
+  }
+}
+```
+
+## 🔧 **Development Prompts**
+
+### **For Creating New Help Panel Components**
+
+```
+Create a new Help Panel component for [specific functionality] that:
+1. Follows the established Help Panel design patterns
+2. Integrates with the existing tab system
+3. Includes comprehensive Storybook stories
+4. Supports internationalization
+5. Is fully accessible with keyboard navigation
+6. Works across mobile, tablet, and desktop viewports
+```
+
+### **For Debugging Help Panel Issues**
+
+```
+Debug the Help Panel [ComponentName] issue where [specific problem]:
+1. Check the component's integration with Chrome services
+2. Verify API calls and MSW mocking in Storybook
+3. Test keyboard navigation and screen reader compatibility
+4. Validate responsive behavior across breakpoints
+5. Ensure proper internationalization message handling
+```
+
+### **For Creating User Journey Stories**
+
+```
+Create a comprehensive user journey story for [specific workflow] that:
+1. Starts from the user's initial context
+2. Demonstrates realistic user interactions
+3. Includes error handling and edge cases
+4. Tests the complete flow from discovery to completion
+5. Validates accessibility and responsive behavior
+6. Uses realistic API mocking with MSW
+```
+
+## 🚀 **Performance Optimization**
+
+### **Component Lazy Loading**
+
+```typescript
+import { lazy, Suspense } from 'react';
+
+const LazyHelpPanelComponent = lazy(() => import('./HelpPanelComponent'));
+
+export const LazyLoadedComponent = () => (
+  <Suspense fallback={<Spinner size="lg" />}>
+    <LazyHelpPanelComponent />
+  </Suspense>
+);
+```
+
+### **Memoization Patterns**
+
+```typescript
+import { useMemo, useCallback } from 'react';
+
+export const OptimizedComponent = ({ resources, filters }) => {
+  // Memoize expensive filtering operations
+  const filteredResources = useMemo(() => {
+    return resources.filter(resource =>
+      filters.every(filter => filter.test(resource))
+    );
+  }, [resources, filters]);
+
+  // Memoize callback functions
+  const handleBookmarkToggle = useCallback((resourceId: string) => {
+    // Handle bookmark toggle
+  }, []);
+
+  return (
+    <ResourceList
+      resources={filteredResources}
+      onBookmarkToggle={handleBookmarkToggle}
+    />
+  );
+};
+```
+
+## 📋 **Common Issues & Solutions**
+
+### **React Intl Missing Context**
+
+```typescript
+// Problem: [React Intl] Could not find required `intl` object
+// Solution: Ensure IntlProvider is in component ancestry
+
+// In Storybook decorator or story
+import { IntlProvider } from 'react-intl';
+import messages from '../Messages';
+
+const withIntl = (Story) => (
+  <IntlProvider locale="en" messages={flattenedMessages}>
+    <Story />
+  </IntlProvider>
+);
+```
+
+### **MSW Handlers Not Working**
+
+```typescript
+// Problem: API calls not intercepted by MSW
+// Solution: Initialize MSW properly and check handler patterns
+
+// In .storybook/preview.tsx
+import { initialize, mswLoader } from 'msw-storybook-addon';
+
+export default {
+  beforeAll: async () => {
+    initialize({ onUnhandledRequest: 'warn' });
+  },
+  loaders: [mswLoader],
+};
+```
+
+### **Chrome Service Mocking**
+
+```typescript
+// Problem: useChrome hook not working in Storybook
+// Solution: Mock Chrome services in Storybook
+
+// In .storybook/hooks/useChrome.tsx
+export const useChrome = () => ({
+  auth: {
+    getUser: () => Promise.resolve(mockUser),
+  },
+  analytics: {
+    track: (event, properties) => console.log('Analytics:', event, properties),
+  },
+  getBundleData: () => ({ bundleId: 'insights' }),
+});
+```
+
+## 📚 **Documentation Patterns**
+
+### **Component Documentation Template**
+
+```typescript
+/**
+ * HelpPanelComponent provides [brief description of functionality].
+ *
+ * This component is part of the Help Panel system and integrates with
+ * [list key integrations: Chrome, APIs, etc.].
+ *
+ * @example
+ * ```tsx
+ * <HelpPanelComponent
+ *   onAction={handleAction}
+ *   context="insights"
+ * />
+ * ```
+ */
+export interface HelpPanelComponentProps {
+  /**
+   * Callback fired when user performs an action.
+   *
+   * @param action - The action type performed
+   * @param data - Additional action data
+   */
+  onAction: (action: string, data?: any) => void;
+
+  /**
+   * Current application context for filtering content.
+   *
+   * @default "insights"
+   */
+  context?: string;
+}
+```
+
+### **Story Documentation Pattern**
+
+```typescript
+export const StoryName: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: `
+          **Purpose**: What this story demonstrates
+
+          **User Journey**:
+          1. User opens help panel
+          2. User navigates to specific content
+          3. User interacts with features
+
+          **Testing Focus**:
+          - Specific functionality being tested
+          - Edge cases covered
+          - Accessibility considerations
+
+          **API Dependencies**:
+          - List of mocked APIs
+          - Expected data formats
+        `,
+      },
+    },
+  },
+};
+```
+
+## 🎯 **Quick Wins**
+
+### **Copy-Paste Component Setup**
+
+```bash
+# Create component structure
+mkdir -p src/components/HelpPanel/NewComponent
+cd src/components/HelpPanel/NewComponent
+
+# Create files
+touch NewComponent.tsx
+touch NewComponent.stories.tsx
+touch NewComponent.test.tsx
+touch index.ts
+```
+
+### **Story File Boilerplate**
+
+```typescript
+import type { Meta, StoryObj } from '@storybook/react';
+import { NewComponent } from './NewComponent';
+
+const meta: Meta<typeof NewComponent> = {
+  component: NewComponent,
+};
+
+export default meta;
+type Story = StoryObj<typeof NewComponent>;
+
+export const Default: Story = {};
+```
+
+### **Test File Boilerplate**
+
+```typescript
+import { render, screen } from '@testing-library/react';
+import { NewComponent } from './NewComponent';
+
+describe('NewComponent', () => {
+  it('renders successfully', () => {
+    render(<NewComponent />);
+    expect(screen.getByRole('main')).toBeInTheDocument();
+  });
+});
+```
