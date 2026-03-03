@@ -3,6 +3,8 @@ import KBPanel from './KBPanel';
 import LearnPanel from './LearnPanel';
 import SearchPanel from './SearchPanel';
 import SupportPanel from './SupportPanel';
+import VAPanel from './VAPanel';
+import FeedbackPanel from './Feedback/FeedbackPanel';
 
 export enum TabType {
   'search' = 'search',
@@ -10,6 +12,8 @@ export enum TabType {
   'kb' = 'kb',
   'api' = 'api',
   'support' = 'support',
+  'va' = 'va',
+  'feedback' = 'feedback',
 }
 
 export type SubTabProps = {
@@ -24,6 +28,8 @@ const helpPanelTabsMapper: {
   [TabType.kb]: KBPanel,
   [TabType.api]: APIPanel,
   [TabType.support]: SupportPanel,
+  [TabType.va]: VAPanel,
+  [TabType.feedback]: FeedbackPanel,
 };
 
 export default helpPanelTabsMapper;

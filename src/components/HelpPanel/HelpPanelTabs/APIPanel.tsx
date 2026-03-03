@@ -29,6 +29,7 @@ import {
   fetchBundleInfo,
   fetchBundles,
 } from '../../../utils/fetchBundleInfoAPI';
+import { getBundleDisplayName } from '../../../utils/bundleUtils';
 
 interface APIDoc {
   name: string;
@@ -43,12 +44,16 @@ const mapBundleInfoWithTitles = async (): Promise<APIDoc[]> => {
       fetchBundles(),
     ]);
 
-    return bundleInfoList.map((bundleInfo) => {
+    const mapped = bundleInfoList.map((bundleInfo) => {
       const services = bundleInfo.bundleLabels.map((bundleLabel) => {
         const matchingBundle = bundles.find(
           (bundle) => bundle.id === bundleLabel
         );
-        return matchingBundle ? matchingBundle.title : bundleLabel;
+        return (
+          getBundleDisplayName(bundleLabel, {
+            fallbackTitle: matchingBundle?.title,
+          }) ?? bundleLabel
+        );
       });
 
       return {
@@ -57,6 +62,34 @@ const mapBundleInfoWithTitles = async (): Promise<APIDoc[]> => {
         url: bundleInfo.url,
       };
     });
+
+    // Deduplicate by frontendName (same API can have multiple spec URLs, e.g. notifications v1/v2, sources integrations v1/v2 + sources v3)
+    const versionInPath = (u: string) => {
+      const m = u.match(/\/v(\d+)(?:\.(\d+))?\/?/);
+      return m ? parseInt(m[1], 10) * 1000 + parseInt(m[2] || '0', 10) : 0;
+    };
+    const byName = new Map<string, APIDoc>();
+    for (const doc of mapped) {
+      const key = doc.name.toLowerCase().trim();
+      const existing = byName.get(key);
+      if (existing) {
+        const mergedServices = [
+          ...new Set([...existing.services, ...doc.services]),
+        ];
+        const bestUrl =
+          versionInPath(doc.url) > versionInPath(existing.url)
+            ? doc.url
+            : existing.url;
+        byName.set(key, {
+          name: existing.name,
+          services: mergedServices,
+          url: bestUrl,
+        });
+      } else {
+        byName.set(key, doc);
+      }
+    }
+    return Array.from(byName.values());
   } catch (error) {
     console.error('Error mapping bundle info with titles:', error);
     return [];
@@ -136,7 +169,9 @@ const APIPanelContent: React.FC = () => {
   const availableBundles = chrome.getAvailableBundles?.() || [];
 
   const displayBundleName =
-    availableBundles.find((b) => b.id === bundleId)?.title || bundleId;
+    getBundleDisplayName(bundleId, {
+      fallbackTitle: availableBundles.find((b) => b.id === bundleId)?.title,
+    }) ?? bundleId;
 
   const isHomePage =
     !displayBundleName ||
@@ -222,6 +257,7 @@ const APIPanelContent: React.FC = () => {
             <ToolbarItem>
               {!isHomePage && (
                 <ToggleGroup
+                  isCompact
                   aria-label="Filter by scope"
                   data-ouia-component-id="help-panel-api-scope-toggle"
                 >

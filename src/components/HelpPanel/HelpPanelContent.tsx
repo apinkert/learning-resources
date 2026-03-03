@@ -9,12 +9,14 @@ import {
 } from '@patternfly/react-core';
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { useFlag } from '@unleash/proxy-client-react';
+import { useIntl } from 'react-intl';
 import HelpPanelCustomTabs, {
   HelpPanelCustomTabsRef,
 } from './HelpPanelCustomTabs';
-import { AskRedHatIcon } from '../common/AskRedHatIcon';
+import { AiExperienceIcon } from '../common/AiExperienceIcon';
 import { useLoadModule, useRemoteHook } from '@scalprum/react-core';
 import { HelpPanelTabContent } from './HelpPanelLink';
+import messages from '../../Messages';
 
 export type VirtualAssistantState = {
   isOpen?: boolean;
@@ -36,6 +38,7 @@ const HelpPanelContent = ({
   setVirtualAssistantState?: Dispatch<SetStateAction<VirtualAssistantState>>;
   newTab?: HelpPanelTabContent;
 }) => {
+  const intl = useIntl();
   const searchFlag = useFlag('platform.chrome.help-panel_search');
   const kbFlag = useFlag('platform.chrome.help-panel_knowledge-base');
   const askRH = useFlag('platform.chrome.help-panel_direct-ask-redhat');
@@ -67,7 +70,7 @@ const HelpPanelContent = ({
               iconPosition="end"
               data-ouia-component-id="help-panel-status-page-header-button"
             >
-              Red Hat status page
+              {intl.formatMessage(messages.redHatStatusPage)}
             </Button>
           )}
         </Title>
@@ -83,10 +86,10 @@ const HelpPanelContent = ({
                 });
               }}
               className="pf-v6-u-align-items-flex-start"
-              icon={<AskRedHatIcon width={20} height={20} />}
+              icon={<AiExperienceIcon width={20} height={20} />}
               data-ouia-component-id="help-panel-ask-red-hat-button"
             >
-              Ask Red Hat
+              {intl.formatMessage(messages.chatWithAssistant)}
             </Button>
           ) : (
             <Button
@@ -96,10 +99,10 @@ const HelpPanelContent = ({
               href="https://access.redhat.com/ask"
               target="_blank"
               rel="noopener noreferrer"
-              icon={<AskRedHatIcon width={20} height={20} />}
+              icon={<AiExperienceIcon width={20} height={20} />}
               data-ouia-component-id="help-panel-ask-red-hat-button"
             >
-              Ask Red Hat
+              {intl.formatMessage(messages.chatWithAssistant)}
             </Button>
           )}
           <DrawerCloseButton

@@ -21,7 +21,13 @@ import './HelpPanelCustomTabs.scss';
 import HelpPanelTabContainer from './HelpPanelTabs/HelpPanelTabContainer';
 import { TabType } from './HelpPanelTabs/helpPanelTabsMapper';
 import { useFlag, useFlags } from '@unleash/proxy-client-react';
-import { ExternalLinkAltIcon, SearchIcon } from '@patternfly/react-icons';
+import { useIntl } from 'react-intl';
+import {
+  ExternalLinkAltIcon,
+  OutlinedCommentsIcon,
+  SearchIcon,
+} from '@patternfly/react-icons';
+import messages from '../../Messages';
 import { HelpPanelTabContent } from './HelpPanelLink';
 
 type TabDefinition = {
@@ -61,6 +67,12 @@ const subTabs: SubTab[] = [
     featureFlag: 'platform.chrome.help-panel_search',
   },
   {
+    title: 'Virtual Assistant',
+    tabType: TabType.va,
+    icon: <OutlinedCommentsIcon />,
+    featureFlag: 'platform.chrome.help-panel_chatbot',
+  },
+  {
     title: 'Learn',
     tabType: TabType.learn,
   },
@@ -71,6 +83,7 @@ const subTabs: SubTab[] = [
   },
   {
     title: 'APIs',
+    tabTitle: 'API documentation',
     tabType: TabType.api,
   },
   {
@@ -78,13 +91,24 @@ const subTabs: SubTab[] = [
     tabTitle: 'Support',
     tabType: TabType.support,
   },
+  {
+    title: 'Feedback',
+    tabTitle: 'Share feedback',
+    tabType: TabType.feedback,
+  },
 ];
 
-// Helper function to get sub-tab title by TabType
-const getSubTabTitle = (tabType: TabType): string => {
+// Helper function to get sub-tab title by TabType (intl optional for translatable titles)
+const getSubTabTitle = (
+  tabType: TabType,
+  intl?: ReturnType<typeof useIntl>
+): string => {
   const subTab = subTabs.find((tab) => tab.tabType === tabType);
   if (tabType === TabType.search) {
     return 'Search';
+  }
+  if (tabType === TabType.api && intl) {
+    return intl.formatMessage(messages.apiDocumentation);
   }
   return subTab?.tabTitle || (subTab?.title as string) || 'Find help';
 };
@@ -200,17 +224,9 @@ const SubTabs = ({
               eventKey={tab.tabType}
               key={tab.tabType}
               title={
-                <TabTitleText>
-                  {tab.icon && tab.tabType === TabType.search
-                    ? tab.icon
-                    : tab.title}
-                </TabTitleText>
+                <TabTitleText>{tab.icon ? tab.icon : tab.title}</TabTitleText>
               }
-              aria-label={
-                tab.icon && tab.tabType === TabType.search
-                  ? (tab.title as string)
-                  : undefined
-              }
+              aria-label={tab.title as string}
               data-ouia-component-id={`help-panel-subtab-${tab.tabType}`}
             />
           ))}
@@ -238,6 +254,7 @@ const SubTabs = ({
 
 const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
   (_, ref) => {
+    const intl = useIntl();
     const apiStoreMock = useMemo(() => createTabsStore(), []);
     const [activeTab, setActiveTab] = useState<TabDefinition>(baseTabs[0]);
 
@@ -262,7 +279,7 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
             const defaultTitle =
               activeTab.tabType === TabType.search
                 ? 'Search'
-                : getSubTabTitle(activeTab.tabType);
+                : getSubTabTitle(activeTab.tabType, intl);
             setNewActionTitle(undefined);
             updateTab({
               ...activeTab,
@@ -284,7 +301,7 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
           });
         }
       }, 100), // Reduced debounce time for search
-      [activeTab, newActionTitle]
+      [activeTab, newActionTitle, intl]
     );
 
     const handleAddTab = () => {
@@ -424,9 +441,9 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
                 setActiveSubTabKey={(tabType) => {
                   let newTitle = tab.title;
                   if (!tab.closeable) {
-                    newTitle = getSubTabTitle(tabType);
+                    newTitle = getSubTabTitle(tabType, intl);
                   } else if (tab.isNewTab) {
-                    newTitle = getSubTabTitle(tabType);
+                    newTitle = getSubTabTitle(tabType, intl);
                   }
                   const nextTab = {
                     ...tab,
