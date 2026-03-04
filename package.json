@@ -3,8 +3,8 @@
   "version": "1.1.0",
   "private": false,
   "engines": {
-    "node": ">=18",
-    "npm": ">=7.24.2"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "scripts": {
     "build": "fec build",
