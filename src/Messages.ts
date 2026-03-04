@@ -6,13 +6,21 @@ const messages = defineMessages({
     id: 'helpPanel.header.chatWithAssistant',
     defaultMessage: 'Chat with an assistant',
   },
-  redHatStatusPage: {
-    id: 'helpPanel.header.redHatStatusPage',
-    defaultMessage: 'Red Hat status page',
+  statusPage: {
+    id: 'helpPanel.header.statusPage',
+    defaultMessage: 'Status page',
+  },
+  statusPageTooltip: {
+    id: 'helpPanel.header.statusPageTooltip',
+    defaultMessage: 'Check the status of Red Hat products and services',
   },
   apiDocumentation: {
     id: 'helpPanel.header.apiDocumentation',
     defaultMessage: 'API documentation',
+  },
+  quickstartTabTitle: {
+    id: 'helpPanel.tab.quickstart',
+    defaultMessage: 'Quick start',
   },
 
   // Search Panel
