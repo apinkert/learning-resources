@@ -7,8 +7,8 @@ import {
   fireEvent,
   render,
   screen,
-  within,
   waitFor,
+  within,
 } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
 import HelpPanelCustomTabs, {
@@ -374,7 +374,9 @@ describe('HelpPanelCustomTabs ref API (openTabWithContent)', () => {
 
     await waitFor(() => {
       // "Another Tab" should be active now
-      const anotherTab = screen.getByText('Another Tab').closest('[role="tab"]');
+      const anotherTab = screen
+        .getByText('Another Tab')
+        .closest('[role="tab"]');
       expect(anotherTab).toHaveAttribute('aria-selected', 'true');
     });
 
