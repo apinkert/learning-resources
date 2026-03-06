@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useRef } from 'react';
 import {
   Button,
   DrawerActions,
@@ -10,9 +10,12 @@ import {
 import { ExternalLinkAltIcon } from '@patternfly/react-icons';
 import { useFlag } from '@unleash/proxy-client-react';
 import { useIntl } from 'react-intl';
-import HelpPanelCustomTabs from './HelpPanelCustomTabs';
+import HelpPanelCustomTabs, {
+  HelpPanelCustomTabsRef,
+} from './HelpPanelCustomTabs';
 import { AiExperienceIcon } from '../common/AiExperienceIcon';
 import { useLoadModule, useRemoteHook } from '@scalprum/react-core';
+import { HelpPanelTabContent } from './HelpPanelLink';
 import messages from '../../Messages';
 
 export type VirtualAssistantState = {
@@ -28,17 +31,27 @@ const HelpPanelContent = ({
   toggleDrawer,
   Models,
   setVirtualAssistantState,
+  newTab,
 }: {
   toggleDrawer: () => void;
   Models?: ModelsType;
   setVirtualAssistantState?: Dispatch<SetStateAction<VirtualAssistantState>>;
+  newTab?: HelpPanelTabContent;
 }) => {
   const intl = useIntl();
   const searchFlag = useFlag('platform.chrome.help-panel_search');
   const kbFlag = useFlag('platform.chrome.help-panel_knowledge-base');
   const askRH = useFlag('platform.chrome.help-panel_direct-ask-redhat');
+  const tabsRef = useRef<HelpPanelCustomTabsRef>(null);
 
   const showStatusPageInHeader = searchFlag && kbFlag;
+
+  // Open a new tab if newTab prop is provided
+  useEffect(() => {
+    if (newTab && tabsRef.current) {
+      tabsRef.current.openTabWithContent(newTab);
+    }
+  }, [newTab]);
 
   return (
     <>
@@ -99,7 +112,7 @@ const HelpPanelContent = ({
         </DrawerActions>
       </DrawerHead>
       <DrawerPanelBody>
-        <HelpPanelCustomTabs />
+        <HelpPanelCustomTabs ref={tabsRef} />
       </DrawerPanelBody>
     </>
   );

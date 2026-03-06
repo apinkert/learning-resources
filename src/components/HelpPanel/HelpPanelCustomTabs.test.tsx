@@ -2,10 +2,19 @@
  * Unit tests for HelpPanel styling work (semantic tokens, layout hooks)
  * and UI interactions (sub-tabs, add/close tabs).
  */
-import React from 'react';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import React, { createRef } from 'react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
-import HelpPanelCustomTabs from './HelpPanelCustomTabs';
+import HelpPanelCustomTabs, {
+  HelpPanelCustomTabsRef,
+} from './HelpPanelCustomTabs';
+import { TabType } from './HelpPanelTabs/helpPanelTabsMapper';
 
 jest.mock('../../store/openQuickstartInHelpPanelStore', () => {
   const mockStore = {
@@ -241,5 +250,195 @@ describe('HelpPanelCustomTabs UI interactions', () => {
     expect(tabs.length).toBe(2);
     // First tab is VA tab with icon (no specific text content)
     expect(tabs[1]).toHaveTextContent('Find help');
+  });
+});
+
+describe('HelpPanelCustomTabs ref API (openTabWithContent)', () => {
+  it('exposes openTabWithContent method via ref', () => {
+    const ref = createRef<HelpPanelCustomTabsRef>();
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    expect(ref.current).not.toBeNull();
+    expect(ref.current?.openTabWithContent).toBeDefined();
+    expect(typeof ref.current?.openTabWithContent).toBe('function');
+  });
+
+  it('opens a new tab with custom content when openTabWithContent is called', async () => {
+    const ref = createRef<HelpPanelCustomTabsRef>();
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    const customContent = <div>Custom tab content</div>;
+
+    ref.current?.openTabWithContent({
+      title: 'Custom Tab',
+      tabType: TabType.learn,
+      content: customContent,
+    });
+
+    // Custom tab should be added
+    await waitFor(() => {
+      expect(screen.getByText('Custom Tab')).toBeInTheDocument();
+    });
+
+    // Three tabs should exist now: "Virtual Assistant", "Find help", and "Custom Tab"
+    const mainTabs = document.querySelector(
+      '[data-ouia-component-id="help-panel-tabs"]'
+    ) as HTMLElement;
+    const tabs = within(mainTabs).getAllByRole('tab');
+    expect(tabs.length).toBe(3);
+  });
+
+  it('sets the new tab as active when opened via ref', async () => {
+    const ref = createRef<HelpPanelCustomTabsRef>();
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    ref.current?.openTabWithContent({
+      title: 'New Active Tab',
+      tabType: TabType.api,
+      content: <div>API content</div>,
+    });
+
+    await waitFor(() => {
+      const newTab = screen.getByText('New Active Tab');
+      expect(newTab).toBeInTheDocument();
+
+      // The tab should be selected (active)
+      const tabElement = newTab.closest('[role="tab"]');
+      expect(tabElement).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  it('updates existing tab when openTabWithContent is called with same id', async () => {
+    const ref = createRef<HelpPanelCustomTabsRef>();
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    const tabId = 'unique-tab-id';
+
+    // Open tab first time
+    ref.current?.openTabWithContent({
+      id: tabId,
+      title: 'Original Title',
+      tabType: TabType.learn,
+      content: <div>Original content</div>,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Original Title')).toBeInTheDocument();
+    });
+
+    // Update same tab
+    ref.current?.openTabWithContent({
+      id: tabId,
+      title: 'Updated Title',
+      tabType: TabType.api,
+      content: <div>Updated content</div>,
+    });
+
+    // Title should be updated
+    await waitFor(() => {
+      expect(screen.getByText('Updated Title')).toBeInTheDocument();
+      expect(screen.queryByText('Original Title')).not.toBeInTheDocument();
+    });
+
+    // Should still only have 3 tabs (VA + Find help + updated tab)
+    const mainTabs = document.querySelector(
+      '[data-ouia-component-id="help-panel-tabs"]'
+    ) as HTMLElement;
+    const tabs = within(mainTabs).getAllByRole('tab');
+    expect(tabs.length).toBe(3);
+  });
+
+  it('creates closeable tabs via openTabWithContent', async () => {
+    const ref = createRef<HelpPanelCustomTabsRef>();
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    ref.current?.openTabWithContent({
+      title: 'Closeable Tab',
+      tabType: TabType.support,
+      content: <div>Support content</div>,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Closeable Tab')).toBeInTheDocument();
+    });
+
+    // Should have close button enabled (not disabled)
+    const closeButtons = screen.getAllByRole('button', { name: /close tab/i });
+    const closeableButton = closeButtons.find(
+      (btn) => !(btn as HTMLButtonElement).disabled
+    );
+    expect(closeableButton).toBeDefined();
+  });
+
+  it('can open multiple tabs with different content via ref', async () => {
+    const ref = createRef<HelpPanelCustomTabsRef>();
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    ref.current?.openTabWithContent({
+      title: 'Tab 1',
+      tabType: TabType.learn,
+      content: <div>Content 1</div>,
+    });
+
+    ref.current?.openTabWithContent({
+      title: 'Tab 2',
+      tabType: TabType.api,
+      content: <div>Content 2</div>,
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Tab 1')).toBeInTheDocument();
+      expect(screen.getByText('Tab 2')).toBeInTheDocument();
+    });
+
+    // Should have 4 tabs: "Virtual Assistant", "Find help", "Tab 1", "Tab 2"
+    const mainTabs = document.querySelector(
+      '[data-ouia-component-id="help-panel-tabs"]'
+    ) as HTMLElement;
+    const tabs = within(mainTabs).getAllByRole('tab');
+    expect(tabs.length).toBe(4);
+  });
+
+  it('switches to existing tab when opened again with same id', async () => {
+    const ref = createRef<HelpPanelCustomTabsRef>();
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    const tabId = 'persistent-tab';
+
+    // Open first tab
+    ref.current?.openTabWithContent({
+      id: tabId,
+      title: 'Persistent Tab',
+      tabType: TabType.learn,
+    });
+
+    // Open another tab
+    ref.current?.openTabWithContent({
+      title: 'Another Tab',
+      tabType: TabType.api,
+    });
+
+    await waitFor(() => {
+      // "Another Tab" should be active now
+      const anotherTab = screen
+        .getByText('Another Tab')
+        .closest('[role="tab"]');
+      expect(anotherTab).toHaveAttribute('aria-selected', 'true');
+    });
+
+    // Re-open the persistent tab - should switch to it
+    ref.current?.openTabWithContent({
+      id: tabId,
+      title: 'Persistent Tab Updated',
+      tabType: TabType.support,
+    });
+
+    await waitFor(() => {
+      // Persistent tab should now be active
+      const persistentTab = screen
+        .getByText('Persistent Tab Updated')
+        .closest('[role="tab"]');
+      expect(persistentTab).toHaveAttribute('aria-selected', 'true');
+    });
   });
 });
