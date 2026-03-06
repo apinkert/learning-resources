@@ -225,13 +225,13 @@ describe('HelpPanel', () => {
     );
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').should('have.length', 1)
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 2) // VA + Find help tabs
     });
 
     cy.get('[aria-label="Add tab"]').click();
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').should('have.length', 2)
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 3) // VA + Find help + New tab
     });
   })
 
@@ -268,7 +268,7 @@ describe('HelpPanel', () => {
     cy.get('[aria-label="Add tab"]').click();
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').should('have.length', 2)
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 3) // VA + Find help + New tab
     });
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
@@ -276,7 +276,7 @@ describe('HelpPanel', () => {
     });
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').should('have.length', 1)
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 2) // Back to VA + Find help tabs
     });
 
     // Should show Learn panel content after closing the extra tab
@@ -294,7 +294,8 @@ describe('HelpPanel', () => {
     cy.contains(getMessageText('knowledgeBaseTitle')).click();
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').first().should('contain.text', getMessageText('knowledgeBaseTitle'));
+      // Second tab is "Find help" tab which changes title, first tab is VA (icon only)
+      cy.get('.pf-v6-c-tabs__item').eq(1).should('contain.text', getMessageText('knowledgeBaseTitle'));
     });
   });
 
@@ -310,7 +311,7 @@ describe('HelpPanel', () => {
     cy.get('[aria-label="Add tab"]').click();
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').should('have.length', 3);
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 4); // VA + Find help + 2 New tabs
     });
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
@@ -318,13 +319,13 @@ describe('HelpPanel', () => {
     });
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').eq(1).within(() => {
+      cy.get('.pf-v6-c-tabs__item').eq(2).within(() => {
         cy.get('[aria-label="Close tab"]').click();
       });
     });
 
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').should('have.length', 2);
+      cy.get('.pf-v6-c-tabs__item').should('have.length', 3); // VA + Find help + 1 remaining added tab
     });
   });
 
@@ -470,7 +471,8 @@ describe('HelpPanel', () => {
       </Wrapper>
     );
 
-    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').should('be.visible');
+    // VA is now a main tab, not a subtab
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]').should('be.visible');
   });
 
   it('should not display virtual assistant tab when feature flag is disabled', () => {
@@ -502,7 +504,8 @@ describe('HelpPanel', () => {
       </Wrapper>
     );
 
-    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').should('not.exist');
+    // VA main tab should not exist when feature flag is disabled
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]').should('not.exist');
   });
 
   it('should display Virtual Assistant tab and render VA Panel', () => {
@@ -521,24 +524,24 @@ describe('HelpPanel', () => {
       </Wrapper>
     );
 
-    // Check that VA tab exists
-    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').should('be.visible');
+    // Check that VA main tab exists
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]').should('be.visible');
 
     // Verify tab accessibility attributes
-    cy.get('[data-ouia-component-id="help-panel-subtab-va"]')
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]')
       .should('have.attr', 'role', 'tab')
       .should('have.attr', 'aria-label', 'Virtual Assistant');
 
-    // Click on the Virtual Assistant tab - this will try to load the ScalprumComponent
+    // Click on the Virtual Assistant main tab - this will try to load the ScalprumComponent
     // but will gracefully fall back to the ErrorComponent (empty Fragment)
-    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').click();
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]').click();
 
     // Since the ScalprumComponent will fail to load but has ErrorComponent: <Fragment />
     // we just verify that the tab switching worked and no crash occurred
-    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').should('have.attr', 'aria-selected', 'true');
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]').should('have.attr', 'aria-selected', 'true');
   });
 
-  it('should show Virtual Assistant tab title when switching to VA panel', () => {
+  it('should show Virtual Assistant tab and allow clicking it', () => {
     // Handle uncaught exceptions that occur during module loading
     cy.on('uncaught:exception', (err) => {
       if (err.message.includes('Unable to load manifest files')) {
@@ -554,13 +557,11 @@ describe('HelpPanel', () => {
       </Wrapper>
     );
 
-    // Click on Virtual Assistant subtab
-    cy.get('[data-ouia-component-id="help-panel-subtab-va"]').click();
+    // Click on Virtual Assistant main tab
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]').click();
 
-    // Check that the main tab title updates to reflect VA
-    cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').first().should('contain.text', 'Virtual Assistant');
-    });
+    // Check that the VA tab is now active (has icon, no text change)
+    cy.get('[data-ouia-component-id="help-panel-tab-virtual-assistant"]').should('have.attr', 'aria-selected', 'true');
   });
 
   it('should switch to feedback tab and display content', () => {
@@ -596,9 +597,9 @@ describe('HelpPanel', () => {
     // Click on Feedback subtab
     cy.get('[data-ouia-component-id="help-panel-subtab-feedback"]').click();
 
-    // Check that the main tab title updates to "Share feedback"
+    // Check that the "Find help" tab title updates to "Share feedback"
     cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-      cy.get('.pf-v6-c-tabs__item').first().should('contain.text', 'Share feedback');
+      cy.get('.pf-v6-c-tabs__item').eq(1).should('contain.text', 'Share feedback');
     });
 
     // Verify feedback panel content is displayed
@@ -964,9 +965,9 @@ describe('HelpPanel', () => {
         cy.get('input[type="search"], input[type="text"]').first().type('vulnerability');
       });
 
-      // Tab title should update to reflect the search query
+      // "Find help" tab title should update to reflect the search query
       cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-        cy.get('.pf-v6-c-tabs__item').first().should('contain.text', 'vulnerability');
+        cy.get('.pf-v6-c-tabs__item').eq(1).should('contain.text', 'vulnerability');
       });
     });
 
@@ -991,7 +992,7 @@ describe('HelpPanel', () => {
       });
 
       cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-        cy.get('.pf-v6-c-tabs__item').first().should('contain.text', 'vulnerability');
+        cy.get('.pf-v6-c-tabs__item').eq(1).should('contain.text', 'vulnerability');
       });
 
       // Clear the search input
@@ -999,9 +1000,9 @@ describe('HelpPanel', () => {
         cy.get('input[type="search"], input[type="text"]').first().clear();
       });
 
-      // Tab title should revert to "Search"
+      // "Find help" tab title should revert to "Search"
       cy.get('[data-ouia-component-id="help-panel-tabs"]').within(() => {
-        cy.get('.pf-v6-c-tabs__item').first().should('contain.text', 'Search');
+        cy.get('.pf-v6-c-tabs__item').eq(1).should('contain.text', 'Search');
       });
     });
 

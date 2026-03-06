@@ -57,14 +57,27 @@ type SubTab = Omit<TabDefinition, 'id'> & {
   icon?: ReactNode;
 };
 
-const baseTabs: TabDefinition[] = [
-  {
+const createBaseTabs = (showVA: boolean): TabDefinition[] => {
+  const tabs = [];
+
+  if (showVA) {
+    tabs.push({
+      id: 'virtual-assistant',
+      title: <OutlinedCommentsIcon />,
+      closeable: false,
+      tabType: TabType.va,
+    });
+  }
+
+  tabs.push({
     id: 'find-help',
     title: 'Find help',
     closeable: false,
     tabType: TabType.learn,
-  },
-];
+  });
+
+  return tabs;
+};
 
 const subTabs: SubTab[] = [
   {
@@ -72,12 +85,6 @@ const subTabs: SubTab[] = [
     tabType: TabType.search,
     icon: <SearchIcon />,
     featureFlag: 'platform.chrome.help-panel_search',
-  },
-  {
-    title: 'Virtual Assistant',
-    tabType: TabType.va,
-    icon: <OutlinedCommentsIcon />,
-    featureFlag: 'platform.chrome.help-panel_chatbot',
   },
   {
     title: 'Learn',
@@ -129,7 +136,7 @@ const getSubTabTitle = (
 const NEW_TAB_PLACEHOLDER = 'New tab';
 
 // just mocking the tabs store until we have API
-const createTabsStore = () => {
+const createTabsStore = (baseTabs: TabDefinition[]) => {
   let tabs: TabDefinition[] = [...baseTabs];
   const subscribers = new Map<string, () => void>();
   const addTab = (tab: TabDefinition) => {
@@ -271,8 +278,18 @@ const SubTabs = ({
 const HelpPanelCustomTabs = () => {
   const intl = useIntl();
   const chrome = useChrome();
-  const apiStoreMock = useMemo(() => createTabsStore(), []);
-  const [activeTab, setActiveTab] = useState<TabDefinition>(baseTabs[0]);
+  const vaFlag = useFlag('platform.chrome.help-panel_chatbot');
+
+  const baseTabs = useMemo(() => createBaseTabs(vaFlag), [vaFlag]);
+  const apiStoreMock = useMemo(() => createTabsStore(baseTabs), [baseTabs]);
+
+  // Find the Learn tab index (it might be 0 or 1 depending on VA flag)
+  const learnTabIndex = baseTabs.findIndex(
+    (tab) => tab.tabType === TabType.learn
+  );
+  const [activeTab, setActiveTab] = useState<TabDefinition>(
+    baseTabs[learnTabIndex]
+  ); // Default to 'Find help' tab (Learn)
 
   const [newActionTitle, setNewActionTitle] = useState<string | undefined>(
     undefined
@@ -481,6 +498,17 @@ const HelpPanelCustomTabs = () => {
   }, [openQuickstartState.pendingOpen, openQuickstartStore, addTab, tabs]);
 
   useEffect(() => {
+    // When baseTabs change (e.g., feature flag toggle), update activeTab if necessary
+    if (!baseTabs.find((tab) => tab.id === activeTab.id)) {
+      // Current active tab is no longer available, default to Learn tab
+      const learnTab = baseTabs.find((tab) => tab.tabType === TabType.learn);
+      if (learnTab) {
+        setActiveTab(learnTab);
+      }
+    }
+  }, [baseTabs, activeTab.id]);
+
+  useEffect(() => {
     // Ensure the Add tab button has a stable OUIA id
     const addButton = document.querySelector(
       '[data-ouia-component-id="help-panel-tabs"] button[aria-label="Add tab"]'
@@ -525,6 +553,9 @@ const HelpPanelCustomTabs = () => {
               key={tab.id}
               title={<TabTitleText>{tab.title}</TabTitleText>}
               data-ouia-component-id={`help-panel-tab-${tab.id}`}
+              aria-label={
+                tab.tabType === TabType.va ? 'Virtual Assistant' : undefined
+              }
             >
               <div
                 className={
@@ -548,29 +579,36 @@ const HelpPanelCustomTabs = () => {
                   />
                 ) : (
                   <>
-                    <SubTabs
-                      activeSubTabKey={tab.tabType ?? TabType.learn}
-                      setActiveSubTabKey={(tabType) => {
-                        let newTitle = tab.title;
-                        if (!tab.closeable) {
-                          newTitle = getSubTabTitle(tabType, intl);
-                        } else if (tab.isNewTab) {
-                          newTitle = getSubTabTitle(tabType, intl);
-                        }
-                        const nextTab = {
-                          ...tab,
-                          tabType: tabType,
-                          title: newTitle,
-                        };
-                        updateTab(nextTab);
-                        setActiveTab(nextTab);
-                      }}
-                    >
+                    {tab.tabType === TabType.va ? (
                       <HelpPanelTabContainer
                         activeTabType={tab.tabType}
                         setNewActionTitle={setNewActionTitleDebounced}
                       />
-                    </SubTabs>
+                    ) : (
+                      <SubTabs
+                        activeSubTabKey={tab.tabType ?? TabType.learn}
+                        setActiveSubTabKey={(tabType) => {
+                          let newTitle = tab.title;
+                          if (!tab.closeable) {
+                            newTitle = getSubTabTitle(tabType, intl);
+                          } else if (tab.isNewTab) {
+                            newTitle = getSubTabTitle(tabType, intl);
+                          }
+                          const nextTab = {
+                            ...tab,
+                            tabType: tabType,
+                            title: newTitle,
+                          };
+                          updateTab(nextTab);
+                          setActiveTab(nextTab);
+                        }}
+                      >
+                        <HelpPanelTabContainer
+                          activeTabType={tab.tabType}
+                          setNewActionTitle={setNewActionTitleDebounced}
+                        />
+                      </SubTabs>
+                    )}
                   </>
                 )}
               </div>
