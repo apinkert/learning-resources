@@ -280,12 +280,12 @@ describe('HelpPanelCustomTabs ref API (openTabWithContent)', () => {
       expect(screen.getByText('Custom Tab')).toBeInTheDocument();
     });
 
-    // Two tabs should exist now: "Find help" and "Custom Tab"
+    // Three tabs should exist now: "Virtual Assistant", "Find help", and "Custom Tab"
     const mainTabs = document.querySelector(
       '[data-ouia-component-id="help-panel-tabs"]'
     ) as HTMLElement;
     const tabs = within(mainTabs).getAllByRole('tab');
-    expect(tabs.length).toBe(2);
+    expect(tabs.length).toBe(3);
   });
 
   it('sets the new tab as active when opened via ref', async () => {
@@ -340,12 +340,12 @@ describe('HelpPanelCustomTabs ref API (openTabWithContent)', () => {
       expect(screen.queryByText('Original Title')).not.toBeInTheDocument();
     });
 
-    // Should still only have 2 tabs (Find help + updated tab)
+    // Should still only have 3 tabs (VA + Find help + updated tab)
     const mainTabs = document.querySelector(
       '[data-ouia-component-id="help-panel-tabs"]'
     ) as HTMLElement;
     const tabs = within(mainTabs).getAllByRole('tab');
-    expect(tabs.length).toBe(2);
+    expect(tabs.length).toBe(3);
   });
 
   it('creates closeable tabs via openTabWithContent', async () => {
@@ -391,12 +391,12 @@ describe('HelpPanelCustomTabs ref API (openTabWithContent)', () => {
       expect(screen.getByText('Tab 2')).toBeInTheDocument();
     });
 
-    // Should have 3 tabs: "Find help", "Tab 1", "Tab 2"
+    // Should have 4 tabs: "Virtual Assistant", "Find help", "Tab 1", "Tab 2"
     const mainTabs = document.querySelector(
       '[data-ouia-component-id="help-panel-tabs"]'
     ) as HTMLElement;
     const tabs = within(mainTabs).getAllByRole('tab');
-    expect(tabs.length).toBe(3);
+    expect(tabs.length).toBe(4);
   });
 
   it('switches to existing tab when opened again with same id', async () => {
