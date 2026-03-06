@@ -20,7 +20,9 @@
     "static": "fec static",
     "test": "jest --passWithNoTests",
     "verify": "npm-run-all build lint test",
-    "postinstall": "ts-patch install"
+    "postinstall": "ts-patch install",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@data-driven-forms/pf4-component-mapper": "^4.1.4",
@@ -50,6 +52,9 @@
     "@redhat-cloud-services/eslint-config-redhat-cloud-services": "^2.0.12",
     "@redhat-cloud-services/frontend-components-config": "^6.7.4",
     "@redhat-cloud-services/tsc-transform-imports": "^1.0.26",
+    "@storybook/addon-docs": "^9.1.17",
+    "@storybook/addon-webpack5-compiler-swc": "^3.0.0",
+    "@storybook/react-webpack5": "^9.1.17",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^14.3.1",
     "@types/react": "18.3.27",
@@ -63,10 +68,12 @@
     "jest_workaround": "^0.79.19",
     "jest-environment-jsdom": "^29.7.0",
     "npm-run-all2": "5.0.2",
+    "remark-gfm": "^4.0.0",
+    "storybook": "^9.1.17",
     "ts-jest": "^29.4.5",
-    "uuid": "^9.0.1",
     "ts-patch": "^3.3.0",
     "typescript": "^5.9.3",
+    "uuid": "^9.0.1",
     "webpack-bundle-analyzer": "4.10.2"
   },
   "insights": {

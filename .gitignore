@@ -23,3 +23,6 @@ yarn-error.log*
 coverage
 
 test-results
+
+# storybook
+storybook-static
