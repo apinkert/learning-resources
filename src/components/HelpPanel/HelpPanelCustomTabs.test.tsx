@@ -33,11 +33,19 @@ jest.mock('@scalprum/react-core', () => ({
     store.getState(),
 }));
 
+// Create a mock function that we can spy on
+const mockUseFlag = jest.fn((flagName: string) => {
+  // Enable VA flag for most tests to maintain existing behavior
+  if (flagName === 'platform.chrome.help-panel_chatbot') return true;
+  return true;
+});
+
 jest.mock('@unleash/proxy-client-react', () => ({
-  useFlag: () => true,
+  useFlag: (flagName: string) => mockUseFlag(flagName),
   useFlags: () => [
     { name: 'platform.chrome.help-panel_search', enabled: true },
     { name: 'platform.chrome.help-panel_knowledge-base', enabled: true },
+    { name: 'platform.chrome.help-panel_chatbot', enabled: true },
   ],
 }));
 
@@ -111,10 +119,12 @@ describe('HelpPanelCustomTabs styling hooks', () => {
 
   it('renders content container with data-ouia-component-id used by SCSS', () => {
     renderWithIntl(<HelpPanelCustomTabs />);
+    const contentContainers = screen.getAllByText('Panel content');
+    expect(contentContainers.length).toBeGreaterThan(0);
     expect(
-      screen
-        .getByText('Panel content')
-        .closest('[data-ouia-component-id="help-panel-content-container"]')
+      contentContainers[0].closest(
+        '[data-ouia-component-id="help-panel-content-container"]'
+      )
     ).toBeInTheDocument();
   });
 
@@ -126,9 +136,39 @@ describe('HelpPanelCustomTabs styling hooks', () => {
     expect(tabs).toBeInTheDocument();
   });
 
-  it('shows Find help as default tab', () => {
+  it('shows Virtual Assistant and Find help tabs with Find help as default active', () => {
     renderWithIntl(<HelpPanelCustomTabs />);
+    // VA tab should have an icon instead of text
+    const vaTab = screen.getByRole('tab', { name: /virtual assistant/i });
+    expect(vaTab).toBeInTheDocument();
     expect(screen.getByText('Find help')).toBeInTheDocument();
+
+    // Find help should be the active tab (aria-selected="true")
+    const findHelpTab = screen.getByRole('tab', { name: /find help/i });
+    expect(findHelpTab).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('hides Virtual Assistant tab when feature flag is disabled', () => {
+    // Override the mock to return false for VA flag
+    mockUseFlag.mockImplementation((flagName: string) => {
+      if (flagName === 'platform.chrome.help-panel_chatbot') return false;
+      return true;
+    });
+
+    renderWithIntl(<HelpPanelCustomTabs />);
+
+    // VA tab should not exist when feature flag is disabled
+    const vaTab = screen.queryByRole('tab', { name: /virtual assistant/i });
+    expect(vaTab).not.toBeInTheDocument();
+
+    // Should still have Find help tab
+    expect(screen.getByText('Find help')).toBeInTheDocument();
+
+    // Restore original mock behavior
+    mockUseFlag.mockImplementation((flagName: string) => {
+      if (flagName === 'platform.chrome.help-panel_chatbot') return true;
+      return true;
+    });
   });
 });
 
@@ -146,7 +186,8 @@ describe('HelpPanelCustomTabs UI interactions', () => {
     fireEvent.click(learnTab);
 
     // Content container still shows (mock always renders "Panel content")
-    expect(screen.getByText('Panel content')).toBeInTheDocument();
+    const contentContainers = screen.getAllByText('Panel content');
+    expect(contentContainers.length).toBeGreaterThan(0);
     // Learn tab is selected (PatternFly sets aria-selected on the tab)
     expect(learnTab).toHaveAttribute('aria-selected', 'true');
   });
@@ -162,7 +203,8 @@ describe('HelpPanelCustomTabs UI interactions', () => {
     fireEvent.click(apisTab);
 
     expect(apisTab).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByText('Panel content')).toBeInTheDocument();
+    const contentContainers = screen.getAllByText('Panel content');
+    expect(contentContainers.length).toBeGreaterThan(0);
   });
 
   it('adds a new tab when clicking Add tab button', () => {
@@ -172,14 +214,15 @@ describe('HelpPanelCustomTabs UI interactions', () => {
 
     // New tab placeholder appears; main tabs now include "New tab"
     expect(screen.getByText('New tab')).toBeInTheDocument();
-    // Two main tabs: "Find help" and "New tab"
+    // Three main tabs: "Virtual Assistant", "Find help", and "New tab"
     const mainTabs = document.querySelector(
       '[data-ouia-component-id="help-panel-tabs"]'
     ) as HTMLElement;
     const tabs = within(mainTabs).getAllByRole('tab');
-    expect(tabs.length).toBe(2);
-    expect(tabs[0]).toHaveTextContent('Find help');
-    expect(tabs[1]).toHaveTextContent('New tab');
+    expect(tabs.length).toBe(3);
+    // First tab is VA tab with icon (no specific text content)
+    expect(tabs[1]).toHaveTextContent('Find help');
+    expect(tabs[2]).toHaveTextContent('New tab');
   });
 
   it('closes an added tab when clicking its close button', () => {
@@ -188,7 +231,7 @@ describe('HelpPanelCustomTabs UI interactions', () => {
 
     expect(screen.getByText('New tab')).toBeInTheDocument();
 
-    // Two Close tab buttons exist (Find help has disabled, New tab has enabled); click the enabled one
+    // Close tab buttons exist (Virtual Assistant and Find help have disabled, New tab has enabled); click the enabled one
     const closeButtons = screen.getAllByRole('button', { name: /close tab/i });
     const closeNewTab = closeButtons.find(
       (btn) => !(btn as HTMLButtonElement).disabled
@@ -196,14 +239,17 @@ describe('HelpPanelCustomTabs UI interactions', () => {
     expect(closeNewTab).toBeDefined();
     fireEvent.click(closeNewTab!);
 
-    // "New tab" is removed; only "Find help" remains
+    // "New tab" is removed; only permanent tabs remain
     expect(screen.queryByText('New tab')).not.toBeInTheDocument();
     const mainTabs = document.querySelector(
       '[data-ouia-component-id="help-panel-tabs"]'
     ) as HTMLElement;
     const tabs = within(mainTabs).getAllByRole('tab');
-    expect(tabs.length).toBe(1);
-    expect(tabs[0]).toHaveTextContent('Find help');
+
+    // Should have VA and Find help tabs (since VA flag is enabled in tests)
+    expect(tabs.length).toBe(2);
+    // First tab is VA tab with icon (no specific text content)
+    expect(tabs[1]).toHaveTextContent('Find help');
   });
 });
 
