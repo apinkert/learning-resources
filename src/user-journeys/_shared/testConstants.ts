@@ -24,3 +24,10 @@ export const TEST_TIMEOUTS = {
   /** Delay after tab navigation */
   AFTER_TAB_CHANGE: 500,
 } as const;
+
+/**
+ * Test utility delay function for visual pauses in user journeys.
+ * Use this instead of importing delay from MSW.
+ */
+export const delay = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));

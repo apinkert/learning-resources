@@ -14,13 +14,17 @@ import { QuestionCircleIcon } from '@patternfly/react-icons';
 
 interface MockHeaderProps {
   onHelpClick: () => void;
+  isDrawerOpen: boolean;
 }
 
 /**
  * Mock console header for testing Help Panel.
  * Mimics the Red Hat Console header with a Help button.
  */
-export const MockHeader: React.FC<MockHeaderProps> = ({ onHelpClick }) => {
+export const MockHeader: React.FC<MockHeaderProps> = ({
+  onHelpClick,
+  isDrawerOpen,
+}) => {
   return (
     <Masthead>
       <MastheadMain>
@@ -41,6 +45,8 @@ export const MockHeader: React.FC<MockHeaderProps> = ({ onHelpClick }) => {
                   icon={<QuestionCircleIcon />}
                   data-ouia-component-id="help-panel-toggle-button"
                   aria-label="Toggle help panel"
+                  aria-expanded={isDrawerOpen}
+                  aria-controls="mock-help-panel-drawer"
                 >
                   Help
                 </Button>

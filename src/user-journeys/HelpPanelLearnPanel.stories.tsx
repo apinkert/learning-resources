@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { delay } from 'msw';
 import { AppEntryWithRouter } from './_shared/components/AppEntryWithRouter';
 import {
   helpPanelMswHandlers,
@@ -8,7 +7,7 @@ import {
   openHelpPanel,
   waitForPageLoad,
 } from './_shared/helpPanelJourneyHelpers';
-import { TEST_TIMEOUTS } from './_shared/testConstants';
+import { TEST_TIMEOUTS, delay } from './_shared/testConstants';
 
 /**
  * User Journey: Help Panel - Learn Panel
@@ -95,8 +94,11 @@ export const Step04_ToggleBundleScope: Story = {
     await navigateToTab(canvasElement, 'Learn');
 
     // Find the "All" toggle button using ID
-    const allToggle = document.getElementById('all-toggle') as HTMLElement;
-    await userEvent.click(allToggle);
+    const allToggle = document.getElementById('all-toggle');
+    if (!allToggle) {
+      throw new Error('All toggle button not found');
+    }
+    await userEvent.click(allToggle as HTMLElement);
 
     // Pause after toggle
     await delay(TEST_TIMEOUTS.AFTER_CLICK);
@@ -104,10 +106,11 @@ export const Step04_ToggleBundleScope: Story = {
     console.log('UJ: ✅ Toggled to All resources scope');
 
     // Switch back to bundle using ID
-    const bundleToggle = document.getElementById(
-      'bundle-toggle'
-    ) as HTMLElement;
-    await userEvent.click(bundleToggle);
+    const bundleToggle = document.getElementById('bundle-toggle');
+    if (!bundleToggle) {
+      throw new Error('Bundle toggle button not found');
+    }
+    await userEvent.click(bundleToggle as HTMLElement);
 
     // Pause after toggle
     await delay(TEST_TIMEOUTS.AFTER_CLICK);
@@ -127,7 +130,7 @@ export const Step05_FilterAndShowBookmarksOnly: Story = {
     await navigateToTab(canvasElement, 'Learn');
 
     // Find and click the content type dropdown
-    const contentTypeToggle = canvas.getByRole('button', {
+    const contentTypeToggle = await canvas.findByRole('button', {
       name: /content type/i,
     });
     await userEvent.click(contentTypeToggle);
@@ -146,8 +149,11 @@ export const Step05_FilterAndShowBookmarksOnly: Story = {
     // Find the checkbox input within the option
     const quickstartOption = document.querySelector(
       '[data-ouia-component-id="help-panel-content-type-option-quickstart"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(quickstartOption);
+    );
+    if (!quickstartOption) {
+      throw new Error('Quick start checkbox option not found');
+    }
+    await userEvent.click(quickstartOption as HTMLElement);
 
     // Pause after selecting filter
     await delay(TEST_TIMEOUTS.AFTER_CLICK);
@@ -189,7 +195,7 @@ export const Step06_ClearAllFilters: Story = {
     await navigateToTab(canvasElement, 'Learn');
 
     // Click content type dropdown
-    const contentTypeToggle = canvas.getByRole('button', {
+    const contentTypeToggle = await canvas.findByRole('button', {
       name: /content type/i,
     });
     await userEvent.click(contentTypeToggle);
@@ -207,8 +213,11 @@ export const Step06_ClearAllFilters: Story = {
 
     const docOption = document.querySelector(
       '[data-ouia-component-id="help-panel-content-type-option-documentation"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(docOption);
+    );
+    if (!docOption) {
+      throw new Error('Documentation checkbox option not found');
+    }
+    await userEvent.click(docOption as HTMLElement);
 
     // Pause after selecting filter
     await delay(TEST_TIMEOUTS.AFTER_CLICK);

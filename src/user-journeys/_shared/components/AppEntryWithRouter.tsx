@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import { QuickStartContextProvider } from '@patternfly/quickstarts';
+import {
+  AllQuickStartStates,
+  QuickStartContextProvider,
+  useValuesForQuickStartContext,
+} from '@patternfly/quickstarts';
 import { IntlProvider } from 'react-intl';
 import { MockConsolePage } from './MockConsolePage';
 
@@ -21,9 +25,22 @@ export const AppEntryWithRouter: React.FC<AppEntryWithRouterProps> = ({
   initialRoute = '/',
   bundle = 'insights',
 }) => {
+  const [quickStartStates, setQuickStartStates] = useState<AllQuickStartStates>(
+    {}
+  );
+
+  const quickStartContextValue = useValuesForQuickStartContext({
+    allQuickStarts: [],
+    activeQuickStartID: '',
+    setActiveQuickStartID: () => {},
+    allQuickStartStates: quickStartStates,
+    setAllQuickStartStates: setQuickStartStates,
+    useQueryParams: false,
+  });
+
   return (
     <IntlProvider locale={locale} defaultLocale="en">
-      <QuickStartContextProvider>
+      <QuickStartContextProvider value={quickStartContextValue}>
         <MemoryRouter initialEntries={[initialRoute]}>
           <MockConsolePage bundle={bundle} />
         </MemoryRouter>

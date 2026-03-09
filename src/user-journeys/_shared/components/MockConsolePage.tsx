@@ -35,6 +35,7 @@ export const MockConsolePage: React.FC<MockConsolePageProps> = ({
 
   const panelContent = (
     <DrawerPanelContent
+      id="mock-help-panel-drawer"
       data-ouia-component-id="help-panel-drawer"
       widths={{ default: 'width_50' }}
     >
@@ -43,7 +44,12 @@ export const MockConsolePage: React.FC<MockConsolePageProps> = ({
   );
 
   return (
-    <Page masthead={<MockHeader onHelpClick={toggleDrawer} />}>
+    <Page
+      className="mock-console-page"
+      masthead={
+        <MockHeader onHelpClick={toggleDrawer} isDrawerOpen={isDrawerOpen} />
+      }
+    >
       <Drawer isExpanded={isDrawerOpen} position="right">
         <DrawerContent panelContent={panelContent}>
           <DrawerContentBody>

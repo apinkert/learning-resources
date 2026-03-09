@@ -1,6 +1,6 @@
 import { expect, userEvent, waitFor, within } from 'storybook/test';
-import { HttpResponse, delay, http } from 'msw';
-import { TEST_TIMEOUTS } from './testConstants';
+import { HttpResponse, http } from 'msw';
+import { TEST_TIMEOUTS, delay } from './testConstants';
 
 /**
  * Shared MSW handlers for Help Panel user journeys.
@@ -316,15 +316,11 @@ export async function waitForPageLoad(canvasElement: HTMLElement) {
 export async function openHelpPanel(canvasElement: HTMLElement) {
   const canvas = within(canvasElement);
 
-  // Try to find the Learn tab - if it exists and is visible, panel is already open
-  try {
-    const learnTab = canvas.queryByRole('tab', { name: /learn/i });
-    if (learnTab) {
-      console.log('UJ: ℹ️ Help panel already open');
-      return;
-    }
-  } catch (e) {
-    // Tab not found, panel is closed
+  // Check if the Learn tab is already visible (panel is open)
+  const learnTab = canvas.queryByRole('tab', { name: /learn/i });
+  if (learnTab) {
+    console.log('UJ: ℹ️ Help panel already open');
+    return;
   }
 
   // Wait for help button to be available
@@ -338,15 +334,11 @@ export async function openHelpPanel(canvasElement: HTMLElement) {
   // Click the Help button
   await userEvent.click(helpButton);
 
-  // Wait for drawer to open
+  // Wait for the Learn tab to be present and visible
   await waitFor(
-    async () => {
-      const drawer = canvasElement.querySelector(
-        '[data-ouia-component-id="help-panel-drawer"]'
-      );
-      if (!drawer) {
-        throw new Error('Help panel did not open');
-      }
+    () => {
+      const tab = canvas.getByRole('tab', { name: /learn/i });
+      expect(tab).toBeVisible();
     },
     { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
   );
@@ -381,6 +373,14 @@ export async function navigateToTab(
   );
   await expect(tab).toBeInTheDocument();
   await userEvent.click(tab);
+
+  // Wait for tab to be selected
+  await waitFor(
+    () => {
+      expect(tab).toHaveAttribute('aria-selected', 'true');
+    },
+    { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
+  );
 
   // Pause to show tab content loading
   await delay(TEST_TIMEOUTS.AFTER_TAB_CHANGE);
