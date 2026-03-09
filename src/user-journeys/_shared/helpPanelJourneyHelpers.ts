@@ -1,0 +1,389 @@
+import { expect, userEvent, waitFor, within } from 'storybook/test';
+import { HttpResponse, delay, http } from 'msw';
+import { TEST_TIMEOUTS } from './testConstants';
+
+/**
+ * Shared MSW handlers for Help Panel user journeys.
+ * These mock the learning resources API endpoints.
+ */
+export const helpPanelMswHandlers = [
+  // Mock filters API - must return categories structure
+  http.get('/api/quickstarts/v1/quickstarts/filters', () => {
+    return HttpResponse.json({
+      data: {
+        categories: [
+          {
+            categoryId: 'product-families',
+            categoryName: 'Product families',
+            categoryData: [
+              {
+                group: 'Product families',
+                data: [
+                  {
+                    id: 'insights',
+                    filterLabel: 'RHEL',
+                    cardLabel: 'RHEL (Red Hat Enterprise Linux)',
+                  },
+                  {
+                    id: 'ansible',
+                    filterLabel: 'Ansible',
+                    cardLabel: 'Ansible',
+                  },
+                  {
+                    id: 'openshift',
+                    filterLabel: 'OpenShift',
+                    cardLabel: 'OpenShift',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            categoryId: 'content',
+            categoryName: 'Content type',
+            categoryData: [
+              {
+                group: 'Content type',
+                data: [
+                  {
+                    id: 'documentation',
+                    filterLabel: 'Documentation',
+                    cardLabel: 'Documentation',
+                  },
+                  {
+                    id: 'quickstart',
+                    filterLabel: 'Quick start',
+                    cardLabel: 'Quick start',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    });
+  }),
+  // Mock quickstarts API
+  http.get('/api/quickstarts/v1/quickstarts', () => {
+    return HttpResponse.json({
+      data: [
+        // Ansible resources (shown first to make bundle filtering more visible)
+        {
+          content: {
+            metadata: {
+              name: 'ansible-getting-started',
+              tags: [{ kind: 'bundle', value: 'ansible' }],
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Getting Started with Ansible',
+              description: 'Introduction to Ansible Automation Platform',
+              type: { text: 'Quick start' },
+              link: {
+                href: 'https://console.redhat.com/ansible/getting-started',
+              },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'ansible-docs',
+              tags: [{ kind: 'bundle', value: 'ansible' }],
+              externalDocumentation: true,
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Ansible Automation Platform Documentation',
+              description: 'Complete Ansible documentation',
+              type: { text: 'Documentation' },
+              link: { href: 'https://access.redhat.com/documentation/ansible' },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'ansible-playbooks',
+              tags: [{ kind: 'bundle', value: 'ansible' }],
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Creating Ansible Playbooks',
+              description: 'Learn how to create and manage Ansible playbooks',
+              type: { text: 'Quick start' },
+              link: {
+                href: 'https://console.redhat.com/ansible/playbooks',
+              },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'ansible-inventory',
+              tags: [{ kind: 'bundle', value: 'ansible' }],
+              externalDocumentation: true,
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Managing Ansible Inventory',
+              description: 'Manage your infrastructure inventory in Ansible',
+              type: { text: 'Documentation' },
+              link: {
+                href: 'https://access.redhat.com/documentation/ansible/inventory',
+              },
+            },
+          },
+        },
+        // OpenShift resources
+        {
+          content: {
+            metadata: {
+              name: 'openshift-getting-started',
+              tags: [{ kind: 'bundle', value: 'openshift' }],
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Getting Started with OpenShift',
+              description: 'Introduction to OpenShift',
+              type: { text: 'Quick start' },
+              link: {
+                href: 'https://console.redhat.com/openshift/getting-started',
+              },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'openshift-docs',
+              tags: [{ kind: 'bundle', value: 'openshift' }],
+              externalDocumentation: true,
+              favorite: false,
+            },
+            spec: {
+              displayName: 'OpenShift Documentation',
+              description: 'Complete OpenShift documentation',
+              type: { text: 'Documentation' },
+              link: {
+                href: 'https://access.redhat.com/documentation/openshift',
+              },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'openshift-deploy',
+              tags: [{ kind: 'bundle', value: 'openshift' }],
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Deploying Applications on OpenShift',
+              description: 'Deploy and manage containerized applications',
+              type: { text: 'Quick start' },
+              link: {
+                href: 'https://console.redhat.com/openshift/deploy',
+              },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'openshift-networking',
+              tags: [{ kind: 'bundle', value: 'openshift' }],
+              externalDocumentation: true,
+              favorite: false,
+            },
+            spec: {
+              displayName: 'OpenShift Networking Guide',
+              description: 'Configure networking for OpenShift clusters',
+              type: { text: 'Documentation' },
+              link: {
+                href: 'https://access.redhat.com/documentation/openshift/networking',
+              },
+            },
+          },
+        },
+        // Insights resources (current bundle)
+        {
+          content: {
+            metadata: {
+              name: 'getting-started-insights',
+              tags: [{ kind: 'bundle', value: 'insights' }],
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Getting started with Red Hat Insights',
+              description: 'Learn the basics of Red Hat Insights',
+              type: { text: 'Quick start' },
+              link: {
+                href: 'https://console.redhat.com/insights/getting-started',
+              },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'insights-docs',
+              tags: [{ kind: 'bundle', value: 'insights' }],
+              externalDocumentation: true,
+              favorite: false,
+            },
+            spec: {
+              displayName: 'Red Hat Insights Documentation',
+              description: 'Complete documentation for Red Hat Insights',
+              type: { text: 'Documentation' },
+              link: {
+                href: 'https://access.redhat.com/documentation/en-us/red_hat_insights',
+              },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'advisor-quickstart',
+              tags: [{ kind: 'bundle', value: 'insights' }],
+              favorite: true,
+            },
+            spec: {
+              displayName: 'Advisor Quick Start',
+              description: 'Get started with Red Hat Advisor',
+              type: { text: 'Quick start' },
+              link: { href: 'https://console.redhat.com/insights/advisor' },
+            },
+          },
+        },
+        {
+          content: {
+            metadata: {
+              name: 'vulnerability-docs',
+              tags: [{ kind: 'bundle', value: 'insights' }],
+              externalDocumentation: true,
+              favorite: true,
+            },
+            spec: {
+              displayName: 'Vulnerability Management Documentation',
+              description: 'Learn about vulnerability management',
+              type: { text: 'Documentation' },
+              link: {
+                href: 'https://access.redhat.com/documentation/vulnerability',
+              },
+            },
+          },
+        },
+      ],
+    });
+  }),
+  // Mock favorites API
+  http.get('/api/quickstarts/v1/favorites', () => {
+    return HttpResponse.json({
+      data: [],
+    });
+  }),
+];
+
+/**
+ * Wait for the console page to load.
+ * Verifies the Help button and header are present.
+ */
+export async function waitForPageLoad(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement);
+
+  // Wait for help button to be present (indicates page loaded)
+  const helpButton = await canvas.findByRole(
+    'button',
+    { name: /toggle help panel/i },
+    { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
+  );
+  await expect(helpButton).toBeInTheDocument();
+
+  // Verify console header is present
+  const header = canvas.getByText(/Red Hat Hybrid Cloud Console/i);
+  await expect(header).toBeInTheDocument();
+
+  console.log('UJ: ✅ Console page loaded successfully');
+}
+
+/**
+ * Open the Help Panel drawer.
+ * Checks if already open by looking for visible Learn tab.
+ */
+export async function openHelpPanel(canvasElement: HTMLElement) {
+  const canvas = within(canvasElement);
+
+  // Try to find the Learn tab - if it exists and is visible, panel is already open
+  try {
+    const learnTab = canvas.queryByRole('tab', { name: /learn/i });
+    if (learnTab) {
+      console.log('UJ: ℹ️ Help panel already open');
+      return;
+    }
+  } catch (e) {
+    // Tab not found, panel is closed
+  }
+
+  // Wait for help button to be available
+  const helpButton = await canvas.findByRole(
+    'button',
+    { name: /toggle help panel/i },
+    { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
+  );
+  await expect(helpButton).toBeInTheDocument();
+
+  // Click the Help button
+  await userEvent.click(helpButton);
+
+  // Wait for drawer to open
+  await waitFor(
+    async () => {
+      const drawer = canvasElement.querySelector(
+        '[data-ouia-component-id="help-panel-drawer"]'
+      );
+      if (!drawer) {
+        throw new Error('Help panel did not open');
+      }
+    },
+    { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
+  );
+
+  // Pause to show drawer animation
+  await delay(TEST_TIMEOUTS.AFTER_DRAWER_OPEN);
+
+  console.log('UJ: ✅ Help panel opened successfully');
+}
+
+/**
+ * Navigate to a specific tab in the Help Panel.
+ * Opens the panel first if not already open.
+ *
+ * @param canvasElement - The Storybook canvas element
+ * @param tabName - The name of the tab to navigate to (e.g., "Learn", "APIs", "My support cases")
+ */
+export async function navigateToTab(
+  canvasElement: HTMLElement,
+  tabName: string
+) {
+  const canvas = within(canvasElement);
+
+  // Open help panel (will skip if already open)
+  await openHelpPanel(canvasElement);
+
+  // Find and click the tab
+  const tab = await canvas.findByRole(
+    'tab',
+    { name: new RegExp(tabName, 'i') },
+    { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
+  );
+  await expect(tab).toBeInTheDocument();
+  await userEvent.click(tab);
+
+  // Pause to show tab content loading
+  await delay(TEST_TIMEOUTS.AFTER_TAB_CHANGE);
+
+  console.log(`UJ: ✅ Navigated to ${tabName} tab`);
+}

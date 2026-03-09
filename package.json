@@ -67,6 +67,8 @@
     "jest": "29.7.0",
     "jest_workaround": "^0.79.19",
     "jest-environment-jsdom": "^29.7.0",
+    "msw": "^2.12.10",
+    "msw-storybook-addon": "^2.0.6",
     "npm-run-all2": "5.0.2",
     "remark-gfm": "^4.0.0",
     "storybook": "^9.1.17",
@@ -78,5 +80,10 @@
   },
   "insights": {
     "appname": "learning-resources"
+  },
+  "msw": {
+    "workerDirectory": [
+      "public"
+    ]
   }
 }
