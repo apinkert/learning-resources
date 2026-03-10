@@ -36,6 +36,61 @@ const waitForLoadingComplete = async (canvas: ReturnType<typeof within>) => {
 };
 
 /**
+ * Helper function to select a content type filter
+ */
+const selectContentType = async (
+  canvas: ReturnType<typeof within>,
+  type: 'documentation' | 'quickstart' | 'learningPath' | 'otherResource'
+) => {
+  const contentTypeToggle = await canvas.findByRole('button', {
+    name: /content type/i,
+  });
+  await userEvent.click(contentTypeToggle);
+
+  await waitFor(() => {
+    const option = document.querySelector(
+      `[data-ouia-component-id="help-panel-content-type-option-${type}"]`
+    );
+    expect(option).toBeInTheDocument();
+  });
+
+  const checkbox = document.querySelector(
+    `[data-ouia-component-id="help-panel-content-type-option-${type}"] input[type="checkbox"]`
+  ) as HTMLElement;
+  await userEvent.click(checkbox);
+
+  await waitFor(() => {
+    const chip = document.querySelector(
+      `[data-ouia-component-id="help-panel-selected-chip-${type}"]`
+    );
+    expect(chip).toBeInTheDocument();
+  });
+};
+
+/**
+ * Helper function to verify visible titles exist or don't exist
+ */
+const expectVisibleTitles = async (
+  canvas: ReturnType<typeof within>,
+  expectedTitles: string[],
+  notExpectedTitles?: string[]
+) => {
+  await waitFor(() => {
+    expectedTitles.forEach((title) => {
+      const element = canvas.queryByText(title);
+      expect(element).toBeInTheDocument();
+    });
+
+    if (notExpectedTitles) {
+      notExpectedTitles.forEach((title) => {
+        const element = canvas.queryByText(title);
+        expect(element).not.toBeInTheDocument();
+      });
+    }
+  });
+};
+
+/**
  * Wrapper component to provide required context providers
  */
 const LearnPanelWrapper = ({ bundle = 'insights' }: { bundle?: string }) => {
@@ -346,6 +401,13 @@ export const Default: Story = {
     );
     const dataList = resourceList?.querySelector('[role="list"]');
     expect(dataList).toBeInTheDocument();
+
+    // Verify specific resource titles are present (insights bundle by default)
+    await expectVisibleTitles(canvas, [
+      'Getting Started with Insights',
+      'Advisor Quick Start',
+      'Insights Documentation',
+    ]);
   },
 };
 
@@ -357,39 +419,15 @@ export const FilterByDocumentation: Story = {
     const canvas = within(canvasElement);
     await waitForLoadingComplete(canvas);
 
-    // Click dropdown
-    const contentTypeToggle = await canvas.findByRole('button', {
-      name: /content type/i,
-    });
-    await userEvent.click(contentTypeToggle);
+    // Select Documentation filter
+    await selectContentType(canvas, 'documentation');
 
-    // Wait for options to appear
-    await waitFor(() => {
-      const option = document.querySelector(
-        '[data-ouia-component-id="help-panel-content-type-option-documentation"]'
-      );
-      expect(option).toBeInTheDocument();
-    });
-
-    // Select Documentation
-    const docCheckbox = document.querySelector(
-      '[data-ouia-component-id="help-panel-content-type-option-documentation"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(docCheckbox);
-
-    // Verify filter chip appears
-    await waitFor(() => {
-      const chip = document.querySelector(
-        '[data-ouia-component-id="help-panel-selected-chip-documentation"]'
-      );
-      expect(chip).toBeInTheDocument();
-    });
-
-    // Verify Documentation items are shown
-    await waitFor(() => {
-      const documentationLinks = canvas.queryAllByText('Documentation');
-      expect(documentationLinks.length).toBeGreaterThan(0);
-    });
+    // Verify Documentation items are shown and Quick start items are not
+    await expectVisibleTitles(
+      canvas,
+      ['Insights Documentation', 'Vulnerability Docs'],
+      ['Getting Started with Insights', 'Advisor Quick Start']
+    );
   },
 };
 
@@ -401,35 +439,15 @@ export const FilterByQuickStart: Story = {
     const canvas = within(canvasElement);
     await waitForLoadingComplete(canvas);
 
-    const contentTypeToggle = await canvas.findByRole('button', {
-      name: /content type/i,
-    });
-    await userEvent.click(contentTypeToggle);
+    // Select Quick start filter
+    await selectContentType(canvas, 'quickstart');
 
-    await waitFor(() => {
-      const option = document.querySelector(
-        '[data-ouia-component-id="help-panel-content-type-option-quickstart"]'
-      );
-      expect(option).toBeInTheDocument();
-    });
-
-    const quickstartCheckbox = document.querySelector(
-      '[data-ouia-component-id="help-panel-content-type-option-quickstart"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(quickstartCheckbox);
-
-    await waitFor(() => {
-      const chip = document.querySelector(
-        '[data-ouia-component-id="help-panel-selected-chip-quickstart"]'
-      );
-      expect(chip).toBeInTheDocument();
-    });
-
-    // Verify Quick start items are shown
-    await waitFor(() => {
-      const quickstartLinks = canvas.queryAllByText('Quick start');
-      expect(quickstartLinks.length).toBeGreaterThan(0);
-    });
+    // Verify Quick start items are shown and Documentation items are not
+    await expectVisibleTitles(
+      canvas,
+      ['Getting Started with Insights', 'Advisor Quick Start'],
+      ['Insights Documentation', 'Vulnerability Docs']
+    );
   },
 };
 
@@ -441,35 +459,15 @@ export const FilterByLearningPath: Story = {
     const canvas = within(canvasElement);
     await waitForLoadingComplete(canvas);
 
-    const contentTypeToggle = await canvas.findByRole('button', {
-      name: /content type/i,
-    });
-    await userEvent.click(contentTypeToggle);
+    // Select Learning path filter
+    await selectContentType(canvas, 'learningPath');
 
-    await waitFor(() => {
-      const option = document.querySelector(
-        '[data-ouia-component-id="help-panel-content-type-option-learningPath"]'
-      );
-      expect(option).toBeInTheDocument();
-    });
-
-    const learningPathCheckbox = document.querySelector(
-      '[data-ouia-component-id="help-panel-content-type-option-learningPath"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(learningPathCheckbox);
-
-    await waitFor(() => {
-      const chip = document.querySelector(
-        '[data-ouia-component-id="help-panel-selected-chip-learningPath"]'
-      );
-      expect(chip).toBeInTheDocument();
-    });
-
-    // Verify Learning path items are shown
-    await waitFor(() => {
-      const learningPathLinks = canvas.queryAllByText('Learning path');
-      expect(learningPathLinks.length).toBeGreaterThan(0);
-    });
+    // Verify Learning path items are shown and other types are not
+    await expectVisibleTitles(
+      canvas,
+      ['Insights Learning Journey'],
+      ['Getting Started with Insights', 'Insights Documentation']
+    );
   },
 };
 
@@ -520,14 +518,17 @@ export const MultipleContentTypeFilters: Story = {
       expect(quickstartChip).toBeInTheDocument();
     });
 
-    // Verify we see both Documentation and Quick start items
-    await waitFor(() => {
-      const documentationLinks = canvas.queryAllByText('Documentation');
-      const quickstartLinks = canvas.queryAllByText('Quick start');
-      expect(
-        documentationLinks.length + quickstartLinks.length
-      ).toBeGreaterThan(0);
-    });
+    // Verify both Documentation and Quick start items are shown, Learning path is not
+    await expectVisibleTitles(
+      canvas,
+      [
+        'Insights Documentation',
+        'Vulnerability Docs',
+        'Getting Started with Insights',
+        'Advisor Quick Start',
+      ],
+      ['Insights Learning Journey']
+    );
   },
 };
 
@@ -545,14 +546,12 @@ export const BookmarkedOnly: Story = {
     await userEvent.click(bookmarkedCheckbox);
     await expect(bookmarkedCheckbox).toBeChecked();
 
-    // Verify bookmarked items are shown
-    await waitFor(() => {
-      const advisorLink = canvas.queryByText('Advisor Quick Start');
-      const vulnLink = canvas.queryByText('Vulnerability Docs');
-
-      // At least one bookmarked item should be visible
-      expect(advisorLink || vulnLink).toBeTruthy();
-    });
+    // Verify bookmarked items are shown and non-bookmarked items are not
+    await expectVisibleTitles(
+      canvas,
+      ['Advisor Quick Start', 'Vulnerability Docs'],
+      ['Getting Started with Insights', 'Insights Documentation']
+    );
   },
 };
 
@@ -573,6 +572,13 @@ export const BundleScopeToggle: Story = {
       expect(allToggle).toHaveAttribute('aria-pressed', 'true');
     });
 
+    // Verify resources from all bundles are shown (including Ansible and OpenShift)
+    await expectVisibleTitles(canvas, [
+      'Getting Started with Insights',
+      'Ansible Quick Start',
+      'OpenShift Quick Start',
+    ]);
+
     // Click back to bundle
     const bundleToggle = document.getElementById(
       'bundle-toggle'
@@ -583,6 +589,13 @@ export const BundleScopeToggle: Story = {
     await waitFor(() => {
       expect(bundleToggle).toHaveAttribute('aria-pressed', 'true');
     });
+
+    // Verify only insights resources are shown (Ansible/OpenShift not shown)
+    await expectVisibleTitles(
+      canvas,
+      ['Getting Started with Insights', 'Advisor Quick Start'],
+      ['Ansible Quick Start', 'OpenShift Quick Start']
+    );
   },
 };
 
@@ -601,37 +614,19 @@ export const BundleScopeWithContentFilter: Story = {
     await userEvent.click(bundleToggle);
 
     // Apply content type filter
-    const contentTypeToggle = await canvas.findByRole('button', {
-      name: /content type/i,
-    });
-    await userEvent.click(contentTypeToggle);
-
-    await waitFor(() => {
-      const option = document.querySelector(
-        '[data-ouia-component-id="help-panel-content-type-option-documentation"]'
-      );
-      expect(option).toBeInTheDocument();
-    });
-
-    const docCheckbox = document.querySelector(
-      '[data-ouia-component-id="help-panel-content-type-option-documentation"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(docCheckbox);
+    await selectContentType(canvas, 'documentation');
 
     // Verify both filters are active
     await waitFor(() => {
-      const chip = document.querySelector(
-        '[data-ouia-component-id="help-panel-selected-chip-documentation"]'
-      );
-      expect(chip).toBeInTheDocument();
       expect(bundleToggle).toHaveAttribute('aria-pressed', 'true');
     });
 
-    // Verify Documentation items are shown
-    await waitFor(() => {
-      const documentationLinks = canvas.queryAllByText('Documentation');
-      expect(documentationLinks.length).toBeGreaterThan(0);
-    });
+    // Verify insights Documentation items are shown, Quick starts are not
+    await expectVisibleTitles(
+      canvas,
+      ['Insights Documentation', 'Vulnerability Docs'],
+      ['Getting Started with Insights', 'Advisor Quick Start']
+    );
   },
 };
 
@@ -661,12 +656,12 @@ export const BundleScopeWithBookmarks: Story = {
       expect(bundleToggle).toHaveAttribute('aria-pressed', 'true');
     });
 
-    // Verify bookmarked items from insights bundle are shown
-    await waitFor(() => {
-      const advisorLink = canvas.queryByText('Advisor Quick Start');
-      const vulnLink = canvas.queryByText('Vulnerability Docs');
-      expect(advisorLink || vulnLink).toBeTruthy();
-    });
+    // Verify bookmarked insights items are shown, non-bookmarked are not
+    await expectVisibleTitles(
+      canvas,
+      ['Advisor Quick Start', 'Vulnerability Docs'],
+      ['Getting Started with Insights', 'Ansible Quick Start']
+    );
   },
 };
 
@@ -685,24 +680,7 @@ export const AllFiltersCombined: Story = {
     await userEvent.click(bundleToggle);
 
     // Apply content type filter
-    const contentTypeToggle = await canvas.findByRole('button', {
-      name: /content type/i,
-    });
-    await userEvent.click(contentTypeToggle);
-
-    await waitFor(() => {
-      const option = document.querySelector(
-        '[data-ouia-component-id="help-panel-content-type-option-quickstart"]'
-      );
-      expect(option).toBeInTheDocument();
-    });
-
-    const quickstartCheckbox = document.querySelector(
-      '[data-ouia-component-id="help-panel-content-type-option-quickstart"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(quickstartCheckbox);
-
-    await userEvent.click(contentTypeToggle);
+    await selectContentType(canvas, 'quickstart');
 
     // Toggle bookmarked only
     const bookmarkedCheckbox = await canvas.findByRole('checkbox', {
@@ -712,19 +690,21 @@ export const AllFiltersCombined: Story = {
 
     // Verify all filters are active
     await waitFor(() => {
-      const chip = document.querySelector(
-        '[data-ouia-component-id="help-panel-selected-chip-quickstart"]'
-      );
-      expect(chip).toBeInTheDocument();
       expect(bookmarkedCheckbox).toBeChecked();
       expect(bundleToggle).toHaveAttribute('aria-pressed', 'true');
     });
 
-    // Verify the specific bookmarked quick start is shown
-    await waitFor(() => {
-      const advisorLink = canvas.queryByText('Advisor Quick Start');
-      expect(advisorLink).toBeInTheDocument();
-    });
+    // Verify only the bookmarked insights quick start is shown (Advisor Quick Start)
+    // Other types and non-bookmarked items should not be shown
+    await expectVisibleTitles(
+      canvas,
+      ['Advisor Quick Start'],
+      [
+        'Getting Started with Insights',
+        'Vulnerability Docs',
+        'Ansible Quick Start',
+      ]
+    );
   },
 };
 
@@ -788,14 +768,12 @@ export const RemoveFilterChip: Story = {
       expect(remainingChip).toBeInTheDocument();
     });
 
-    // Verify only Quick start items are shown
-    await waitFor(() => {
-      const quickstartLinks = canvas.queryAllByText('Quick start');
-      expect(quickstartLinks.length).toBeGreaterThan(0);
-
-      const documentationLinks = canvas.queryAllByText('Documentation');
-      expect(documentationLinks.length).toBe(0);
-    });
+    // Verify only Quick start items are shown, Documentation items are not
+    await expectVisibleTitles(
+      canvas,
+      ['Getting Started with Insights', 'Advisor Quick Start'],
+      ['Insights Documentation', 'Vulnerability Docs']
+    );
   },
 };
 
@@ -808,32 +786,7 @@ export const ClearAllFilters: Story = {
     await waitForLoadingComplete(canvas);
 
     // Apply content type filter
-    const contentTypeToggle = await canvas.findByRole('button', {
-      name: /content type/i,
-    });
-    await userEvent.click(contentTypeToggle);
-
-    await waitFor(() => {
-      const option = document.querySelector(
-        '[data-ouia-component-id="help-panel-content-type-option-documentation"]'
-      );
-      expect(option).toBeInTheDocument();
-    });
-
-    const docCheckbox = document.querySelector(
-      '[data-ouia-component-id="help-panel-content-type-option-documentation"] input[type="checkbox"]'
-    ) as HTMLElement;
-    await userEvent.click(docCheckbox);
-
-    await userEvent.click(contentTypeToggle);
-
-    // Wait for chip to appear
-    await waitFor(() => {
-      const chip = document.querySelector(
-        '[data-ouia-component-id="help-panel-selected-chip-documentation"]'
-      );
-      expect(chip).toBeInTheDocument();
-    });
+    await selectContentType(canvas, 'documentation');
 
     // Click clear all filters
     const clearButton = canvas.getByRole('button', {
@@ -848,5 +801,12 @@ export const ClearAllFilters: Story = {
       );
       expect(chip).not.toBeInTheDocument();
     });
+
+    // Verify all resource types are shown again (not just Documentation)
+    await expectVisibleTitles(canvas, [
+      'Getting Started with Insights',
+      'Insights Documentation',
+      'Advisor Quick Start',
+    ]);
   },
 };
