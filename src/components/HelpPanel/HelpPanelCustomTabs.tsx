@@ -554,14 +554,18 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
 
     useEffect(() => {
       // When baseTabs change (e.g., feature flag toggle), update activeTab if necessary
-      if (!baseTabs.find((tab) => tab.id === activeTab.id)) {
+      // Only reset if the current active tab is a base tab (not closeable) and no longer available
+      if (
+        !activeTab.closeable &&
+        !baseTabs.find((tab) => tab.id === activeTab.id)
+      ) {
         // Current active tab is no longer available, default to Learn tab
         const learnTab = baseTabs.find((tab) => tab.tabType === TabType.learn);
         if (learnTab) {
           setActiveTab(learnTab);
         }
       }
-    }, [baseTabs, activeTab.id]);
+    }, [baseTabs, activeTab.id, activeTab.closeable]);
 
     useEffect(() => {
       // Ensure the Add tab button has a stable OUIA id
