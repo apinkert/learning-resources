@@ -50,17 +50,35 @@ const statusTypes = {
   redHatWaiting: 'Waiting on Red Hat',
 };
 
+// Spacing between status text and icon: --pf-t--global--spacer--sm (.5rem / 8px)
+// https://www.patternfly.org/design-foundations/spacers#spacer-tokens
+const statusContentClass =
+  'pf-v6-u-display-inline-flex pf-v6-u-align-items-center pf-v6-u-text-nowrap';
+const statusIconSpacerStyle = {
+  marginInlineStart: 'var(--pf-t--global--spacer--sm)',
+};
+
 export const statusIcons = (status: string) => {
   const statusMapper = {
     [statusTypes.customerWaiting]: (
-      <Icon className="pf-t--global--icon--color--status--info--default">
-        {status} <AttentionBellIcon />{' '}
-      </Icon>
+      <span className={statusContentClass}>
+        <span>{status}</span>
+        <Icon
+          className="pf-t--global--icon--color--status--info--default"
+          style={statusIconSpacerStyle}
+          isInline
+        >
+          <AttentionBellIcon />
+        </Icon>
+      </span>
     ),
     [statusTypes.redHatWaiting]: (
-      <Icon>
-        {status} <InProgressIcon />{' '}
-      </Icon>
+      <span className={statusContentClass}>
+        <span>{status}</span>
+        <Icon style={statusIconSpacerStyle} isInline>
+          <InProgressIcon />
+        </Icon>
+      </span>
     ),
   };
   return statusMapper[status] ?? '';
@@ -207,6 +225,7 @@ const SupportPanel: React.FunctionComponent = () => {
                   <Td
                     dataLabel={columnNames.status}
                     className="pf-v6-u-text-nowrap"
+                    style={{ minWidth: 'min-content' }}
                   >
                     {statusIcons(c.status)}
                   </Td>

@@ -143,6 +143,7 @@ export const Step05_WithCasesTableAndPagination: Story = {
   },
   play: async ({ canvasElement }) => {
     await navigateToTab(canvasElement, 'My support cases');
+    waitForPageLoad(canvasElement);
 
     // Wait for table to appear (API returns mock cases)
     await waitFor(
