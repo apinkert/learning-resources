@@ -225,7 +225,6 @@ const SupportPanel: React.FunctionComponent = () => {
                   <Td
                     dataLabel={columnNames.status}
                     className="pf-v6-u-text-nowrap"
-                    style={{ minWidth: 'min-content' }}
                   >
                     {statusIcons(c.status)}
                   </Td>
