@@ -287,6 +287,50 @@ export const helpPanelMswHandlers = [
   }),
 ];
 
+const supportCasesFilterUrlProd =
+  'https://api.access.redhat.com/support/v1/cases/filter';
+const supportCasesFilterUrlStage =
+  'https://api.access.stage.redhat.com/support/v1/cases/filter';
+
+const emptySupportCasesResponse = () => HttpResponse.json({ cases: [] });
+
+/**
+ * MSW handlers for Support Panel - empty state (no open support cases).
+ */
+export const supportPanelMswHandlers = [
+  http.post(supportCasesFilterUrlProd, emptySupportCasesResponse),
+  http.post(supportCasesFilterUrlStage, emptySupportCasesResponse),
+];
+
+const mockSupportCases = [
+  {
+    id: 'case-1',
+    caseNumber: '03012345',
+    summary: 'Insights subscription activation issue',
+    lastModifiedDate: new Date().toISOString(),
+    status: 'Waiting on Red Hat',
+  },
+  {
+    id: 'case-2',
+    caseNumber: '03012346',
+    summary: 'API rate limit clarification',
+    lastModifiedDate: new Date(Date.now() - 86400000).toISOString(),
+    status: 'Waiting on Customer',
+  },
+];
+
+/**
+ * MSW handlers for Support Panel - with cases (table and pagination).
+ */
+export const supportPanelMswHandlersWithCases = [
+  http.post(supportCasesFilterUrlProd, () =>
+    HttpResponse.json({ cases: mockSupportCases })
+  ),
+  http.post(supportCasesFilterUrlStage, () =>
+    HttpResponse.json({ cases: mockSupportCases })
+  ),
+];
+
 /**
  * Wait for the console page to load.
  * Verifies the Help button and header are present.

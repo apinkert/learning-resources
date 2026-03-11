@@ -43,6 +43,26 @@ Tests the complete user workflow for accessing and filtering learning resources 
 **Manual Testing:**
 Use the "Manual Testing" story to explore the Help Panel interactively without automated steps running.
 
+### Help Panel / Support Panel
+
+Tests the user workflow for viewing support cases and opening a new case from the Help Panel (My support cases tab).
+
+**Steps:**
+1. **Page Loads** - Console page loads with Help button in masthead
+2. **Open Help Panel** - User clicks Help button to open the Help Panel drawer
+3. **Navigate to Support Tab** - User navigates to the My support cases tab
+4. **Empty State and Open Support Case** - User sees empty state and "Open support case" button when there are no cases
+5. **With Cases: Table and Pagination** - When cases exist, user sees the cases table and pagination
+
+**What it tests:**
+- Console page structure and Help Panel drawer
+- Tab navigation to My support cases
+- Support panel empty state and primary action (Open support case)
+- Support cases table and pagination when mock cases are returned
+
+**Manual Testing:**
+Use the "Manual Testing" story to explore the Support tab interactively.
+
 ## 🏗️ Creating New Tab Journeys
 
 Use the shared helpers in `src/user-journeys/_shared/helpPanelJourneyHelpers.ts` to create journeys for other Help Panel tabs (APIs, My support cases, Feedback, etc.).
@@ -58,6 +78,8 @@ See `HELP_PANEL_JOURNEY_TEMPLATE.md` for detailed examples.
 **`navigateToTab(canvasElement, tabName)`** - Opens panel and navigates to a specific tab
 
 **`helpPanelMswHandlers`** - Mock API handlers for learning resources (filters, quickstarts, favorites)
+
+**`supportPanelMswHandlers`** - Mock support cases API (empty state). Use with **`supportPanelMswHandlersWithCases`** for table/pagination testing.
 
 ### Example: Creating an APIs Tab Journey
 
@@ -174,7 +196,7 @@ parameters: {
 npm run storybook
 ```
 
-Navigate to "User Journeys" → "Help Panel / Learn Panel" section and click on individual stories.
+Navigate to "User Journeys" → "Help Panel" (Learn Panel, Support Panel, etc.) and click on individual stories.
 
 ### Via Play Function
 
@@ -193,6 +215,8 @@ The MSW handlers provide mock data for:
 - **Product family filters**: RHEL, Ansible, OpenShift
 
 This data supports testing bundle scope toggling, content type filtering, and bookmark filtering.
+
+For the Support Panel journey, **supportPanelMswHandlers** returns no cases (empty state); **supportPanelMswHandlersWithCases** returns mock cases for table and pagination steps.
 
 ---
 
