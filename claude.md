@@ -2,6 +2,113 @@
 
 This document tracks significant changes made with Claude Code assistance to help future maintainers understand the context and rationale.
 
+## Storybook Test Runner Setup (March 2026)
+
+### Overview
+Added automated Storybook testing infrastructure based on the rbac-ui implementation. This enables running interaction tests and console error detection against Storybook stories in the CI pipeline.
+
+### Changes Made
+
+#### `package.json`
+- **Added dependency**: `@storybook/test-runner@^0.23.0` - Storybook's official test runner using Playwright
+- **Added dependency**: `http-server@^14.1.1` - Simple HTTP server for serving built Storybook in CI
+- **Added dependency**: `wait-on@^7.2.0` - Utility to wait for server to be ready before running tests
+- **Added scripts**:
+  - `test-storybook` - Run tests locally (requires Storybook to be running on port 6006)
+  - `test-storybook:ci` - Run tests in CI mode with `--ci` flag for better output
+
+#### `.storybook/test-runner.ts` (new file)
+- **Console error detection**: Automatically fails tests when critical console errors/warnings are detected
+- **Ignored patterns**: Filters out expected errors like MSW mock API responses and informational logs
+- **Critical patterns**: Catches React warnings, JavaScript errors, and anti-patterns
+- **Viewport configuration**: Sets consistent 1200x500 viewport matching Chromatic defaults
+- **Tag support**: Stories can use `test-skip` tag to skip automated testing
+
+#### `.github/workflows/test.yml`
+- **Added job**: `test-storybook` runs after the `install` job
+- **Workflow steps**:
+  1. Checkout and setup Node.js 20
+  2. Restore cached node_modules from install job
+  3. Fix @swc/core platform bindings (same as other jobs)
+  4. Install Playwright browsers with dependencies
+  5. Build Storybook to static files
+  6. Serve built Storybook on port 6006 using http-server
+  7. Wait for server to be ready, then run test-storybook:ci
+
+### Context for Maintainers
+
+This implementation provides a **local-first approach** to Storybook testing, unlike rbac-ui which uses Chromatic for deployment and testing. The key differences:
+
+**learning-resources (this setup):**
+- Tests run against locally built Storybook
+- No Chromatic integration (no visual regression testing)
+- Simpler workflow suitable for projects without many stories yet
+- Can be enhanced later with Chromatic if needed
+
+**rbac-ui (reference):**
+- Tests run against deployed Chromatic builds
+- Full visual regression testing
+- Complex permission checks for PRs vs pushes
+- Requires Chromatic account and project token
+
+### When to Enhance This Setup
+
+Consider adding Chromatic integration when:
+1. **Multiple stories exist** and visual regression testing becomes valuable
+2. **Design system components** need visual approval workflow
+3. **Team grows** and you need better visual review tools
+4. **Visual bugs** are escaping to production
+
+For now, this setup provides:
+- Automated story rendering verification
+- Console error detection (catches React warnings, PropType errors, etc.)
+- Interaction testing support (when stories include `play` functions)
+- Foundation that works with or without Chromatic
+
+### Running Tests Locally
+
+**First-time setup:**
+```bash
+# Install Playwright browsers (one-time step)
+npx playwright install --with-deps
+```
+
+**Running tests:**
+```bash
+# Terminal 1: Start Storybook dev server
+npm run storybook
+
+# Terminal 2: Run tests against running server
+npm run test-storybook
+```
+
+Or test against a built version:
+```bash
+npm run build-storybook
+npx http-server storybook-static --port 6006 &
+npm run test-storybook
+```
+
+### Adding Stories
+
+When creating new stories, they will automatically be tested by the CI workflow. To skip testing for a specific story, add the `test-skip` tag:
+
+```typescript
+export const MyStory = {
+  // Story configuration
+  tags: ['test-skip'], // Skip automated testing
+};
+```
+
+### Related Files
+- `package.json` - Added dependencies and scripts
+- `.storybook/test-runner.ts` - Test runner configuration
+- `.github/workflows/test.yml` - CI workflow with test-storybook job
+
+### Reference Implementation
+- `insights-rbac-ui` repository - Full Chromatic setup with comprehensive error detection
+- `.storybook/test-runner.ts` in rbac-ui - Extensive error pattern library (368 lines)
+
 ## Chrome Sidecar Removal (February 2026)
 
 ### Overview

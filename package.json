@@ -22,7 +22,9 @@
     "verify": "npm-run-all build lint test",
     "postinstall": "ts-patch install",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test-storybook": "test-storybook",
+    "test-storybook:ci": "test-storybook --ci"
   },
   "dependencies": {
     "@data-driven-forms/pf4-component-mapper": "^4.1.4",
@@ -55,6 +57,7 @@
     "@storybook/addon-docs": "^9.1.17",
     "@storybook/addon-webpack5-compiler-swc": "^3.0.0",
     "@storybook/react-webpack5": "^9.1.17",
+    "@storybook/test-runner": "^0.23.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^14.3.1",
     "@types/react": "18.3.27",
@@ -63,6 +66,7 @@
     "@typescript-eslint/parser": "^6.21.0",
     "cypress": "^14.5.4",
     "eslint": "8.57.1",
+    "http-server": "^14.1.1",
     "identity-obj-proxy": "3.0.0",
     "jest": "29.7.0",
     "jest_workaround": "^0.79.19",
@@ -76,6 +80,7 @@
     "ts-patch": "^3.3.0",
     "typescript": "^5.9.3",
     "uuid": "^9.0.1",
+    "wait-on": "^7.2.0",
     "webpack-bundle-analyzer": "4.10.2"
   },
   "insights": {
