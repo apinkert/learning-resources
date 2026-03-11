@@ -86,6 +86,7 @@ Or test against a built version:
 ```bash
 npm run build-storybook
 npx http-server storybook-static --port 6006 &
+npx wait-on tcp:127.0.0.1:6006
 npm run test-storybook
 ```
 

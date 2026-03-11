@@ -6,30 +6,43 @@
  */
 
 import type { TestRunnerConfig } from '@storybook/test-runner';
+import type { Page } from '@playwright/test';
 
 // Track errors per story
 const storyErrors = new Map<string, string[]>();
+// Track console listeners per story to clean them up
+const storyListeners = new Map<string, (msg: any) => void>();
 
 /**
- * Errors/warnings to ignore (intentional test infrastructure)
+ * Error pattern with optional source scoping
  */
-const IGNORED_ERROR_PATTERNS: Array<{ pattern: RegExp; label: string }> = [
-  // MSW mock API errors (intentional for testing error states)
-  { pattern: /Failed to load resource.*status of (4\d{2}|5\d{2})/, label: 'MSW HTTP errors (intentional)' },
-  { pattern: /Failed to load resource.*net::ERR_FAILED/, label: 'Network failures (MSW)' },
-  { pattern: /AxiosError/, label: 'Axios errors (MSW mock)' },
-  { pattern: /SyntaxError: Unexpected token.*Not Found.*is not valid JSON/, label: '404 HTML responses' },
+interface ErrorPattern {
+  pattern: RegExp;
+  label: string;
+  source?: 'msw' | 'mock-route'; // Scope to specific sources
+}
 
-  // Storybook/Testing Library informational warnings
+/**
+ * Errors/warnings to ignore (scoped to test infrastructure)
+ * These patterns only apply when they originate from MSW or mock routes
+ */
+const IGNORED_ERROR_PATTERNS: ErrorPattern[] = [
+  // MSW mock API errors (intentional for testing error states)
+  { pattern: /Failed to load resource.*status of (4\d{2}|5\d{2})/, label: 'MSW HTTP errors', source: 'msw' },
+  { pattern: /Failed to load resource.*net::ERR_FAILED/, label: 'Network failures', source: 'msw' },
+  { pattern: /AxiosError/, label: 'Axios errors', source: 'msw' },
+  { pattern: /SyntaxError: Unexpected token.*Not Found.*is not valid JSON/, label: '404 HTML responses', source: 'msw' },
+
+  // Storybook/Testing Library informational warnings (not scoped)
   { pattern: /You are using Testing Library's `screen` object/, label: 'Testing Library screen warning' },
 
-  // MSW informational logs
-  { pattern: /MSW.*mock/i, label: 'MSW logs' },
-  { pattern: /^Request \{url:/, label: 'MSW request logs' },
-  { pattern: /^Handler:/, label: 'MSW handler logs' },
-  { pattern: /^Response \{status:/, label: 'MSW response logs' },
-  { pattern: /Worker script URL:/, label: 'MSW worker setup' },
-  { pattern: /Worker scope:/, label: 'MSW worker setup' },
+  // MSW informational logs (scoped to MSW)
+  { pattern: /MSW.*mock/i, label: 'MSW logs', source: 'msw' },
+  { pattern: /^Request \{url:/, label: 'MSW request logs', source: 'msw' },
+  { pattern: /^Handler:/, label: 'MSW handler logs', source: 'msw' },
+  { pattern: /^Response \{status:/, label: 'MSW response logs', source: 'msw' },
+  { pattern: /Worker script URL:/, label: 'MSW worker setup', source: 'msw' },
+  { pattern: /Worker scope:/, label: 'MSW worker setup', source: 'msw' },
 
   // Add more patterns as needed when stories are created
 ];
@@ -58,8 +71,39 @@ const CRITICAL_ERROR_PATTERNS = [
   /@formatjs\/intl Error FORMAT_ERROR/,
 ];
 
-function shouldIgnoreError(errorText: string): boolean {
-  return IGNORED_ERROR_PATTERNS.some(({ pattern }) => pattern.test(errorText));
+/**
+ * Check if error should be ignored based on scoping rules
+ * @param errorText - The console error/warning text
+ * @param storyParameters - Story parameters (can contain ignoreConsoleErrors list)
+ */
+function shouldIgnoreError(errorText: string, storyParameters?: any): boolean {
+  // Check if error is from MSW/mock infrastructure
+  const isMswError = /msw|mock|handler|worker/i.test(errorText) ||
+                     /Failed to load resource/.test(errorText);
+
+  for (const { pattern, source } of IGNORED_ERROR_PATTERNS) {
+    // If pattern has a source requirement, only match if error is from that source
+    if (source && !isMswError) {
+      continue;
+    }
+
+    if (pattern.test(errorText)) {
+      return true;
+    }
+  }
+
+  // Check story-specific ignore patterns if provided
+  if (storyParameters?.testRunner?.ignoreConsoleErrors) {
+    const ignorePatterns = storyParameters.testRunner.ignoreConsoleErrors;
+    if (Array.isArray(ignorePatterns)) {
+      return ignorePatterns.some((p: string | RegExp) => {
+        const regex = typeof p === 'string' ? new RegExp(p) : p;
+        return regex.test(errorText);
+      });
+    }
+  }
+
+  return false;
 }
 
 function isCriticalError(errorText: string): boolean {
@@ -67,8 +111,8 @@ function isCriticalError(errorText: string): boolean {
 }
 
 const config: TestRunnerConfig = {
-  async preVisit(page, context) {
-    const { id, tags } = context;
+  async preVisit(page: Page, context) {
+    const { id, tags, parameters } = context;
 
     // Skip stories with 'test-skip' tag
     if (tags?.includes('test-skip')) {
@@ -81,15 +125,15 @@ const config: TestRunnerConfig = {
     // Initialize error collection for this story
     storyErrors.set(id, []);
 
-    // Attach console listener to capture errors/warnings
-    page.on('console', async (msg) => {
+    // Create a named console listener for this story
+    const consoleListener = async (msg: any) => {
       const text = msg.text();
       const type = msg.type();
 
       // Only process warnings and errors
       if (type === 'warning' || type === 'error') {
-        // Skip ignored patterns
-        if (shouldIgnoreError(text)) {
+        // Skip ignored patterns (with story parameter support)
+        if (shouldIgnoreError(text, parameters)) {
           return;
         }
 
@@ -109,15 +153,28 @@ const config: TestRunnerConfig = {
           storyErrors.set(id, errors);
         }
       }
-    });
+    };
+
+    // Store the listener so we can remove it later
+    storyListeners.set(id, consoleListener);
+
+    // Attach console listener to capture errors/warnings
+    page.on('console', consoleListener);
   },
 
-  async postVisit(page, context) {
+  async postVisit(page: Page, context) {
     const { id, title, name, tags } = context;
 
     // Skip stories with 'test-skip' tag
     if (tags?.includes('test-skip')) {
       return;
+    }
+
+    // Remove the console listener for this story
+    const consoleListener = storyListeners.get(id);
+    if (consoleListener) {
+      page.off('console', consoleListener);
+      storyListeners.delete(id);
     }
 
     const errors = storyErrors.get(id) || [];
@@ -132,7 +189,8 @@ const config: TestRunnerConfig = {
       throw new Error(
         `Story "${title} > ${name}" failed due to ${errors.length} critical console error(s):\n\n${errorSummary}\n\n` +
           `These errors may indicate bugs that need to be fixed.\n` +
-          `If these are intentional/expected errors, add them to IGNORED_ERROR_PATTERNS in test-runner.ts`
+          `If these are intentional/expected errors, add them to IGNORED_ERROR_PATTERNS in test-runner.ts\n` +
+          `or use story parameters: { testRunner: { ignoreConsoleErrors: [/pattern/] } }`
       );
     }
   },

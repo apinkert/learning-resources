@@ -12,14 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Node setup
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
       # cache node modules for all jobs to use
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: node_modules-cache
         with:
           path: |
@@ -38,14 +38,14 @@ jobs:
     needs: [install]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Node setup
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'      
+          cache: 'npm'
       # consume installed modules
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: node_modules-cache
         with:
           path: |
@@ -53,7 +53,7 @@ jobs:
             /home/runner/.cache/Cypress
           key: install-cache-${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
       # custom cypress cache, caches cypress and cypress webpack node module dependencies based on lock file
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: cypress-cache
         with:
           path: |
@@ -79,14 +79,14 @@ jobs:
     needs: [install]
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Node setup
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
       # consume installed modules
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         id: node_modules-cache
         with:
           path: |
