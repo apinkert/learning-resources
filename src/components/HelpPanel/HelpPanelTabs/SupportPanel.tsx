@@ -18,14 +18,7 @@ import ExternalLinkAltIcon from '@patternfly/react-icons/dist/dynamic/icons/exte
 import HeadsetIcon from '@patternfly/react-icons/dist/dynamic/icons/headset-icon';
 import AttentionBellIcon from '@patternfly/react-icons/dist/dynamic/icons/attention-bell-icon';
 import InProgressIcon from '@patternfly/react-icons/dist/dynamic/icons/in-progress-icon';
-import {
-  Table,
-  TableVariant,
-  Tbody,
-  Td,
-  Thead,
-  Tr,
-} from '@patternfly/react-table';
+import { Table, TableVariant, Tbody, Td, Tr } from '@patternfly/react-table';
 import { useIntl } from 'react-intl';
 import messages from '../../../Messages';
 
@@ -164,11 +157,8 @@ const SupportPanel: React.FunctionComponent = () => {
       ) : cases.length === 0 ? (
         <EmptyState
           icon={HeadsetIcon}
-          titleText={
-            <Title headingLevel="h4" size="lg">
-              {intl.formatMessage(messages.noOpenSupportCasesTitle)}
-            </Title>
-          }
+          titleText={intl.formatMessage(messages.noOpenSupportCasesTitle)}
+          headingLevel="h4"
           variant={EmptyStateVariant.lg}
           data-ouia-component-id="help-panel-support-empty-state"
         >
@@ -204,14 +194,14 @@ const SupportPanel: React.FunctionComponent = () => {
               {intl.formatMessage(messages.customerPortalLinkText)}
             </Content>
           </Content>
+          <Title headingLevel="h3" size="md">
+            {intl.formatMessage(messages.supportCasesTableTitle)} (
+            {cases.length})
+          </Title>
           <Table
             variant={TableVariant.compact}
             data-ouia-component-id="help-panel-support-cases-table"
           >
-            <Thead>
-              {intl.formatMessage(messages.supportCasesTableTitle)} (
-              {cases.length})
-            </Thead>
             <Tbody>
               {cases.map((c) => (
                 <Tr key={c.id}>
