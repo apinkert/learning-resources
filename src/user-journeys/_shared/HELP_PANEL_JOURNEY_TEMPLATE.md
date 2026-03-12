@@ -159,7 +159,7 @@ Opens the Help Panel and navigates to the specified tab.
 
 **Parameters:**
 - `canvasElement`: The Storybook canvas element
-- `tabName`: The name of the tab (e.g., "Learn", "APIs", "My support cases", "Feedback")
+- `tabName`: The name of the tab (e.g., "Learn", "APIs", "Support", "Feedback")
 
 **Usage:**
 ```typescript

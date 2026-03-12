@@ -32,7 +32,7 @@ const meta: Meta<typeof AppEntryWithRouter> = {
 
 Tests the support cases workflow including:
 - Opening the Help Panel
-- Navigating to the My support cases tab
+- Navigating to the Support tab
 - Empty state and Open support case button
 - Table and pagination when cases exist
         `,
@@ -80,7 +80,7 @@ export const Step02_OpenHelpPanel: Story = {
 export const Step03_NavigateToSupportTab: Story = {
   name: '03 / Navigate to Support Tab',
   play: async ({ canvasElement }) => {
-    await navigateToTab(canvasElement, 'My support cases');
+    await navigateToTab(canvasElement, 'Support');
 
     // Wait for Support content to load (empty state or table)
     await waitFor(
@@ -107,7 +107,7 @@ export const Step03_NavigateToSupportTab: Story = {
 export const Step04_EmptyStateAndOpenSupportCase: Story = {
   name: '04 / Empty State and Open Support Case',
   play: async ({ canvasElement }) => {
-    await navigateToTab(canvasElement, 'My support cases');
+    await navigateToTab(canvasElement, 'Support');
 
     // Wait for loading to finish: empty state appears (skeleton disappears)
     await waitFor(
@@ -142,7 +142,7 @@ export const Step05_WithCasesTableAndPagination: Story = {
     },
   },
   play: async ({ canvasElement }) => {
-    await navigateToTab(canvasElement, 'My support cases');
+    await navigateToTab(canvasElement, 'Support');
     waitForPageLoad(canvasElement);
 
     // Wait for table to appear (API returns mock cases)

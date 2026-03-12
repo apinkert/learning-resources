@@ -45,18 +45,18 @@ Use the "Manual Testing" story to explore the Help Panel interactively without a
 
 ### Help Panel / Support Panel
 
-Tests the user workflow for viewing support cases and opening a new case from the Help Panel (My support cases tab).
+Tests the user workflow for viewing support cases and opening a new case from the Help Panel (Support tab).
 
 **Steps:**
 1. **Page Loads** - Console page loads with Help button in masthead
 2. **Open Help Panel** - User clicks Help button to open the Help Panel drawer
-3. **Navigate to Support Tab** - User navigates to the My support cases tab
+3. **Navigate to Support Tab** - User navigates to the Support tab
 4. **Empty State and Open Support Case** - User sees empty state and "Open support case" button when there are no cases
 5. **With Cases: Table and Pagination** - When cases exist, user sees the cases table and pagination
 
 **What it tests:**
 - Console page structure and Help Panel drawer
-- Tab navigation to My support cases
+- Tab navigation to Support
 - Support panel empty state and primary action (Open support case)
 - Support cases table and pagination when mock cases are returned
 
@@ -65,7 +65,7 @@ Use the "Manual Testing" story to explore the Support tab interactively.
 
 ## 🏗️ Creating New Tab Journeys
 
-Use the shared helpers in `src/user-journeys/_shared/helpPanelJourneyHelpers.ts` to create journeys for other Help Panel tabs (APIs, My support cases, Feedback, etc.).
+Use the shared helpers in `src/user-journeys/_shared/helpPanelJourneyHelpers.ts` to create journeys for other Help Panel tabs (APIs, Support, Feedback, etc.).
 
 See `HELP_PANEL_JOURNEY_TEMPLATE.md` for detailed examples.
 
