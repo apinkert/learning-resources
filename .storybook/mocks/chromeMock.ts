@@ -5,6 +5,7 @@
 
 export const defaultMockChrome = {
   auth: {
+    getToken: async () => 'mock-token',
     getUser: async () => ({
       identity: {
         account_number: '12345',
