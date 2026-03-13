@@ -291,17 +291,27 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
     const searchFlag = useFlag('platform.chrome.help-panel_search');
 
     const baseTabs = useMemo(() => createBaseTabs(vaFlag), [vaFlag]);
-    const apiStoreMock = useMemo(() => createTabsStore(baseTabs), [baseTabs]);
+    // Initialize store with find-help tab already having the correct sub-tab (Search when flag on, else Learn)
+    // so content is correct on first paint and tests don't depend on a follow-up effect.
+    const initialTabs = useMemo(
+      () =>
+        baseTabs.map((tab) =>
+          tab.id === 'find-help' && searchFlag
+            ? { ...tab, tabType: TabType.search }
+            : tab
+        ),
+      [baseTabs, searchFlag]
+    );
+    const apiStoreMock = useMemo(
+      () => createTabsStore(initialTabs),
+      [initialTabs]
+    );
 
     // Default to 'Find help' tab; default sub-tab is Search when search flag is enabled, otherwise Learn
-    const findHelpTab = baseTabs.find((tab) => tab.tabType === TabType.learn);
-    const defaultFindHelpTab = findHelpTab
-      ? {
-          ...findHelpTab,
-          tabType: searchFlag ? TabType.search : TabType.learn,
-        }
-      : baseTabs[0];
-    const [activeTab, setActiveTab] = useState<TabDefinition>(defaultFindHelpTab);
+    const defaultFindHelpTab =
+      initialTabs.find((t) => t.id === 'find-help') ?? initialTabs[0];
+    const [activeTab, setActiveTab] =
+      useState<TabDefinition>(defaultFindHelpTab);
 
     const [newActionTitle, setNewActionTitle] = useState<string | undefined>(
       undefined
@@ -563,17 +573,19 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
         !baseTabs.find((tab) => tab.id === activeTab.id)
       ) {
         // Current active tab is no longer available, default to Search tab when available, otherwise Learn tab
-        const findHelpTab = baseTabs.find(
+        const findHelpTabFallback = baseTabs.find(
           (tab) => tab.tabType === TabType.learn
         );
-        if (findHelpTab) {
-          setActiveTab({
-            ...findHelpTab,
+        if (findHelpTabFallback) {
+          const fallbackTab = {
+            ...findHelpTabFallback,
             tabType: searchFlag ? TabType.search : TabType.learn,
-          });
+          };
+          updateTab(fallbackTab);
+          setActiveTab(fallbackTab);
         }
       }
-    }, [baseTabs, activeTab.id, activeTab.closeable, searchFlag]);
+    }, [baseTabs, activeTab.id, activeTab.closeable, searchFlag, updateTab]);
 
     useEffect(() => {
       // Ensure the Add tab button has a stable OUIA id
