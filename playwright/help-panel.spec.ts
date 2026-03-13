@@ -59,7 +59,7 @@ test.describe('help panel', async () => {
     await expect(helpPanelTitle).toBeVisible();
 
     // The status page link is always visible in the header next to the Help title
-    const statusPageLink = page.locator('[data-ouia-component-id="help-panel-status-page-header-button"]');
+    const statusPageLink = page.locator('.lr-c-status-page-link');
     await expect(statusPageLink).toBeVisible();
     await expect(statusPageLink).toHaveText('Red Hat status page');
   });
