@@ -43,6 +43,7 @@ const HelpPanelContent = ({
             component="a"
             href="https://status.redhat.com/"
             target="_blank"
+            rel="noopener noreferrer"
             isInline
             className="lr-c-status-page-link"
             icon={<ExternalLinkAltIcon />}

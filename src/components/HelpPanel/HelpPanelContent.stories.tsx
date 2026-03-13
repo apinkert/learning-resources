@@ -314,31 +314,32 @@ export const OpenMultipleTabs: Story = {
       '[data-ouia-component-id="help-panel-add-tab-button"]'
     ) as HTMLElement;
 
-    // Add first tab
-    await userEvent.click(addTabButton);
-    await waitFor(() => {
-      const firstTab = canvas.getByRole('tab', { name: 'New tab' });
-      expect(firstTab).toBeInTheDocument();
-    });
+    // Keep adding tabs until overflow occurs (max 10 attempts to prevent infinite loop)
+    let overflowItem = null;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    // Add second tab - this should trigger the overflow dropdown
-    await userEvent.click(addTabButton);
+    while (!overflowItem && attempts < maxAttempts) {
+      await userEvent.click(addTabButton);
+      attempts++;
 
-    // Wait for overflow menu to appear (PatternFly creates a dropdown when tabs overflow)
-    await waitFor(
-      () => {
-        // Check if there's an overflow menu (tabs get hidden in dropdown)
-        const overflowItem = document.querySelector(
-          '.pf-v6-c-tabs__item.pf-m-overflow'
-        );
-        // Either the overflow menu exists, or we can still see at least 1 new tab
-        const visibleNewTabs = canvas.queryAllByRole('tab', {
-          name: 'New tab',
-        });
-        expect(overflowItem || visibleNewTabs.length >= 1).toBeTruthy();
-      },
-      { timeout: 3000 }
-    );
+      // Wait briefly for the tab to be added
+      await waitFor(
+        () => {
+          const tabs = canvas.queryAllByRole('tab', { name: 'New tab' });
+          expect(tabs.length).toBeGreaterThanOrEqual(attempts);
+        },
+        { timeout: 1000 }
+      ).catch(() => {
+        // Ignore timeout, we'll check overflow anyway
+      });
+
+      // Check if overflow has appeared
+      overflowItem = document.querySelector('.pf-v6-c-tabs__item.pf-m-overflow');
+    }
+
+    // Assert that overflow menu appeared
+    expect(overflowItem).toBeTruthy();
 
     // Find and close the visible new tab(s)
     const visibleNewTabs = canvas.queryAllByRole('tab', { name: 'New tab' });
