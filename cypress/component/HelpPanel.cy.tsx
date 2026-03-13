@@ -279,8 +279,8 @@ describe('HelpPanel', () => {
       cy.get('.pf-v6-c-tabs__item').should('have.length', 2) // Back to VA + Find help tabs
     });
 
-    // Should show Learn panel content after closing the extra tab
-    cy.contains(getMessageText('learnPanelDescription')).should('be.visible');
+    // Find help defaults to Search when search flag is enabled; expect Search panel content
+    cy.contains(getMessageText('searchPanelRecentSearch')).should('be.visible');
   })
 
   it('should change tab title when switching sub-tabs', () => {

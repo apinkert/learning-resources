@@ -195,10 +195,12 @@ const useTabs = (apiStoreMock: ReturnType<typeof createTabsStore>) => {
 
   useEffect(() => {
     const unsubscribe = subscribe(dispatch);
+    // Sync state from current store (needed when store instance changed, e.g. flags)
+    dispatch();
     return () => {
       unsubscribe();
     };
-  }, []);
+  }, [apiStoreMock]);
 
   return {
     tabs,
