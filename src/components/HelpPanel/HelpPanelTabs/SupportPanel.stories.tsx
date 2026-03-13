@@ -3,7 +3,7 @@ import React from 'react';
 import { IntlProvider } from 'react-intl';
 import { HttpResponse, delay, http } from 'msw';
 import { expect, waitFor, within } from 'storybook/test';
-import SupportPanel, { statusIcons } from './SupportPanel';
+import SupportPanel from './SupportPanel';
 import {
   supportPanelMswHandlers,
   supportPanelMswHandlersWithCases,
@@ -216,28 +216,5 @@ export const ApiError: Story = {
     expect(
       canvas.getByRole('button', { name: /open a support case/i })
     ).toBeInTheDocument();
-  },
-};
-
-/**
- * Status icons used in the table (Waiting on Customer, Waiting on Red Hat).
- */
-export const StatusIcons: Story = {
-  render: () => (
-    <IntlProvider locale="en" defaultLocale="en">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <div>
-          <strong>Waiting on Customer:</strong>{' '}
-          {statusIcons('Waiting on Customer')}
-        </div>
-        <div>
-          <strong>Waiting on Red Hat:</strong>{' '}
-          {statusIcons('Waiting on Red Hat')}
-        </div>
-      </div>
-    </IntlProvider>
-  ),
-  parameters: {
-    msw: { handlers: [] },
   },
 };
