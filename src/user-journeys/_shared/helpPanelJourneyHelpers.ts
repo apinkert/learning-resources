@@ -398,7 +398,7 @@ export async function openHelpPanel(canvasElement: HTMLElement) {
  * Opens the panel first if not already open.
  *
  * @param canvasElement - The Storybook canvas element
- * @param tabName - The name of the tab to navigate to (e.g., "Learn", "APIs", "My support cases")
+ * @param tabName - The name of the tab to navigate to (e.g., "Learn", "APIs", "Support")
  */
 export async function navigateToTab(
   canvasElement: HTMLElement,

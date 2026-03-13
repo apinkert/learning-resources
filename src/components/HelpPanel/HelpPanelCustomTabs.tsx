@@ -109,7 +109,7 @@ const subTabs: SubTab[] = [
     tabType: TabType.api,
   },
   {
-    title: 'My support cases',
+    title: 'Support',
     tabTitle: 'Support',
     tabType: TabType.support,
   },
