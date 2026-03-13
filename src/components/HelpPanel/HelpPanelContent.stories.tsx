@@ -335,7 +335,9 @@ export const OpenMultipleTabs: Story = {
       });
 
       // Check if overflow has appeared
-      overflowItem = document.querySelector('.pf-v6-c-tabs__item.pf-m-overflow');
+      overflowItem = document.querySelector(
+        '.pf-v6-c-tabs__item.pf-m-overflow'
+      );
     }
 
     // Assert that overflow menu appeared
