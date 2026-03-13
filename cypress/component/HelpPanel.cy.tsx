@@ -94,8 +94,8 @@ describe('HelpPanel', () => {
 
     cy.contains('Help').should('be.visible');
     cy.contains('Find help').should('be.visible');
-    // Should default to Learn tab
-    cy.contains(getMessageText('learnPanelDescription'), { timeout: 10000 }).should('be.visible');
+    // Should default to Search tab when search flag is enabled
+    cy.contains(getMessageText('searchPanelRecentSearch'), { timeout: 10000 }).should('be.visible');
   })
 
   it('should not display sub tabs hidden by FF', () => {

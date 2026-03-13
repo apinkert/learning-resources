@@ -288,17 +288,20 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
     const intl = useIntl();
     const chrome = useChrome();
     const vaFlag = useFlag('platform.chrome.help-panel_chatbot');
+    const searchFlag = useFlag('platform.chrome.help-panel_search');
 
     const baseTabs = useMemo(() => createBaseTabs(vaFlag), [vaFlag]);
     const apiStoreMock = useMemo(() => createTabsStore(baseTabs), [baseTabs]);
 
-    // Find the Learn tab index (it might be 0 or 1 depending on VA flag)
-    const learnTabIndex = baseTabs.findIndex(
-      (tab) => tab.tabType === TabType.learn
-    );
-    const [activeTab, setActiveTab] = useState<TabDefinition>(
-      baseTabs[learnTabIndex]
-    ); // Default to 'Find help' tab (Learn)
+    // Default to 'Find help' tab; default sub-tab is Search when search flag is enabled, otherwise Learn
+    const findHelpTab = baseTabs.find((tab) => tab.tabType === TabType.learn);
+    const defaultFindHelpTab = findHelpTab
+      ? {
+          ...findHelpTab,
+          tabType: searchFlag ? TabType.search : TabType.learn,
+        }
+      : baseTabs[0];
+    const [activeTab, setActiveTab] = useState<TabDefinition>(defaultFindHelpTab);
 
     const [newActionTitle, setNewActionTitle] = useState<string | undefined>(
       undefined
@@ -559,13 +562,18 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
         !activeTab.closeable &&
         !baseTabs.find((tab) => tab.id === activeTab.id)
       ) {
-        // Current active tab is no longer available, default to Learn tab
-        const learnTab = baseTabs.find((tab) => tab.tabType === TabType.learn);
-        if (learnTab) {
-          setActiveTab(learnTab);
+        // Current active tab is no longer available, default to Search tab when available, otherwise Learn tab
+        const findHelpTab = baseTabs.find(
+          (tab) => tab.tabType === TabType.learn
+        );
+        if (findHelpTab) {
+          setActiveTab({
+            ...findHelpTab,
+            tabType: searchFlag ? TabType.search : TabType.learn,
+          });
         }
       }
-    }, [baseTabs, activeTab.id, activeTab.closeable]);
+    }, [baseTabs, activeTab.id, activeTab.closeable, searchFlag]);
 
     useEffect(() => {
       // Ensure the Add tab button has a stable OUIA id
