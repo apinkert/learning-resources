@@ -11,15 +11,16 @@ import { TEST_TIMEOUTS, delay } from './_shared/testConstants';
 /**
  * User Journey: Help Panel - Feedback Panel
  *
- * Tests the complete user workflow for submitting feedback through the Help Panel.
+ * Tests the user workflow for interacting with feedback forms in the Help Panel.
  *
  * KEY FEATURES DEMONSTRATED:
  * 1. Three distinct feedback workflows (Share Feedback, Report Bug, Research Opportunities)
  * 2. Email display when opting into research opportunities
- * 3. **Success screen workflow dropdown** - After submission, users can select another
- *    feedback type from a dropdown without returning to home (see Step 07b)
- * 4. Form validation and required fields per workflow type
- * 5. Breadcrumb navigation between screens
+ * 3. Form validation and required fields per workflow type
+ * 4. Breadcrumb navigation between screens
+ *
+ * NOTE: Form submission and success screens cannot be tested in Storybook as they require
+ * external API endpoints only available in production/stage environments.
  */
 
 const meta: Meta<typeof AppEntryWithRouter> = {
@@ -35,12 +36,12 @@ const meta: Meta<typeof AppEntryWithRouter> = {
         component: `
 # Help Panel - Feedback Panel User Journey
 
-Tests the feedback submission workflow including:
+Tests the feedback form interactions including:
 - Opening the Help Panel
 - Navigating to the Feedback tab
-- All three feedback workflows (General Feedback, Report Bug, Research Opportunities)
+- All three feedback workflows (Share Feedback, Report Bug, Research Opportunities)
 - Email display when research checkbox is checked
-- Switching between workflows by navigating back to home (Note: In production, users can also switch workflows using a dropdown on the success screen after submission)
+- Breadcrumb navigation between workflow forms and home
         `,
       },
     },
@@ -58,24 +59,8 @@ type Story = StoryObj<typeof meta>;
 /**
  * Manual Testing Entry Point
  *
- * To see the SUCCESS SCREEN WORKFLOW DROPDOWN in action:
- *
- * 1. Open Help Panel → Feedback tab
- * 2. Select any feedback workflow (Share feedback, Report bug, or Research opportunities)
- * 3. Fill out the form completely
- * 4. Click Submit (Note: Submission only works in prod/stage environments)
- * 5. On success, you'll see:
- *    - ✅ Green checkmark icon
- *    - Success message (e.g., "Feedback sent" or "Bug reported")
- *    - **"Share more feedback" dropdown button** (this is the key feature!)
- * 6. Click the dropdown button to reveal three options:
- *    - Share feedback
- *    - Report a bug
- *    - Inform Red Hat direction
- * 7. Select any option to go directly to that workflow form
- * 8. Users can chain multiple submissions without returning to the home screen
- *
- * This dropdown pattern enables efficient multi-feedback submission workflows.
+ * Use this story to interact with the feedback panel UI. Note that form submission
+ * requires external API endpoints and only works in production/stage environments.
  */
 export const ManualTesting: Story = {};
 
