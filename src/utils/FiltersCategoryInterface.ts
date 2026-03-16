@@ -31,6 +31,7 @@ export const FiltersCategoryMetadata: Record<CategoryID, string> = {
   'use-case': 'Use case',
   'display-name': 'Display name',
   bundle: '',
+  fuzzy: '',
 };
 
 export const FiltersMetadata: Record<string, string> = {
