@@ -40,31 +40,27 @@ const AppliedFilters: React.FC<{
         {(Object.keys(loaderOptions) as CategoryID[])
           .filter((key): key is FilterCategoryID => key !== 'fuzzy')
           .map((categoryId) => {
-          const categoryKey = categoryId;
-          const filters = loaderOptions[categoryKey];
-          if (!Array.isArray(filters) || filters.length === 0) return null;
+            const filters = loaderOptions[categoryId];
+            if (!Array.isArray(filters) || filters.length === 0) return null;
 
-          const categoryName =
-            FiltersCategoryMetadata[
-              categoryId as keyof typeof FiltersCategoryMetadata
-            ];
+            const categoryName = FiltersCategoryMetadata[categoryId];
 
-          return (
-            <ToolbarItem key={categoryId}>
-              <LabelGroup categoryName={categoryName}>
-                {filters.map((filterId: string) => (
-                  <Label
-                    variant="outline"
-                    key={filterId}
-                    onClose={() => removeFilter(categoryKey, filterId)}
-                  >
-                    {FiltersMetadata[filterId]}
-                  </Label>
-                ))}
-              </LabelGroup>
-            </ToolbarItem>
-          );
-        })}
+            return (
+              <ToolbarItem key={categoryId}>
+                <LabelGroup categoryName={categoryName}>
+                  {filters.map((filterId: string) => (
+                    <Label
+                      variant="outline"
+                      key={filterId}
+                      onClose={() => removeFilter(categoryId, filterId)}
+                    >
+                      {FiltersMetadata[filterId]}
+                    </Label>
+                  ))}
+                </LabelGroup>
+              </ToolbarItem>
+            );
+          })}
       </ToolbarContent>
     </Toolbar>
   );
