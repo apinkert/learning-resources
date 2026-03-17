@@ -28,7 +28,7 @@ The quickstarts service supports optional fuzzy search via [PR #436](https://git
 
 In this app:
 
-- **Search panel** ([`SearchPanel.tsx`](src/components/HelpPanel/HelpPanelTabs/SearchPanel/SearchPanel.tsx)): Fetches all quickstarts with `fetchAllData(getUser, {})`, then runs **Fuse.js** over quickstarts + services + API docs. Use the backend fuzzy for quickstarts and replace that path.
+- **Search panel** ([`SearchPanel.tsx`](src/components/HelpPanel/HelpPanelTabs/SearchPanel/SearchPanel.tsx)): Previously fetched all quickstarts via `fetchAllData(getUser, {})` and ran **Fuse.js** over quickstarts + services + API docs. Fuse.js has been removed and replaced by the backend fuzzy search: the search path now calls `fetchAllData(getUser, { 'display-name': query.trim(), fuzzy: true })` for quickstarts and filters services and API docs client-side.
 - **Learn panel** ([`LearnPanel.tsx`](src/components/HelpPanel/HelpPanelTabs/LearnPanel.tsx)): No free-text search today (only bundle, content type, bookmarks). No change unless we add a "search by name" input later.
 - **Catalog** ([`GlobalLearningResourcesPage`](src/components/GlobalLearningResourcesPage/GlobalLearningResourcesPage.tsx), filters): Uses `loaderOptions['display-name']` when the user types in "Find by name". Pass `fuzzy: true` when a display-name filter is present so catalog search is typo-tolerant.
 
