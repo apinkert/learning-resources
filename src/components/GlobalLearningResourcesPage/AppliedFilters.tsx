@@ -10,6 +10,7 @@ import {
 import { FetchQuickstartsOptions } from '../../utils/fetchQuickstarts';
 import {
   CategoryID,
+  FilterCategoryID,
   FiltersCategoryMetadata,
   FiltersMetadata,
 } from '../../utils/FiltersCategoryInterface';
@@ -32,12 +33,14 @@ const AppliedFilters: React.FC<{
     }
   };
 
-  // Render applied filters dynamically
+  // Render applied filters dynamically (exclude 'fuzzy' — it is boolean, not an array of filter chips)
   return (
     <Toolbar className="pf-v6-u-mt-md">
       <ToolbarContent>
-        {Object.keys(loaderOptions).map((categoryId) => {
-          const categoryKey = categoryId as CategoryID;
+        {(Object.keys(loaderOptions) as CategoryID[])
+          .filter((key): key is FilterCategoryID => key !== 'fuzzy')
+          .map((categoryId) => {
+          const categoryKey = categoryId;
           const filters = loaderOptions[categoryKey];
           if (!Array.isArray(filters) || filters.length === 0) return null;
 

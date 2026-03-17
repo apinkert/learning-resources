@@ -52,8 +52,8 @@ In this app:
 
 **File:** [`src/components/HelpPanel/HelpPanelTabs/SearchPanel/SearchPanel.tsx`](src/components/HelpPanel/HelpPanelTabs/SearchPanel/SearchPanel.tsx)
 
-- **`performSearch(query)`:** Call `fetchAllData(chrome.auth.getUser, { 'display-name': query.trim(), fuzzy: true })` for quickstarts; fetch bundles and bundleInfo for services and API docs. Build quickstart SearchResults from returned quickstarts (no Fuse on quickstarts). Filter services and API docs client-side by query. Combine: quickstarts first (backend order), then filtered services, then filtered API docs.
-- **Fuse.js:** Remove global Fuse index over all results; use Fuse only for non-quickstart slice or simple substring match for services/apiDocs. Remove `fuse.js` dependency if no longer used.
+- **`performSearch(query)`:** Call `fetchAllData(chrome.auth.getUser, { 'display-name': query.trim(), fuzzy: true })` for quickstarts; fetch bundles and bundleInfo for services and API docs. Build quickstart SearchResults from returned quickstarts. Filter services and API docs client-side by query. Combine: quickstarts first (backend order), then filtered services, then filtered API docs.
+- **No Fuse.js:** Fuse.js is not used. Services and API docs are filtered with simple substring (case-insensitive) matching; there is no global Fuse index and no `fuse.js` dependency in the codebase.
 
 ---
 
@@ -78,10 +78,10 @@ In this app:
 
 ---
 
-## 6. Optional cleanup
+## 6. Cleanup (done)
 
-- Remove **`fuse.js`** dependency if unused after Search panel changes.
-- Optional: note in code or README that typo tolerance is controlled by backend env `FUZZY_SEARCH_DISTANCE_THRESHOLD`.
+- **`fuse.js`** has been removed and is no longer a project dependency.
+- Typo tolerance for quickstart search is controlled by the backend env **`FUZZY_SEARCH_DISTANCE_THRESHOLD`** (no frontend configuration).
 
 ---
 

@@ -15,8 +15,11 @@ export interface CategoryGroup {
 
 export type CategoryID = keyof FetchQuickstartsOptions;
 
+/** Category IDs that have array/string values (excludes 'fuzzy', which is boolean). */
+export type FilterCategoryID = Exclude<CategoryID, 'fuzzy'>;
+
 export interface FiltersCategory {
-  categoryId: CategoryID;
+  categoryId: FilterCategoryID;
   categoryName: string;
   categoryData: CategoryGroup[];
   loaderOptions: FetchQuickstartsOptions;
