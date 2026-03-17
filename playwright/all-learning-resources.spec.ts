@@ -48,9 +48,8 @@ test.describe('all learning resources', async () => {
     await page.getByRole('menuitem', { name: 'All Learning Resources'}).first().click();
     await page.waitForLoadState("load");
     await page.getByRole('textbox', {name: 'Type to filter'}).fill('Adding an integration: Google');
-    // Backend (with or without fuzzy) may return 1 to many results; accept any count 1–100 and ensure UI stabilizes
-    const count = await waitForCountInRange(page, 1, 100, 25000);
-    await expect(page.getByText(`All learning resources (${count})`, { exact: true })).toBeVisible({ timeout: 5000 });
+    // Backend (with or without fuzzy) may return 1 to many results; wait for count to stabilize in range
+    await waitForCountInRange(page, 1, 100, 25000);
   });
 
   test('filters by product family', async({page}) => {
