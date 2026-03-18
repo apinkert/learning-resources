@@ -92,7 +92,7 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
   };
 
   const createModalDescription = (isResearch = false) => (
-    <Content component="p">
+    <>
       {isResearch ? (
         <>
           {intl.formatMessage(messages.informDirectionDescription)}&nbsp;
@@ -120,7 +120,7 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
           .
         </>
       )}
-    </Content>
+    </>
   );
 
   const renderPage = () => {
