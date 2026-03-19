@@ -63,7 +63,7 @@ export const helpPanelMswHandlers = [
       },
     });
   }),
-  // Mock quickstarts API
+  // Mock quickstarts API (accepts optional query params: display-name, fuzzy)
   http.get('/api/quickstarts/v1/quickstarts', () => {
     return HttpResponse.json({
       data: [

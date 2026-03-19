@@ -16,7 +16,6 @@ import {
 } from '@patternfly/react-core';
 import { useIntl } from 'react-intl';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import Fuse from 'fuse.js';
 import messages from '../../../../Messages';
 import fetchAllData from '../../../../utils/fetchAllData';
 import {
@@ -55,17 +54,14 @@ const useDebounce = (value: string, delay: number) => {
   return debouncedValue;
 };
 
-// Create Fuse.js search index for fuzzy searching
-const createSearchIndex = (data: SearchResult[]) => {
-  return new Fuse(data, {
-    keys: [
-      { name: 'title', weight: 1.0 },
-      { name: 'description', weight: 0.7 },
-      { name: 'tags', weight: 0.5 },
-    ],
-    threshold: 0.3,
-    includeScore: true,
-  });
+/** Case-insensitive match: true if query appears in title, description, or tags */
+const matchesQuery = (result: SearchResult, query: string): boolean => {
+  const q = query.toLowerCase().trim();
+  if (!q) return true;
+  const title = (result.title ?? '').toLowerCase();
+  const desc = (result.description ?? '').toLowerCase();
+  const tags = (result.tags ?? []).join(' ').toLowerCase();
+  return title.includes(q) || desc.includes(q) || tags.includes(q);
 };
 
 const SearchPanel = ({
@@ -209,10 +205,13 @@ const SearchPanel = ({
     if (!query.trim()) return [];
 
     try {
-      // Load learning resources
-      const [, quickStarts] = await fetchAllData(chrome.auth.getUser, {});
+      // Learning resources: backend fuzzy search on spec.displayName
+      const [, quickStarts] = await fetchAllData(chrome.auth.getUser, {
+        'display-name': query.trim(),
+        fuzzy: true,
+      });
 
-      // Load API documentation
+      // Load API documentation and bundles for services + API docs
       const [bundleInfo, bundles] = await Promise.all([
         fetchBundleInfo(),
         fetchBundles(),
@@ -233,38 +232,38 @@ const SearchPanel = ({
         };
       });
 
-      // Convert to searchable results
-      const results: SearchResult[] = [];
+      // Quickstart results (backend order; relevance from position)
+      const quickstartResults: SearchResult[] = quickStarts.map(
+        (resource, index) => {
+          const bundleTags =
+            resource.metadata.tags
+              ?.filter((tag) => tag.kind === 'bundle')
+              .map((tag) => tag.value) || [];
+          return {
+            id: `lr-${resource.metadata.name}`,
+            title: resource.spec.displayName,
+            description: resource.spec.description || '',
+            type: resource.metadata.externalDocumentation
+              ? 'documentation'
+              : 'quickstart',
+            url: resource.spec.link?.href,
+            tags: resource.metadata.tags?.map((tag) => tag.value) || [],
+            bundleTags,
+            isBookmarked: resource.metadata.favorite,
+            resourceName: resource.metadata.name,
+            relevanceScore: Math.max(0, 100 - index * 2), // Backend order = relevance
+          };
+        }
+      );
 
-      // Learning resources
-      quickStarts.forEach((resource) => {
-        const bundleTags =
-          resource.metadata.tags
-            ?.filter((tag) => tag.kind === 'bundle')
-            .map((tag) => tag.value) || [];
-
-        results.push({
-          id: `lr-${resource.metadata.name}`,
-          title: resource.spec.displayName,
-          description: resource.spec.description || '',
-          type: resource.metadata.externalDocumentation
-            ? 'documentation'
-            : 'quickstart',
-          url: resource.spec.link?.href,
-          tags: resource.metadata.tags?.map((tag) => tag.value) || [],
-          bundleTags: bundleTags,
-          isBookmarked: resource.metadata.favorite,
-          resourceName: resource.metadata.name,
-        });
-      });
-
-      // HCC Services
+      // Services: build then filter client-side by query
+      const serviceResults: SearchResult[] = [];
       bundles.forEach((bundle) => {
         bundle.navItems.forEach((navItem) => {
           const isFav = favoritePages.some(
             (fp) => fp.pathname === navItem.href && fp.favorite
           );
-          results.push({
+          serviceResults.push({
             id: `service-${navItem.appId}`,
             title: navItem.title,
             description: `${bundle.title} service`,
@@ -275,30 +274,28 @@ const SearchPanel = ({
           });
         });
       });
+      const filteredServiceResults = serviceResults
+        .filter((r) => matchesQuery(r, query))
+        .map((r, i) => ({ ...r, relevanceScore: 80 - i }));
 
-      // API documentation
-      apiDocs.forEach((apiDoc, index) => {
-        results.push({
-          id: `api-${index}`,
-          title: apiDoc.name,
-          description: `API documentation for ${apiDoc.services.join(', ')}`,
-          type: 'api',
-          url: apiDoc.url,
-          tags: apiDoc.services,
-        });
-      });
-
-      // Apply Fuse.js fuzzy search
-      const fuse = createSearchIndex(results);
-      const searchResults = fuse.search(query);
-
-      // Convert Fuse.js results back to SearchResult format with scores
-      const filteredResults = searchResults.map((fuseResult) => ({
-        ...fuseResult.item,
-        relevanceScore: fuseResult.score ? (1 - fuseResult.score) * 100 : 0, // Convert Fuse score to 0-100 range
+      // API docs: build then filter client-side by query
+      const apiDocResults: SearchResult[] = apiDocs.map((apiDoc, index) => ({
+        id: `api-${index}`,
+        title: apiDoc.name,
+        description: `API documentation for ${apiDoc.services.join(', ')}`,
+        type: 'api',
+        url: apiDoc.url,
+        tags: apiDoc.services,
       }));
+      const filteredApiResults = apiDocResults
+        .filter((r) => matchesQuery(r, query))
+        .map((r, i) => ({ ...r, relevanceScore: 70 - i }));
 
-      return filteredResults;
+      return [
+        ...quickstartResults,
+        ...filteredServiceResults,
+        ...filteredApiResults,
+      ];
     } catch (error) {
       console.error('Failed to search data:', error);
       return [];

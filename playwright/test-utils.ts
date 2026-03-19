@@ -61,7 +61,8 @@ export async function ensureLoggedIn(page: Page): Promise<void> {
 // Waits for the count to be within the specified range, then returns it
 // This handles React rendering timing and filter application delays
 export async function waitForCountInRange(page: Page, minCount: number, maxCount: number, timeout: number = 20000): Promise<number> {
-  const countElement = page.locator('.pf-v6-c-tabs__item-text', { hasText: 'All learning resources' }).first();
+  // Target the tab that shows a number (avoids matching placeholder "All learning resources ()")
+  const countElement = page.getByText(/All learning resources \(\d+\)/).first();
 
   // Wait for element to exist
   await countElement.waitFor({ state: 'attached', timeout });
@@ -95,12 +96,12 @@ export async function waitForCountInRange(page: Page, minCount: number, maxCount
 // Extracts the count from "All learning resources (N)" text
 // Use waitForCountInRange if you need to wait for a specific range after filtering
 export async function extractResourceCount(page: Page): Promise<number> {
-  const countElement = page.locator('.pf-v6-c-tabs__item-text', { hasText: 'All learning resources' }).first();
+  // Target the tab that already shows a number (avoids matching placeholder "All learning resources ()")
+  const countElement = page.getByText(/All learning resources \(\d+\)/);
 
-  // Wait for element with valid count text
-  await expect(countElement).toHaveText(/All learning resources \(\d+\)/, { timeout: 20000 });
+  await expect(countElement).toBeAttached({ timeout: 20000 });
 
-  const countText = await countElement.textContent();
+  const countText = await countElement.first().textContent();
   const match = countText?.match(/All learning resources \((\d+)\)/);
 
   if (!match || !match[1]) {
