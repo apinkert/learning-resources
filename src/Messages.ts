@@ -155,7 +155,7 @@ const messages = defineMessages({
   // Knowledge Base Panel
   knowledgeBaseTitle: {
     id: 'helpPanel.kb.title',
-    defaultMessage: 'Knowledge base',
+    defaultMessage: 'Knowledgebase',
   },
   kbPanelDescription: {
     id: 'helpPanel.kb.description',
