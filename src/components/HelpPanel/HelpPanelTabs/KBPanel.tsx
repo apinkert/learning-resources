@@ -37,26 +37,39 @@ interface KnowledgebaseArticle {
 
 /**
  * Extract all KB articles from the recommended content config
+ * Deduplicates by URL and merges bundleTags
  */
 const getAllKBArticles = (): KnowledgebaseArticle[] => {
-  const kbArticles: KnowledgebaseArticle[] = [];
+  const articlesByUrl = new Map<string, KnowledgebaseArticle>();
 
   // Iterate through all bundles in the config
-  Object.entries(bundleRecommendedContent).forEach(([bundleId, items]) => {
-    items.forEach((item, index) => {
+  Object.entries(bundleRecommendedContent).forEach(([, items]) => {
+    items.forEach((item) => {
       // Only include static KB articles
       if (item.kind === 'static' && item.type === 'kb') {
-        kbArticles.push({
-          id: `kb-${bundleId}-${index}`,
-          title: item.title,
-          url: item.url,
-          bundleTags: item.bundleTags,
-        });
+        const existing = articlesByUrl.get(item.url);
+        if (existing) {
+          // Merge bundleTags from duplicate entry
+          const combinedTags = new Set([
+            ...(existing.bundleTags || []),
+            ...(item.bundleTags || []),
+          ]);
+          existing.bundleTags = Array.from(combinedTags);
+        } else {
+          // Create new entry with stable ID based on URL
+          const urlHash = item.url.split('/').pop() || item.url;
+          articlesByUrl.set(item.url, {
+            id: `kb-${urlHash}`,
+            title: item.title,
+            url: item.url,
+            bundleTags: item.bundleTags ? [...item.bundleTags] : undefined,
+          });
+        }
       }
     });
   });
 
-  return kbArticles;
+  return Array.from(articlesByUrl.values());
 };
 
 const KBPanel = ({

@@ -437,3 +437,87 @@ export const SearchWithBundleScope: Story = {
     );
   },
 };
+
+/**
+ * Story using real data from recommendedContentConfig
+ * Tests getAllKBArticles() and actual KB article data
+ */
+export const WithRealData: Story = {
+  render: () => {
+    const [quickStartStates, setQuickStartStates] =
+      useState<AllQuickStartStates>({});
+
+    const quickStartContextValue = useValuesForQuickStartContext({
+      allQuickStarts: [],
+      activeQuickStartID: '',
+      setActiveQuickStartID: () => {},
+      allQuickStartStates: quickStartStates,
+      setAllQuickStartStates: setQuickStartStates,
+      useQueryParams: false,
+    });
+
+    // Update window.insights.chrome to return the correct bundle
+    React.useEffect(() => {
+      /* eslint-disable rulesdir/no-chrome-api-call-from-window */
+      if (typeof window !== 'undefined' && window.insights?.chrome) {
+        const originalGetBundleData = window.insights.chrome.getBundleData;
+        const originalGetAvailableBundles =
+          window.insights.chrome.getAvailableBundles;
+
+        window.insights.chrome.getBundleData = () => ({ bundleId: 'insights' });
+        window.insights.chrome.getAvailableBundles = () => [
+          { id: 'insights', title: 'RHEL' },
+          { id: 'ansible', title: 'Ansible' },
+          { id: 'openshift', title: 'OpenShift' },
+        ];
+
+        return () => {
+          window.insights.chrome.getBundleData = originalGetBundleData;
+          window.insights.chrome.getAvailableBundles =
+            originalGetAvailableBundles;
+        };
+      }
+      /* eslint-enable rulesdir/no-chrome-api-call-from-window */
+    }, []);
+
+    return (
+      <IntlProvider locale="en" defaultLocale="en">
+        <QuickStartContextProvider value={quickStartContextValue}>
+          <div style={{ height: '600px', width: '400px' }}>
+            <KBPanel setNewActionTitle={() => {}} />
+          </div>
+        </QuickStartContextProvider>
+      </IntlProvider>
+    );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await waitForLoadingComplete(canvas);
+
+    // Verify KB articles list from real data is visible
+    const articlesList = document.querySelector(
+      '[data-ouia-component-id="help-panel-kb-articles-list"]'
+    );
+    const dataList = articlesList?.querySelector('[role="list"]');
+    expect(dataList).toBeInTheDocument();
+
+    // Verify search input is present
+    const searchInput = canvas.getByPlaceholderText(
+      /search knowledgebase articles/i
+    );
+    expect(searchInput).toBeInTheDocument();
+
+    // Verify article count shows real KB articles from recommendedContentConfig
+    // The actual count depends on bundleRecommendedContent configuration
+    const countText = canvas.queryByText(/Knowledgebase articles \(\d+\)/i);
+    expect(countText).toBeInTheDocument();
+
+    // Verify at least one article is visible
+    await waitFor(() => {
+      const articles = canvas.queryAllByRole('link', {
+        name: /.+/i,
+      });
+      expect(articles.length).toBeGreaterThan(0);
+    });
+  },
+};
