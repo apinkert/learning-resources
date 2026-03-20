@@ -88,7 +88,7 @@ const subTabs: SubTab[] = [
     tabType: TabType.learn,
   },
   {
-    title: 'Knowledge base',
+    title: 'Knowledgebase',
     tabType: TabType.kb,
     featureFlag: 'platform.chrome.help-panel_knowledge-base',
   },
