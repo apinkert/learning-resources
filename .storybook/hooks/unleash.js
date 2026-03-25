@@ -6,6 +6,7 @@
 // List of enabled feature flags for Storybook
 const ENABLED_FLAGS = [
   'platform.chrome.help-panel_knowledge-base', // Enable Knowledgebase tab
+  'platform.chrome.help-panel_search', // Enable Search Tab
 ];
 
 // Mock useFlag hook - returns true for enabled flags
