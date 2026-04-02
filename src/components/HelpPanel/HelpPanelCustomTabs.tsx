@@ -429,11 +429,12 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
       // The title will be a placeholder until action is taken by the user
       setNewActionTitle(undefined);
       const newTabId = crypto.randomUUID();
+      const defaultTabType = searchFlag ? TabType.search : TabType.learn;
       const tab = {
         id: newTabId,
         title: NEW_TAB_PLACEHOLDER,
         closeable: true,
-        tabType: TabType.learn,
+        tabType: defaultTabType,
         isNewTab: true,
       };
       addTab(tab);
