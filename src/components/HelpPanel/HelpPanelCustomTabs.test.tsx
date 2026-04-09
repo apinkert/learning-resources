@@ -225,6 +225,68 @@ describe('HelpPanelCustomTabs UI interactions', () => {
     expect(tabs[2]).toHaveTextContent('New tab');
   });
 
+  it('new tab defaults to Search sub-tab when search flag is enabled', async () => {
+    renderWithIntl(<HelpPanelCustomTabs />);
+    const addTabButton = screen.getByRole('button', { name: /add tab/i });
+    fireEvent.click(addTabButton);
+
+    // Click the new tab to make it active
+    await waitFor(() => {
+      const newTab = screen.getByText('New tab');
+      expect(newTab).toBeInTheDocument();
+      fireEvent.click(newTab);
+    });
+
+    // The new tab should have sub-tabs; the Search sub-tab should be active
+    await waitFor(() => {
+      // Find all sub-tab containers — there may be multiple (one per main tab)
+      const subtabContainers = document.querySelectorAll(
+        '[data-ouia-component-id="help-panel-subtabs"]'
+      );
+      // The last sub-tab container belongs to the newly added tab
+      const lastSubtabs = subtabContainers[subtabContainers.length - 1];
+      const searchSubTab = within(lastSubtabs as HTMLElement).getByRole('tab', {
+        name: /search/i,
+      });
+      expect(searchSubTab).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  it('new tab defaults to Learn sub-tab when search flag is disabled', async () => {
+    mockUseFlag.mockImplementation((flagName: string) => {
+      if (flagName === 'platform.chrome.help-panel_search') return false;
+      if (flagName === 'platform.chrome.help-panel_chatbot') return true;
+      return true;
+    });
+
+    renderWithIntl(<HelpPanelCustomTabs />);
+    const addTabButton = screen.getByRole('button', { name: /add tab/i });
+    fireEvent.click(addTabButton);
+
+    await waitFor(() => {
+      const newTab = screen.getByText('New tab');
+      expect(newTab).toBeInTheDocument();
+      fireEvent.click(newTab);
+    });
+
+    await waitFor(() => {
+      const subtabContainers = document.querySelectorAll(
+        '[data-ouia-component-id="help-panel-subtabs"]'
+      );
+      const lastSubtabs = subtabContainers[subtabContainers.length - 1];
+      const learnSubTab = within(lastSubtabs as HTMLElement).getByRole('tab', {
+        name: /learn/i,
+      });
+      expect(learnSubTab).toHaveAttribute('aria-selected', 'true');
+    });
+
+    // Restore default mock
+    mockUseFlag.mockImplementation((flagName: string) => {
+      if (flagName === 'platform.chrome.help-panel_chatbot') return true;
+      return true;
+    });
+  });
+
   it('closes an added tab when clicking its close button', () => {
     renderWithIntl(<HelpPanelCustomTabs />);
     fireEvent.click(screen.getByRole('button', { name: /add tab/i }));
