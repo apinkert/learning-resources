@@ -3,6 +3,7 @@ import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { AppEntryWithLinks } from './_shared/components/AppEntryWithLinks';
 import {
   helpPanelMswHandlers,
+  supportPanelMswHandlers,
   waitForPageLoad,
 } from './_shared/helpPanelJourneyHelpers';
 import { TEST_TIMEOUTS, delay } from './_shared/testConstants';
@@ -24,7 +25,7 @@ const meta: Meta<typeof AppEntryWithLinks> = {
   parameters: {
     layout: 'fullscreen',
     msw: {
-      handlers: helpPanelMswHandlers,
+      handlers: [...helpPanelMswHandlers, ...supportPanelMswHandlers],
     },
     docs: {
       description: {
@@ -222,13 +223,6 @@ export const Step03_ClickAPILink: Story = {
  */
 export const Step04_ClickSupportLink: Story = {
   name: '04 / Click Support Link Opens Support Tab',
-  parameters: {
-    testRunner: {
-      // The Support panel fetches support cases from an API that isn't
-      // available in Storybook. The "Failed to fetch" error is expected.
-      ignoreConsoleErrors: [/Unable to fetch support cases/],
-    },
-  },
   play: async ({ canvasElement }) => {
     await waitForPageLoad(canvasElement);
 
