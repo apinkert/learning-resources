@@ -36,12 +36,16 @@ export const MockConsolePageWithLinks: React.FC<
 
   // Wire up the Chrome mock's toggleDrawerContent to actually open the drawer.
   // React state setters are stable across renders, so this is safe.
+  // Captures and restores any previous drawerActions on cleanup to avoid
+  // leaking mock mutations across stories.
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const chrome = (window as any).insights?.chrome;
       if (chrome) {
+        const previousDrawerActions = chrome.drawerActions;
         chrome.drawerActions = {
+          ...previousDrawerActions,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           toggleDrawerContent: (data: any) => {
             setIsDrawerOpen(true);
@@ -49,6 +53,9 @@ export const MockConsolePageWithLinks: React.FC<
               setNewTab(data.newTab);
             }
           },
+        };
+        return () => {
+          chrome.drawerActions = previousDrawerActions;
         };
       }
     }
