@@ -1,3 +1,23 @@
+@AGENTS.md
+
+# Build / Test / Lint Commands
+
+```bash
+npm install              # Install dependencies
+npm run build            # Production build (via FEC)
+npm start                # Dev server with HMR (FEC dev-proxy)
+npm test                 # Jest unit tests
+npm test -- --watch      # Jest watch mode
+npm run lint             # ESLint
+npm run storybook        # Storybook dev server (port 6006)
+npm run build-storybook  # Build static Storybook
+npm run test-storybook   # Storybook test runner (requires running server)
+npm run cypress:component # Cypress component tests (headless)
+npm run verify           # Full CI check: build + lint + test
+```
+
+---
+
 # Claude-Assisted Changes
 
 This document tracks significant changes made with Claude Code assistance to help future maintainers understand the context and rationale.
