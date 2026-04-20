@@ -130,7 +130,7 @@ export const Step04_ViewAPIDocsList: Story = {
       { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
     );
 
-    const advisorLink = canvas.getByRole('button', { name: /Advisor API/i });
+    const advisorLink = canvas.getByRole('button', { name: /Advisor/i });
     expect(advisorLink).toBeInTheDocument();
 
     const resourcesList = document.querySelector(
@@ -297,7 +297,7 @@ export const Step07_VerifyExternalLinks: Story = {
     await waitFor(
       () => {
         const advisorLink = canvas.getByRole('button', {
-          name: /Advisor API/i,
+          name: /Advisor/i,
         });
         expect(advisorLink).toBeInTheDocument();
       },
@@ -305,16 +305,16 @@ export const Step07_VerifyExternalLinks: Story = {
     );
 
     const expectedAPIs = [
-      'Advisor API',
-      'Compliance API',
-      'Drift API',
-      'Inventory API',
-      'Malware Detection API',
-      'Patch API',
-      'Policies API',
-      'Remediations API',
-      'Vulnerability API',
-      'Automation Hub API',
+      'Advisor',
+      'Compliance',
+      'Drift',
+      'Inventory',
+      'Malware Detection',
+      'Patch',
+      'Policies',
+      'Remediations',
+      'Vulnerability',
+      'Automation Hub',
     ];
 
     for (const apiName of expectedAPIs) {

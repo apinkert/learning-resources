@@ -26,7 +26,8 @@ const mockApiHandlers = [
 const waitForDataLoaded = async (canvas: ReturnType<typeof within>) => {
   await waitFor(
     () => {
-      const apiItem = canvas.queryByText('Advisor API');
+      // Note: API names are now capitalized and "API" suffix is stripped (e.g., "advisor api" → "Advisor")
+      const apiItem = canvas.queryByText(/Advisor/i);
       expect(apiItem).toBeInTheDocument();
     },
     { timeout: 10000 }
@@ -128,8 +129,9 @@ export const Default: Story = {
       'https://developers.redhat.com/api-catalog/'
     );
 
-    expect(canvas.getByText('Advisor API')).toBeInTheDocument();
-    expect(canvas.getByText('Compliance API')).toBeInTheDocument();
+    // API names are now capitalized and "API" suffix is stripped
+    expect(canvas.getByText('Advisor')).toBeInTheDocument();
+    expect(canvas.getByText('Compliance')).toBeInTheDocument();
   },
 };
 
@@ -174,7 +176,8 @@ export const BundleScopeToggle: Story = {
       expect(canvas.getByText(/API Documentation \(9\)/i)).toBeInTheDocument();
     });
 
-    expect(canvas.getByText('Advisor API')).toBeInTheDocument();
+    // API names are capitalized and "API" suffix is stripped
+    expect(canvas.getByText('Advisor')).toBeInTheDocument();
 
     await userEvent.click(allToggle);
 
@@ -200,7 +203,8 @@ export const WithPagination: Story = {
       expect(pagination).toBeInTheDocument();
     });
 
-    expect(canvas.getByText('Advisor API')).toBeInTheDocument();
+    // API names are capitalized and "API" suffix is stripped
+    expect(canvas.getByText('Advisor')).toBeInTheDocument();
 
     const nextButton = canvas.getByRole('button', {
       name: /go to next page/i,
@@ -208,10 +212,10 @@ export const WithPagination: Story = {
     await userEvent.click(nextButton);
 
     await waitFor(() => {
-      expect(canvas.getByText('Automation Analytics API')).toBeInTheDocument();
+      expect(canvas.getByText('Automation Analytics')).toBeInTheDocument();
     });
 
-    expect(canvas.queryByText('Advisor API')).not.toBeInTheDocument();
+    expect(canvas.queryByText('Advisor')).not.toBeInTheDocument();
 
     const prevButton = canvas.getByRole('button', {
       name: /go to previous page/i,
@@ -219,7 +223,7 @@ export const WithPagination: Story = {
     await userEvent.click(prevButton);
 
     await waitFor(() => {
-      expect(canvas.getByText('Advisor API')).toBeInTheDocument();
+      expect(canvas.getByText('Advisor')).toBeInTheDocument();
     });
   },
 };
@@ -353,9 +357,9 @@ export const ApiError: Story = {
 };
 
 /**
- * Deduplication: same frontendName with different spec URLs picks highest version
+ * Test version extraction from various URL formats
  */
-export const DeduplicatesSpecs: Story = {
+export const VariousVersionFormats: Story = {
   parameters: {
     msw: {
       handlers: [
@@ -365,12 +369,123 @@ export const DeduplicatesSpecs: Story = {
             return HttpResponse.json([
               {
                 bundleLabels: ['insights'],
-                frontendName: 'Notifications API',
+                frontendName: 'notifications',
                 url: 'https://developers.redhat.com/api-catalog/api/notifications/v1',
               },
               {
                 bundleLabels: ['insights'],
-                frontendName: 'Notifications API',
+                frontendName: 'notifications',
+                url: 'https://developers.redhat.com/api-catalog/api/notifications/v2.0',
+              },
+              {
+                bundleLabels: ['insights'],
+                frontendName: 'sources',
+                url: 'https://developers.redhat.com/api-catalog/api/sources/v3.1',
+              },
+              {
+                bundleLabels: ['iam'],
+                frontendName: 'rbac',
+                url: 'https://developers.redhat.com/api-catalog/api/rbac/v1.0.0',
+              },
+            ]);
+          }
+        ),
+        http.get('/api/chrome-service/v1/static/bundles-generated.json', () => {
+          return HttpResponse.json(mockApiBundles);
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(
+      () => {
+        const item = canvas.queryByText('Notifications v1');
+        expect(item).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Verify version extraction works for different formats
+    expect(canvas.getByText('Notifications v1')).toBeInTheDocument();
+    expect(canvas.getByText('Notifications v2.0')).toBeInTheDocument();
+    expect(canvas.getByText('Sources v3.1')).toBeInTheDocument();
+    expect(canvas.getByText('Rbac v1.0.0')).toBeInTheDocument();
+  },
+};
+
+/**
+ * Test APIs without version numbers in URL
+ */
+export const ApisWithoutVersions: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(
+          '/api/chrome-service/v1/static/api-specs-generated.json',
+          () => {
+            return HttpResponse.json([
+              {
+                bundleLabels: ['insights'],
+                frontendName: 'advisor api',
+                url: 'https://developers.redhat.com/api-catalog/api/advisor',
+              },
+              {
+                bundleLabels: ['insights'],
+                frontendName: 'compliance api',
+                url: 'https://developers.redhat.com/api-catalog/api/compliance',
+              },
+            ]);
+          }
+        ),
+        http.get('/api/chrome-service/v1/static/bundles-generated.json', () => {
+          return HttpResponse.json(mockApiBundles);
+        }),
+      ],
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(
+      () => {
+        const item = canvas.queryByText('Advisor');
+        expect(item).toBeInTheDocument();
+      },
+      { timeout: 10000 }
+    );
+
+    // Verify capitalization works even without version numbers (and "API" suffix is stripped)
+    expect(canvas.getByText('Advisor')).toBeInTheDocument();
+    expect(canvas.getByText('Compliance')).toBeInTheDocument();
+
+    // Verify no version numbers are appended when not in URL
+    expect(canvas.queryByText(/Advisor v/)).not.toBeInTheDocument();
+    expect(canvas.queryByText(/Compliance v/)).not.toBeInTheDocument();
+  },
+};
+
+/**
+ * Shows different API versions separately with version numbers in the display name.
+ * Previously deduplicated to show only the highest version, now shows both v1 and v2.
+ */
+export const ShowsVersionsSeparately: Story = {
+  parameters: {
+    msw: {
+      handlers: [
+        http.get(
+          '/api/chrome-service/v1/static/api-specs-generated.json',
+          () => {
+            return HttpResponse.json([
+              {
+                bundleLabels: ['insights'],
+                frontendName: 'notifications api',
+                url: 'https://developers.redhat.com/api-catalog/api/notifications/v1',
+              },
+              {
+                bundleLabels: ['insights'],
+                frontendName: 'notifications api',
                 url: 'https://developers.redhat.com/api-catalog/api/notifications/v2',
               },
             ]);
@@ -387,17 +502,19 @@ export const DeduplicatesSpecs: Story = {
 
     await waitFor(
       () => {
-        const item = canvas.queryByText('Notifications API');
+        const item = canvas.queryByText('Notifications v1');
         expect(item).toBeInTheDocument();
       },
       { timeout: 10000 }
     );
 
+    // Should show 2 separate entries (one for v1, one for v2)
     await waitFor(() => {
-      expect(canvas.getByText(/API Documentation \(1\)/i)).toBeInTheDocument();
+      expect(canvas.getByText(/API Documentation \(2\)/i)).toBeInTheDocument();
     });
 
-    const items = canvas.getAllByText('Notifications API');
-    expect(items).toHaveLength(1);
+    // Verify both versions are displayed with version numbers (without "API" suffix)
+    expect(canvas.getByText('Notifications v1')).toBeInTheDocument();
+    expect(canvas.getByText('Notifications v2')).toBeInTheDocument();
   },
 };

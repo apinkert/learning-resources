@@ -201,9 +201,10 @@ describe('HelpPanel', () => {
     cy.contains(getMessageText('apiDocumentationCountLabel')).should('be.visible');
 
     cy.contains(`${getMessageText('apiDocumentationCountLabel')} (3)`, { timeout: 10000 }).should('be.visible');
-    cy.contains('Provisioning API').should('be.visible');
-    cy.contains('Cost Management API').should('be.visible');
-    cy.contains('User Access API').should('be.visible');
+    // API names now have "API" suffix stripped
+    cy.contains('Provisioning').should('be.visible');
+    cy.contains('Cost Management').should('be.visible');
+    cy.contains('User Access').should('be.visible');
 
     cy.contains('RHEL').should('be.visible');
     cy.contains('Ansible').should('be.visible');
