@@ -203,4 +203,45 @@ describe('APIPanel', () => {
     // Verify trailing whitespace is handled
     expect(screen.getByText('Advisor v3')).toBeInTheDocument();
   });
+
+  it('handles hyphenated and underscored names correctly', async () => {
+    mockFetchBundleInfo.mockResolvedValue([
+      {
+        bundleLabels: ['insights'],
+        frontendName: 'virtual-assistant api',
+        url: 'https://developers.redhat.com/api-catalog/api/virtual-assistant/v1',
+      },
+      {
+        bundleLabels: ['insights'],
+        frontendName: 'user_access api',
+        url: 'https://developers.redhat.com/api-catalog/api/user-access/v2',
+      },
+      {
+        bundleLabels: ['insights'],
+        frontendName: 'cost-management',
+        url: 'https://developers.redhat.com/api-catalog/api/cost-management',
+      },
+    ]);
+
+    mockFetchBundles.mockResolvedValue([
+      { id: 'insights', title: 'RHEL', navItems: [] },
+    ]);
+
+    render(
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
+    );
+
+    await waitFor(() => {
+      // Hyphenated words should be capitalized with hyphens preserved
+      expect(screen.getByText('Virtual-Assistant v1')).toBeInTheDocument();
+    });
+
+    // Underscored words should be capitalized with underscores preserved
+    expect(screen.getByText('User_Access v2')).toBeInTheDocument();
+
+    // No version in URL
+    expect(screen.getByText('Cost-Management')).toBeInTheDocument();
+  });
 });

@@ -77,29 +77,38 @@ const KNOWN_ACRONYMS = new Set([
 /**
  * Capitalizes the first letter of each word in a string
  * Handles known acronyms (like "API", "RBAC") by uppercasing them entirely
+ * Handles hyphenated and underscored names (e.g., "virtual-assistant" → "Virtual-Assistant")
  * @param str - The string to capitalize
  * @returns Capitalized string
  */
 const capitalizeWords = (str: string): string => {
-  return str
-    .split(' ')
-    .map((word) => {
-      const lowerWord = word.toLowerCase();
+  // Split into tokens that include both word segments and delimiters (spaces, hyphens, underscores)
+  // Regex captures: words (one or more non-delimiter chars) OR delimiters
+  const tokens = str.match(/([^\s\-_]+)|[\s\-_]/g) || [];
+
+  return tokens
+    .map((token) => {
+      // If it's a delimiter (space, hyphen, underscore), return as-is
+      if (/^[\s\-_]$/.test(token)) {
+        return token;
+      }
+
+      const lowerToken = token.toLowerCase();
 
       // Check if it's a known acronym
-      if (KNOWN_ACRONYMS.has(lowerWord)) {
-        return word.toUpperCase();
+      if (KNOWN_ACRONYMS.has(lowerToken)) {
+        return token.toUpperCase();
       }
 
       // Preserve already all-uppercase words (acronyms not in our list)
-      if (word === word.toUpperCase() && word.length > 1) {
-        return word;
+      if (token === token.toUpperCase() && token.length > 1) {
+        return token;
       }
 
       // Capitalize first letter, lowercase the rest
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
     })
-    .join(' ');
+    .join('');
 };
 
 /**

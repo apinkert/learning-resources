@@ -116,7 +116,7 @@ export const Default: Story = {
     expect(list).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(canvas.getByText(/API Documentation \(14\)/i)).toBeInTheDocument();
+      expect(canvas.getByText(/API Documentation \(15\)/i)).toBeInTheDocument();
     });
 
     expect(
@@ -173,7 +173,7 @@ export const BundleScopeToggle: Story = {
 
     await waitFor(() => {
       expect(bundleToggle).toHaveAttribute('aria-pressed', 'true');
-      expect(canvas.getByText(/API Documentation \(9\)/i)).toBeInTheDocument();
+      expect(canvas.getByText(/API Documentation \(10\)/i)).toBeInTheDocument();
     });
 
     // API names are capitalized and "API" suffix is stripped
@@ -183,13 +183,13 @@ export const BundleScopeToggle: Story = {
 
     await waitFor(() => {
       expect(allToggle).toHaveAttribute('aria-pressed', 'true');
-      expect(canvas.getByText(/API Documentation \(14\)/i)).toBeInTheDocument();
+      expect(canvas.getByText(/API Documentation \(15\)/i)).toBeInTheDocument();
     });
   },
 };
 
 /**
- * Pagination with 14 items (10 per page default)
+ * Pagination with 15 items (10 per page default)
  */
 export const WithPagination: Story = {
   play: async ({ canvasElement }) => {
@@ -312,7 +312,7 @@ export const HomePageNoToggle: Story = {
     expect(scopeToggle).not.toBeInTheDocument();
 
     await waitFor(() => {
-      expect(canvas.getByText(/API Documentation \(14\)/i)).toBeInTheDocument();
+      expect(canvas.getByText(/API Documentation \(15\)/i)).toBeInTheDocument();
     });
   },
 };
@@ -411,7 +411,8 @@ export const VariousVersionFormats: Story = {
     expect(canvas.getByText('Notifications v1')).toBeInTheDocument();
     expect(canvas.getByText('Notifications v2.0')).toBeInTheDocument();
     expect(canvas.getByText('Sources v3.1')).toBeInTheDocument();
-    expect(canvas.getByText('Rbac v1.0.0')).toBeInTheDocument();
+    // RBAC is a known acronym and should be fully uppercased
+    expect(canvas.getByText('RBAC v1.0.0')).toBeInTheDocument();
   },
 };
 

@@ -655,6 +655,12 @@ export const mockApiSpecs = [
     frontendName: 'vulnerability api',
     url: 'https://developers.redhat.com/api-catalog/api/vulnerability',
   },
+  // Versioned API to test version extraction
+  {
+    bundleLabels: ['insights'],
+    frontendName: 'notifications api',
+    url: 'https://developers.redhat.com/api-catalog/api/notifications/v1.0',
+  },
   {
     bundleLabels: ['ansible'],
     frontendName: 'automation hub api',

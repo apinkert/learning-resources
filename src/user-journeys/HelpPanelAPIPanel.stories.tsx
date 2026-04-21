@@ -15,8 +15,8 @@ import { TEST_TIMEOUTS, delay } from './_shared/testConstants';
  * Tests the API documentation discovery workflow.
  */
 
-const TOTAL_API_DOCS = 14;
-const RHEL_API_DOCS = 9;
+const TOTAL_API_DOCS = 15; // Updated to include 1 versioned notifications API (v1.0)
+const RHEL_API_DOCS = 10; // Updated to include versioned notifications (9 original + 1 versioned)
 
 const meta: Meta<typeof AppEntryWithRouter> = {
   title: 'User Journeys/Help Panel/APIs Panel',
@@ -304,17 +304,19 @@ export const Step07_VerifyExternalLinks: Story = {
       { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
     );
 
+    // First page shows 10 items (out of 15 total)
+    // Includes the versioned Notifications API
     const expectedAPIs = [
       'Advisor',
       'Compliance',
       'Drift',
       'Inventory',
       'Malware Detection',
+      'Notifications', // Versioned API (v1.0) - displayed as "Notifications v1.0"
       'Patch',
       'Policies',
       'Remediations',
       'Vulnerability',
-      'Automation Hub',
     ];
 
     for (const apiName of expectedAPIs) {
