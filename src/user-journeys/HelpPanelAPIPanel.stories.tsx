@@ -15,8 +15,8 @@ import { TEST_TIMEOUTS, delay } from './_shared/testConstants';
  * Tests the API documentation discovery workflow.
  */
 
-const TOTAL_API_DOCS = 14;
-const RHEL_API_DOCS = 9;
+const TOTAL_API_DOCS = 15; // Updated to include 1 versioned notifications API (v1.0)
+const RHEL_API_DOCS = 10; // Updated to include versioned notifications (9 original + 1 versioned)
 
 const meta: Meta<typeof AppEntryWithRouter> = {
   title: 'User Journeys/Help Panel/APIs Panel',
@@ -130,7 +130,7 @@ export const Step04_ViewAPIDocsList: Story = {
       { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
     );
 
-    const advisorLink = canvas.getByRole('button', { name: /Advisor API/i });
+    const advisorLink = canvas.getByRole('button', { name: /Advisor/i });
     expect(advisorLink).toBeInTheDocument();
 
     const resourcesList = document.querySelector(
@@ -297,24 +297,26 @@ export const Step07_VerifyExternalLinks: Story = {
     await waitFor(
       () => {
         const advisorLink = canvas.getByRole('button', {
-          name: /Advisor API/i,
+          name: /Advisor/i,
         });
         expect(advisorLink).toBeInTheDocument();
       },
       { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
     );
 
+    // First page shows 10 items (out of 15 total)
+    // Includes the versioned Notifications API
     const expectedAPIs = [
-      'Advisor API',
-      'Compliance API',
-      'Drift API',
-      'Inventory API',
-      'Malware Detection API',
-      'Patch API',
-      'Policies API',
-      'Remediations API',
-      'Vulnerability API',
-      'Automation Hub API',
+      'Advisor',
+      'Compliance',
+      'Drift',
+      'Inventory',
+      'Malware Detection',
+      'Notifications', // Versioned API (v1.0) - displayed as "Notifications v1.0"
+      'Patch',
+      'Policies',
+      'Remediations',
+      'Vulnerability',
     ];
 
     for (const apiName of expectedAPIs) {

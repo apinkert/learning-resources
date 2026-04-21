@@ -612,72 +612,78 @@ export const mockKBArticles = [
 export const mockApiSpecs = [
   {
     bundleLabels: ['insights'],
-    frontendName: 'Advisor API',
+    frontendName: 'advisor api',
     url: 'https://developers.redhat.com/api-catalog/api/advisor',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Compliance API',
+    frontendName: 'compliance api',
     url: 'https://developers.redhat.com/api-catalog/api/compliance',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Drift API',
+    frontendName: 'drift api',
     url: 'https://developers.redhat.com/api-catalog/api/drift',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Inventory API',
+    frontendName: 'inventory api',
     url: 'https://developers.redhat.com/api-catalog/api/inventory',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Malware Detection API',
+    frontendName: 'malware detection api',
     url: 'https://developers.redhat.com/api-catalog/api/malware-detection',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Patch API',
+    frontendName: 'patch api',
     url: 'https://developers.redhat.com/api-catalog/api/patch',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Policies API',
+    frontendName: 'policies api',
     url: 'https://developers.redhat.com/api-catalog/api/policies',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Remediations API',
+    frontendName: 'remediations api',
     url: 'https://developers.redhat.com/api-catalog/api/remediations',
   },
   {
     bundleLabels: ['insights'],
-    frontendName: 'Vulnerability API',
+    frontendName: 'vulnerability api',
     url: 'https://developers.redhat.com/api-catalog/api/vulnerability',
+  },
+  // Versioned API to test version extraction
+  {
+    bundleLabels: ['insights'],
+    frontendName: 'notifications api',
+    url: 'https://developers.redhat.com/api-catalog/api/notifications/v1.0',
   },
   {
     bundleLabels: ['ansible'],
-    frontendName: 'Automation Hub API',
+    frontendName: 'automation hub api',
     url: 'https://developers.redhat.com/api-catalog/api/automation-hub',
   },
   {
     bundleLabels: ['ansible'],
-    frontendName: 'Automation Analytics API',
+    frontendName: 'automation analytics api',
     url: 'https://developers.redhat.com/api-catalog/api/automation-analytics',
   },
   {
     bundleLabels: ['openshift'],
-    frontendName: 'Cluster Manager API',
+    frontendName: 'cluster manager api',
     url: 'https://developers.redhat.com/api-catalog/api/clusters-mgmt',
   },
   {
     bundleLabels: ['openshift'],
-    frontendName: 'Service Logs API',
+    frontendName: 'service logs api',
     url: 'https://developers.redhat.com/api-catalog/api/service-logs',
   },
   {
     bundleLabels: ['openshift'],
-    frontendName: 'Accounts Management API',
+    frontendName: 'accounts management api',
     url: 'https://developers.redhat.com/api-catalog/api/accounts-mgmt',
   },
 ];

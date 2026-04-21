@@ -33,9 +33,106 @@ import { getBundleDisplayName } from '../../../utils/bundleUtils';
 
 interface APIDoc {
   name: string;
+  displayName: string; // Formatted name with version (e.g., "Notifications v1.0")
   services: string[];
   url: string;
 }
+
+/**
+ * Extracts version number from API URL
+ * @param url - The API URL (e.g., "https://example.com/api/notifications/v1.0")
+ * @returns Version string (e.g., "v1.0") or null if no version found
+ */
+const extractVersionFromUrl = (url: string): string | null => {
+  // Match patterns like /v1, /v2.0, /v1.2.3, etc.
+  const versionMatch = url.match(/\/v(\d+(?:\.\d+)*)\/?/i);
+  if (versionMatch) {
+    return `v${versionMatch[1]}`;
+  }
+  return null;
+};
+
+/**
+ * Common acronyms in API names that should be fully uppercased
+ */
+const KNOWN_ACRONYMS = new Set([
+  'api',
+  'apis',
+  'rbac',
+  'iam',
+  'sso',
+  'ui',
+  'cli',
+  'sdk',
+  'rest',
+  'http',
+  'https',
+  'json',
+  'xml',
+  'html',
+  'css',
+  'url',
+]);
+
+/**
+ * Capitalizes the first letter of each word in a string
+ * Handles known acronyms (like "API", "RBAC") by uppercasing them entirely
+ * Handles hyphenated and underscored names (e.g., "virtual-assistant" → "Virtual-Assistant")
+ * @param str - The string to capitalize
+ * @returns Capitalized string
+ */
+const capitalizeWords = (str: string): string => {
+  // Split into tokens that include both word segments and delimiters (spaces, hyphens, underscores)
+  // Regex captures: words (one or more non-delimiter chars) OR delimiters
+  const tokens = str.match(/([^\s\-_]+)|[\s\-_]/g) || [];
+
+  return tokens
+    .map((token) => {
+      // If it's a delimiter (space, hyphen, underscore), return as-is
+      if (/^[\s\-_]$/.test(token)) {
+        return token;
+      }
+
+      const lowerToken = token.toLowerCase();
+
+      // Check if it's a known acronym
+      if (KNOWN_ACRONYMS.has(lowerToken)) {
+        return token.toUpperCase();
+      }
+
+      // Preserve already all-uppercase words (acronyms not in our list)
+      if (token === token.toUpperCase() && token.length > 1) {
+        return token;
+      }
+
+      // Capitalize first letter, lowercase the rest
+      return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
+    })
+    .join('');
+};
+
+/**
+ * Removes common API-related suffixes from the name
+ * @param name - The raw API name from backend (e.g., "advisor api", "notifications")
+ * @returns Name without API suffix (e.g., "advisor", "notifications")
+ */
+const stripApiSuffix = (name: string): string => {
+  // Remove "api", "apis" suffix (case insensitive, with optional trailing whitespace)
+  return name.replace(/\s*(api|apis)\s*$/i, '').trim();
+};
+
+/**
+ * Formats the API name with capitalization and version number
+ * @param name - The raw API name from backend (e.g., "notifications", "advisor api")
+ * @param url - The API URL to extract version from
+ * @returns Formatted display name (e.g., "Notifications v1.0", "Advisor v1.0")
+ */
+const formatApiDisplayName = (name: string, url: string): string => {
+  const nameWithoutApiSuffix = stripApiSuffix(name);
+  const capitalizedName = capitalizeWords(nameWithoutApiSuffix);
+  const version = extractVersionFromUrl(url);
+  return version ? `${capitalizedName} ${version}` : capitalizedName;
+};
 
 const mapBundleInfoWithTitles = async (): Promise<APIDoc[]> => {
   try {
@@ -58,38 +155,35 @@ const mapBundleInfoWithTitles = async (): Promise<APIDoc[]> => {
 
       return {
         name: bundleInfo.frontendName,
+        displayName: formatApiDisplayName(
+          bundleInfo.frontendName,
+          bundleInfo.url
+        ),
         services,
         url: bundleInfo.url,
       };
     });
 
-    // Deduplicate by frontendName (same API can have multiple spec URLs, e.g. notifications v1/v2, sources integrations v1/v2 + sources v3)
-    const versionInPath = (u: string) => {
-      const m = u.match(/\/v(\d+)(?:\.(\d+))?\/?/);
-      return m ? parseInt(m[1], 10) * 1000 + parseInt(m[2] || '0', 10) : 0;
-    };
-    const byName = new Map<string, APIDoc>();
+    // Deduplicate by name + version (so different versions of the same API are shown separately)
+    const byNameAndVersion = new Map<string, APIDoc>();
     for (const doc of mapped) {
-      const key = doc.name.toLowerCase().trim();
-      const existing = byName.get(key);
+      // Use displayName as the unique key since it includes version
+      const key = doc.displayName.toLowerCase().trim();
+      const existing = byNameAndVersion.get(key);
       if (existing) {
+        // If exact duplicate (same name and version), merge services
         const mergedServices = [
           ...new Set([...existing.services, ...doc.services]),
         ];
-        const bestUrl =
-          versionInPath(doc.url) > versionInPath(existing.url)
-            ? doc.url
-            : existing.url;
-        byName.set(key, {
-          name: existing.name,
+        byNameAndVersion.set(key, {
+          ...existing,
           services: mergedServices,
-          url: bestUrl,
         });
       } else {
-        byName.set(key, doc);
+        byNameAndVersion.set(key, doc);
       }
     }
-    return Array.from(byName.values());
+    return Array.from(byNameAndVersion.values());
   } catch (error) {
     console.error('Error mapping bundle info with titles:', error);
     return [];
@@ -122,7 +216,7 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
               icon={<ExternalLinkAltIcon />}
               iconPosition="end"
             >
-              {resource.name}
+              {resource.displayName}
             </Button>
           </FlexItem>
           <FlexItem>
@@ -294,7 +388,7 @@ const APIPanelContent: React.FC = () => {
           {paginatedResources.length > 0 ? (
             <DataList aria-label="API resources">
               {paginatedResources.map((resource) => (
-                <DataListItem key={resource.name}>
+                <DataListItem key={resource.displayName}>
                   <DataListItemRow>
                     <DataListItemCells
                       dataListCells={[
