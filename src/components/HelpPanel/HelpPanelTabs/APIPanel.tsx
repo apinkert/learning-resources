@@ -324,11 +324,8 @@ const APIPanelContent: React.FC = () => {
           <Button
             variant="link"
             component="a"
-            target="_blank"
-            icon={<ExternalLinkAltIcon />}
-            href="https://developers.redhat.com/api-catalog/"
+            href="https://console.redhat.com/docs/api"
             isInline
-            iconPosition="end"
             data-ouia-component-id="help-panel-api-docs-link"
           >
             {intl.formatMessage(messages.apiDocumentationCatalogLinkText)}
