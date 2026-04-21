@@ -211,10 +211,9 @@ describe('HelpPanel', () => {
     cy.contains('OpenShift').should('be.visible');
     cy.contains('Settings').should('be.visible');
 
-    // Check external link
+    // Check internal link
     cy.contains(getMessageText('apiDocumentationCatalogLinkText'))
-      .should('have.attr', 'href', 'https://developers.redhat.com/api-catalog/')
-      .should('have.attr', 'target', '_blank');
+      .should('have.attr', 'href', 'https://console.redhat.com/docs/api');
   });
 
   it('should create new panel tab', () => {

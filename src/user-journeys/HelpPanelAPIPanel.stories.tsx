@@ -101,7 +101,7 @@ export const Step03_NavigateToAPIsTab: Story = {
     expect(catalogLink).toBeInTheDocument();
     expect(catalogLink.closest('a')).toHaveAttribute(
       'href',
-      'https://developers.redhat.com/api-catalog/'
+      'https://console.redhat.com/docs/api'
     );
 
     console.log('UJ: ✅ APIs tab opened with description and catalog link');
