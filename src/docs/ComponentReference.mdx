@@ -396,23 +396,6 @@ const title = getSubTabTitle(TabType.search); // "Search"
 const title = getSubTabTitle(TabType.api, intl); // Localized "API documentation"
 ```
 
-### `createTabsStore(baseTabs: TabDefinition[])`
-
-Creates a tab store with subscriber pattern.
-
-**Location:** `src/components/HelpPanel/HelpPanelCustomTabs.tsx`
-
-**Returns:**
-```typescript
-{
-  addTab: (tab: TabDefinition) => void;
-  updateTab: (tab: TabDefinition) => void;
-  removeTab: (tabId: string) => void;
-  subscribe: (callback: () => void) => () => void;
-  getTabs: () => TabDefinition[];
-}
-```
-
 ---
 
 ## Stores
@@ -540,13 +523,14 @@ const setNewActionTitleDebounced = useCallback(
 ### Memoization
 
 ```typescript
-// Base tabs memoized based on feature flag
-const baseTabs = useMemo(() => createBaseTabs(vaFlag), [vaFlag]);
+// All tabs created with feature flags
+const allTabs = useMemo(() => createMainTabs(showVA), [showVA]);
 
-// Filtered sub-tabs memoized
-const filteredSubTabs = useMemo(() => {
-  return subTabs.filter(/* ... */);
-}, [flags, subTabs]);
+// Tabs filtered by feature flags
+const tabs = useMemo(
+  () => filterTabsByFeatureFlags(allTabs, flags),
+  [allTabs, flags]
+);
 ```
 
 ---

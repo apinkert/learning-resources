@@ -123,9 +123,10 @@ export const Step04_EmptyStateAndOpenSupportCase: Story = {
     await delay(TEST_TIMEOUTS.QUICK_SETTLE);
 
     // Verify button text is present (button is rendered, even if data attribute doesn't work in tests)
+    // Use getAllByText since this text appears in multiple places (button + feedback form link)
     const documentBody = within(document.body);
-    const openButton = documentBody.queryByText(/open a support case/i);
-    expect(openButton).toBeInTheDocument();
+    const openButtons = documentBody.getAllByText(/open a support case/i);
+    expect(openButtons.length).toBeGreaterThanOrEqual(1);
 
     console.log('UJ: ✅ Empty state and Open support case button verified');
   },
@@ -143,7 +144,6 @@ export const Step05_WithCasesTableAndPagination: Story = {
   },
   play: async ({ canvasElement }) => {
     await navigateToTab(canvasElement, 'Support');
-    waitForPageLoad(canvasElement);
 
     // Wait for table to appear (API returns mock cases)
     await waitFor(

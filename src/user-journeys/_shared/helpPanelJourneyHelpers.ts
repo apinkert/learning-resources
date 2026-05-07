@@ -851,11 +851,14 @@ export async function openHelpPanel(canvasElement: HTMLElement) {
 }
 
 /**
- * Navigate to a specific tab in the Help Panel.
+ * Navigate to a specific section in the Help Panel.
  * Opens the panel first if not already open.
  *
+ * Note: These are implemented as tabs for accessibility (role="tab"),
+ * but are referred to as "sections" in the UI.
+ *
  * @param canvasElement - The Storybook canvas element
- * @param tabName - The name of the tab to navigate to (e.g., "Learn", "APIs", "Support")
+ * @param tabName - The name of the section to navigate to (e.g., "Learn", "APIs", "Support")
  */
 export async function navigateToTab(
   canvasElement: HTMLElement,
@@ -866,7 +869,7 @@ export async function navigateToTab(
   // Open help panel (will skip if already open)
   await openHelpPanel(canvasElement);
 
-  // Find and click the tab
+  // Find and click the section tab
   const tab = await canvas.findByRole(
     'tab',
     { name: new RegExp(tabName, 'i') },
@@ -875,7 +878,7 @@ export async function navigateToTab(
   await expect(tab).toBeInTheDocument();
   await userEvent.click(tab);
 
-  // Wait for tab to be selected
+  // Wait for section to be selected
   await waitFor(
     () => {
       expect(tab).toHaveAttribute('aria-selected', 'true');
@@ -883,8 +886,8 @@ export async function navigateToTab(
     { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
   );
 
-  // Pause to show tab content loading
+  // Pause to show section content loading
   await delay(TEST_TIMEOUTS.AFTER_TAB_CHANGE);
 
-  console.log(`UJ: ✅ Navigated to ${tabName} tab`);
+  console.log(`UJ: ✅ Navigated to ${tabName} section`);
 }
