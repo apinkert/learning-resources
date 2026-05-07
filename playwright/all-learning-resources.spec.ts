@@ -19,6 +19,11 @@ test.describe('all learning resources', async () => {
       const helpPanelTitle = page.locator('[data-ouia-component-id="help-panel-title"]');
       await expect(helpPanelTitle).toBeVisible();
 
+      // Navigate to Learn tab
+      const learnTab = page.locator('[data-ouia-component-id="help-panel-tab-learn"]');
+      await learnTab.click();
+      await expect(page.locator('[data-ouia-component-id="help-panel-learn-root"]')).toBeVisible();
+
       // click the "All Learning Catalog"
       await page.getByRole('link', { name: 'All Learning Catalog' }).click();
       // Ensure page heading is "All learning resources" on the page that loads
@@ -99,10 +104,7 @@ test.describe('all learning resources', async () => {
     }
   });
 
-  // Note: This test is skipped because the stage environment currently has zero
-  // Quick start content, causing the filter to return 0 results. The test can be
-  // re-enabled when Quick start content is added to the stage environment.
-  test.skip('filters by content type', async({page}) => {
+  test('filters by content type', async({page}) => {
     await page.goto(LEARNING_RESOURCES_PATH);
     await page.waitForLoadState("load");
 
