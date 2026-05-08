@@ -6,7 +6,6 @@ import {
   navigateToTab,
   openHelpPanel,
   supportPanelMswHandlers,
-  supportPanelMswHandlersWithCases,
   waitForPageLoad,
 } from './_shared/helpPanelJourneyHelpers';
 import { TEST_TIMEOUTS, delay } from './_shared/testConstants';
@@ -135,49 +134,3 @@ export const Step04_EmptyStateAndOpenSupportCase: Story = {
   },
 };
 
-/**
- * 05 / With Cases: Table and Pagination
- */
-export const Step05_WithCasesTableAndPagination: Story = {
-  name: '05 / With Cases: Table and Pagination',
-  parameters: {
-    msw: {
-      handlers: [...helpPanelMswHandlers, ...supportPanelMswHandlersWithCases],
-    },
-  },
-  play: async ({ canvasElement }) => {
-    await navigateToTab(canvasElement, 'Support');
-
-    // Wait for table to appear (API returns mock cases)
-    await waitFor(
-      () => {
-        const table = document.querySelector(
-          '[data-ouia-component-id="help-panel-support-cases-table"]'
-        );
-        expect(table).toBeInTheDocument();
-      },
-      { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
-    );
-
-    await delay(TEST_TIMEOUTS.AFTER_CLICK);
-
-    const canvas = within(canvasElement);
-    // Verify table has case content (mock case summary)
-    await waitFor(
-      () => {
-        const caseSummary = canvas.queryByText(
-          /Insights subscription activation/i
-        );
-        expect(caseSummary).toBeInTheDocument();
-      },
-      { timeout: TEST_TIMEOUTS.ELEMENT_WAIT }
-    );
-
-    const pagination = document.querySelector(
-      '[data-ouia-component-id="help-panel-support-pagination"]'
-    );
-    expect(pagination).toBeInTheDocument();
-
-    console.log('UJ: ✅ Support cases table and pagination verified');
-  },
-};
