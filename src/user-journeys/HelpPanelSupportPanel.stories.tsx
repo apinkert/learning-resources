@@ -122,10 +122,13 @@ export const Step04_EmptyStateAndOpenSupportCase: Story = {
 
     await delay(TEST_TIMEOUTS.QUICK_SETTLE);
 
-    // Verify button text is present (button is rendered, even if data attribute doesn't work in tests)
-    // Use getAllByText since this text appears in multiple places (button + feedback form link)
-    const documentBody = within(document.body);
-    const openButtons = documentBody.getAllByText(/open a support case/i);
+    // Scope query to support empty-state container (not feedback form link)
+    const emptyState = document.querySelector(
+      '[data-ouia-component-id="help-panel-support-empty-state"]'
+    );
+    expect(emptyState).toBeInTheDocument();
+    const emptyStateWithin = within(emptyState as HTMLElement);
+    const openButtons = emptyStateWithin.getAllByText(/open a support case/i);
     expect(openButtons.length).toBeGreaterThanOrEqual(1);
 
     console.log('UJ: ✅ Empty state and Open support case button verified');

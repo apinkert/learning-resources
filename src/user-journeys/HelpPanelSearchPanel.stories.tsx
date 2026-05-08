@@ -136,14 +136,18 @@ export const Step04_SearchAndViewResults: Story = {
 
     await searchAndWaitForResults(canvas, 'Insights');
 
-    // Use findAllByText since results may appear in both recommended content and search results
-    const results = await canvas.findAllByText(
+    // Scope query to search results list (not recommended content)
+    const searchResultsList = await canvas.findByRole(
+      'list',
+      { name: /search results/i },
+      { timeout: 5000 }
+    );
+    const results = await within(searchResultsList).findAllByText(
       'Getting started with Red Hat Insights',
       {},
       { timeout: 5000 }
     );
     expect(results.length).toBeGreaterThanOrEqual(1);
-    await canvas.findByText('Search results');
 
     console.log('UJ: ✅ Search returned results');
   },
@@ -186,8 +190,13 @@ export const Step05_SearchAndFilterByType: Story = {
     await userEvent.click(filterToggle);
     await delay(TEST_TIMEOUTS.AFTER_CLICK);
 
-    // Use findAllByText since results may appear in multiple locations
-    const results = await canvas.findAllByText(
+    // Scope query to search results list
+    const searchResultsList = await canvas.findByRole(
+      'list',
+      { name: /search results/i },
+      { timeout: 5000 }
+    );
+    const results = await within(searchResultsList).findAllByText(
       'Red Hat Insights Documentation',
       {},
       { timeout: 5000 }
@@ -241,8 +250,13 @@ export const Step06_ClearAllFilters: Story = {
     await userEvent.click(clearButton);
     await delay(TEST_TIMEOUTS.AFTER_CLICK);
 
-    // Use findAllByText since results may appear in multiple locations
-    const results = await canvas.findAllByText(
+    // Scope query to search results list
+    const searchResultsList = await canvas.findByRole(
+      'list',
+      { name: /search results/i },
+      { timeout: 5000 }
+    );
+    const results = await within(searchResultsList).findAllByText(
       'Getting started with Red Hat Insights',
       {},
       { timeout: 5000 }
@@ -302,14 +316,14 @@ export const Step08_ClickRecentQuery: Story = {
     await userEvent.click(queryButton);
 
     await delay(SEARCH_DEBOUNCE_MS);
-    await canvas.findByRole(
+    const searchResultsList = await canvas.findByRole(
       'list',
       { name: /search results/i },
       { timeout: 8000 }
     );
 
-    // Use findAllByText since results may appear in multiple locations
-    const results = await canvas.findAllByText(
+    // Scope query to search results list
+    const results = await within(searchResultsList).findAllByText(
       'Getting Started with Ansible',
       {},
       { timeout: 5000 }
@@ -563,8 +577,13 @@ export const Step13_SearchScopeToggle: Story = {
       expect(bundleToggle).toHaveAttribute('aria-pressed', 'true');
     });
 
-    // Use findAllByText since results may appear in multiple locations
-    const results = await canvas.findAllByText(
+    // Scope query to search results list
+    const searchResultsList = await canvas.findByRole(
+      'list',
+      { name: /search results/i },
+      { timeout: 5000 }
+    );
+    const results = await within(searchResultsList).findAllByText(
       'Getting started with Red Hat Insights',
       {},
       { timeout: 5000 }

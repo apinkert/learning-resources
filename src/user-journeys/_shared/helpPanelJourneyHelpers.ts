@@ -737,20 +737,6 @@ export const mockApiBundles = [
   },
 ];
 
-/**
- * Shared MSW handlers for API Panel user journeys.
- * Overrides come FIRST because MSW matches the first matching handler.
- */
-export const apiPanelJourneyMswHandlers = [
-  http.get('/api/chrome-service/v1/static/api-specs-generated.json', () => {
-    return HttpResponse.json(mockApiSpecs);
-  }),
-  http.get('/api/chrome-service/v1/static/bundles-generated.json', () => {
-    return HttpResponse.json(mockApiBundles);
-  }),
-  ...helpPanelMswHandlers,
-];
-
 const supportCasesFilterUrlProd =
   'https://api.access.redhat.com/support/v1/cases/filter';
 const supportCasesFilterUrlStage =
@@ -764,6 +750,21 @@ const emptySupportCasesResponse = () => HttpResponse.json({ cases: [] });
 export const supportPanelMswHandlers = [
   http.post(supportCasesFilterUrlProd, emptySupportCasesResponse),
   http.post(supportCasesFilterUrlStage, emptySupportCasesResponse),
+];
+
+/**
+ * Shared MSW handlers for API Panel user journeys.
+ * Overrides come FIRST because MSW matches the first matching handler.
+ */
+export const apiPanelJourneyMswHandlers = [
+  http.get('/api/chrome-service/v1/static/api-specs-generated.json', () => {
+    return HttpResponse.json(mockApiSpecs);
+  }),
+  http.get('/api/chrome-service/v1/static/bundles-generated.json', () => {
+    return HttpResponse.json(mockApiBundles);
+  }),
+  ...supportPanelMswHandlers,
+  ...helpPanelMswHandlers,
 ];
 
 const mockSupportCases = [

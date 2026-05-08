@@ -2,7 +2,7 @@
  * Unit tests for HelpPanel single-tier tab structure
  */
 import React, { createRef } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
 import HelpPanelCustomTabs, {
   HelpPanelCustomTabsRef,
@@ -288,14 +288,17 @@ describe('HelpPanelCustomTabs static tabs (no add/close)', () => {
   });
 });
 
-describe('HelpPanelCustomTabs ref API (openTabWithContent - deprecated)', () => {
-  it('logs a warning when openTabWithContent is called', () => {
-    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+describe('HelpPanelCustomTabs ref API (openTabWithContent)', () => {
+  it('navigates to the corresponding static tab based on tabType', async () => {
     const ref = createRef<HelpPanelCustomTabsRef>();
 
     renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
 
-    // Call openTabWithContent
+    // Capture initial tab count and active tab
+    const initialTabs = screen.getAllByRole('tab');
+    const initialTabCount = initialTabs.length;
+
+    // Call openTabWithContent with Learn tab type
     ref.current?.openTabWithContent({
       id: 'custom-tab',
       title: 'Custom Content',
@@ -303,11 +306,37 @@ describe('HelpPanelCustomTabs ref API (openTabWithContent - deprecated)', () => 
       content: <div>Custom content here</div>,
     });
 
+    // Should navigate to Learn tab (not create a new tab)
+    const tabsAfterCall = screen.getAllByRole('tab');
+    expect(tabsAfterCall.length).toBe(initialTabCount);
+
+    // Learn tab should be selected (wait for state update)
+    await waitFor(() => {
+      const learnTab = screen.getByRole('tab', { name: /learn/i });
+      expect(learnTab).toHaveAttribute('aria-selected', 'true');
+    });
+
+    // Custom content should not appear (static tabs don't support custom content)
+    expect(screen.queryByText('Custom content here')).not.toBeInTheDocument();
+  });
+
+  it('logs a warning when tabType does not match any static tab', () => {
+    const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const ref = createRef<HelpPanelCustomTabsRef>();
+
+    renderWithIntl(<HelpPanelCustomTabs ref={ref} />);
+
+    // Call openTabWithContent with a tabType that doesn't exist
+    ref.current?.openTabWithContent({
+      id: 'custom-tab',
+      title: 'Custom Content',
+      tabType: 'nonexistent' as TabType,
+      content: <div>Custom content here</div>,
+    });
+
     // Should log a warning
     expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'openTabWithContent is no longer supported with static tabs'
-      )
+      expect.stringContaining('No static tab found for tabType')
     );
 
     consoleWarnSpy.mockRestore();

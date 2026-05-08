@@ -60,22 +60,12 @@
   width: calc(100% + 2 * var(--pf-t--global--spacer--md, 1rem));
 }
 
-// Disable horizontal scrolling on main tabs
+// Allow horizontal scrolling on main tabs if they overflow
 .lr-c-help-panel-custom-tabs {
   .pf-v6-c-tabs__list {
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: hidden;
     background-color: var(--pf-t--global--background--color--primary--default);
-  }
-
-  // Hide scroll buttons if PatternFly adds them
-  .pf-v6-c-tabs__scroll-button {
-    display: none !important;
-  }
-
-  // Prevent overflow menu from appearing
-  .pf-v6-c-tabs__item.pf-m-overflow {
-    display: none !important;
   }
 
   // Make tab titles smaller to fit all tabs without scrolling

@@ -57,8 +57,11 @@ const Wrapper = ({ children, flags = defaultFlags, api }: { children: React.Reac
     },
   };
 
-  const scalprum = useRef(
-    initialize({
+  const scalprum = useRef<ReturnType<typeof initialize> | null>(null);
+
+  // Lazy initialization - only run once per mount
+  if (!scalprum.current) {
+    scalprum.current = initialize({
       appsConfig: {
         virtualAssistant: {
           name: 'virtualAssistant',
@@ -66,19 +69,19 @@ const Wrapper = ({ children, flags = defaultFlags, api }: { children: React.Reac
         },
       },
       api: api || defaultApi,
-    })
-  );
+    });
+  }
 
   useEffect(() => {
     // mock the modules
-    scalprum.current.exposedModules['virtualAssistant#state/globalState'] = {
+    scalprum.current!.exposedModules['virtualAssistant#state/globalState'] = {
       default: {foo: 'bar'},
       useVirtualAssistant: () => ([]),
       Models: {}
     };
 
     // mock the VAEmbed component - using the correct module path
-    scalprum.current.exposedModules['virtualAssistant#./VAEmbed'] = {
+    scalprum.current!.exposedModules['virtualAssistant#./VAEmbed'] = {
       default: () => React.createElement('div', {
         'data-testid': 'va-embed-mock'
       }, 'Virtual Assistant Component')
@@ -126,18 +129,22 @@ describe('HelpPanel', () => {
 
   it('should not display tabs hidden by FF', () => {
     const toggleDrawerSpy = cy.spy();
-    const disabledFlags = [{
-      ...defaultFlags[0],
+    // Disable the Search tab flag (defaultFlags[1])
+    const disabledSearchFlag = [{
+      ...defaultFlags[1],
       enabled: false
     }]
     cy.mount(
-      <Wrapper flags={disabledFlags}>
+      <Wrapper flags={disabledSearchFlag}>
         <HelpPanel toggleDrawer={toggleDrawerSpy} />
       </Wrapper>
     );
 
     cy.contains('Help').should('be.visible');
-    cy.contains(getMessageText('knowledgeBaseTitle')).should('not.exist');
+    // Search tab should not be visible when flag is disabled
+    cy.get('[data-ouia-component-id="help-panel-tab-search"]').should('not.exist');
+    // Learn tab should be visible (not feature-flagged)
+    cy.get('[data-ouia-component-id="help-panel-tab-learn"]').should('be.visible');
   })
 
   it('should call close callback', () => {

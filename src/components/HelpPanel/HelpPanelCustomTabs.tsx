@@ -193,13 +193,22 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
       void title; // Explicitly mark as intentionally unused
     }, []);
 
-    // openTabWithContent is no longer supported - tabs are static
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const openTabWithContent = useCallback((_content: HelpPanelTabContent) => {
-      console.warn(
-        'openTabWithContent is no longer supported with static tabs. Custom content links may not work.'
-      );
-    }, []);
+    // openTabWithContent translates dynamic tab requests to static tab selection
+    const openTabWithContent = useCallback(
+      (content: HelpPanelTabContent) => {
+        // Map the requested tabType to the corresponding static tab
+        const targetTab = tabs.find((tab) => tab.tabType === content.tabType);
+        if (targetTab) {
+          setActiveTabId(targetTab.id);
+        } else {
+          console.warn(
+            `openTabWithContent: No static tab found for tabType "${content.tabType}". ` +
+              'The tab may be hidden by feature flags or not exist.'
+          );
+        }
+      },
+      [tabs]
+    );
 
     // Expose methods to parent via ref
     useImperativeHandle(
