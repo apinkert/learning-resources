@@ -503,6 +503,13 @@ export const searchPanelJourneyMswHandlers = [
   http.post('/api/quickstarts/v1/favorites', async () => {
     return HttpResponse.json({ success: true });
   }),
+  // Support cases API (empty state) - prevents "Failed to fetch" errors
+  http.post('https://api.access.redhat.com/support/v1/cases/filter', () =>
+    HttpResponse.json({ cases: [] })
+  ),
+  http.post('https://api.access.stage.redhat.com/support/v1/cases/filter', () =>
+    HttpResponse.json({ cases: [] })
+  ),
   // Base handlers last (overridden routes above take priority in MSW)
   ...helpPanelMswHandlers,
 ];

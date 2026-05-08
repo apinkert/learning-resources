@@ -70,16 +70,5 @@ test.describe('help panel', async () => {
     await expect(statusPageLink).toHaveText('Red Hat status page');
   });
 
-  test('can add a new tab', async ({page}) => {
-    await page.getByLabel('Toggle help panel').click();
-
-    // Tier 2: Wait for help panel to finish loading
-    const addTabButton = page.locator('[data-ouia-component-id="help-panel-add-tab-button"]');
-    await expect(addTabButton).toBeVisible();
-
-    await addTabButton.click();
-
-    // Verify a new tab appears
-    await expect(page.getByText('New tab')).toBeVisible();
-  });
+  // Test removed: Add tab functionality no longer exists in single-tier tab structure
 });
