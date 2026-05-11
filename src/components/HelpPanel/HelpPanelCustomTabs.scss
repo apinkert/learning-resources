@@ -60,11 +60,8 @@
   width: calc(100% + 2 * var(--pf-t--global--spacer--md, 1rem));
 }
 
-// Allow horizontal scrolling on main tabs if they overflow
 .lr-c-help-panel-custom-tabs {
   .pf-v6-c-tabs__list {
-    overflow-x: auto;
-    overflow-y: hidden;
     background-color: var(--pf-t--global--background--color--primary--default);
   }
 
