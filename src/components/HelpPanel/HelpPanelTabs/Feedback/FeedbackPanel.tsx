@@ -159,6 +159,7 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
             </StackItem>
             {cardConfigs.map((config, index) => {
               const IconComponent = config.icon;
+              const isReportBug = config.page === 'reportBugOne';
               return (
                 <StackItem key={index}>
                   <Card
@@ -182,7 +183,24 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
                         </FlexItem>
                       </Flex>
                     </CardTitle>
-                    <CardBody>{intl.formatMessage(config.body)}</CardBody>
+                    <CardBody>
+                      {isReportBug ? (
+                        <>
+                          {intl.formatMessage(config.body)}{' '}
+                          <Content
+                            component="a"
+                            href={SUPPORT_CASE_URL}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {intl.formatMessage(messages.openSupportCaseText)}
+                          </Content>
+                          .
+                        </>
+                      ) : (
+                        intl.formatMessage(config.body)
+                      )}
+                    </CardBody>
                   </Card>
                 </StackItem>
               );
