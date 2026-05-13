@@ -133,4 +133,3 @@ export const Step04_EmptyStateAndOpenSupportCase: Story = {
     console.log('UJ: ✅ Empty state and Open support case button verified');
   },
 };
-
