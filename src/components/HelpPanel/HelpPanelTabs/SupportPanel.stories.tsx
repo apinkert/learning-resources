@@ -129,7 +129,9 @@ export const WithCases: Story = {
       canvas.getByText('API rate limit clarification')
     ).toBeInTheDocument();
     expect(canvas.getAllByText('Waiting on Red Hat').length).toBeGreaterThan(0);
-    expect(canvas.getAllByText('Waiting on Customer').length).toBeGreaterThan(0);
+    expect(canvas.getAllByText('Waiting on Customer').length).toBeGreaterThan(
+      0
+    );
 
     const pagination = document.querySelector(
       '[data-ouia-component-id="help-panel-support-pagination"]'
