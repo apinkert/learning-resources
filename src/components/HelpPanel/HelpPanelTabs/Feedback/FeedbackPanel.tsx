@@ -192,6 +192,14 @@ const FeedbackPanel: React.FC<SubTabProps> = ({ setNewActionTitle }) => {
                             href={SUPPORT_CASE_URL}
                             target="_blank"
                             rel="noreferrer"
+                            onClick={(e: React.MouseEvent) =>
+                              e.stopPropagation()
+                            }
+                            onKeyDown={(e: React.KeyboardEvent) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.stopPropagation();
+                              }
+                            }}
                           >
                             {intl.formatMessage(messages.openSupportCaseText)}
                           </Content>
