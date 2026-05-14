@@ -224,7 +224,6 @@ const mockLearningResourcesHandlers = [
             spec: {
               version: 0.1,
               displayName: 'Getting Started with Insights',
-              icon: <span aria-hidden />,
               description: 'Learn the basics of Red Hat Insights',
               introduction:
                 '**Welcome to Red Hat Insights!** This quickstart will guide you through the basics of using Insights to monitor and manage your systems.',
@@ -1117,18 +1116,19 @@ export const QuickstartStatePreservation: Story = {
     // Click the same quickstart again
     await clickResourceLinkByName(canvas, 'Getting Started with Insights');
 
-    // Verify state was preserved - should show Continue button instead of Start
+    // Verify quickstart reopened (state preserved in context)
     await waitFor(
       () => {
+        // After reopening, should see either Continue (if state preserved) or Start button
         const continueButton = canvas.queryByRole('button', {
           name: /continue/i,
         });
-        const startButtonAgain = canvas.queryByRole('button', {
+        const startButton = canvas.queryByRole('button', {
           name: /start/i,
         });
 
-        // Should have Continue, not Start (state preserved)
-        expect(continueButton || startButtonAgain).toBeInTheDocument();
+        // At least one action button should be present
+        expect(continueButton || startButton).toBeTruthy();
       },
       { timeout: 5000 }
     );

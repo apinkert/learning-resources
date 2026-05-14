@@ -170,7 +170,10 @@ const LearningResourceItem: React.FC<{
 
 const LearnPanelContent: React.FC<{
   setNewActionTitle: (title: string) => void;
-}> = () => {
+}> = ({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setNewActionTitle: _setNewActionTitle,
+}) => {
   const intl = useIntl();
   const chrome = useChrome();
   const { loader, purgeCache } = useSuspenseLoader(fetchAllData);
@@ -484,12 +487,15 @@ const LearnPanelContent: React.FC<{
   const handleQuickStartClick = (quickstartId: string) => {
     setActiveQuickStartID(quickstartId);
     // Initialize state if needed
-    if (!allQuickStartStates[quickstartId]) {
-      setAllQuickStartStates({
-        ...allQuickStartStates,
-        [quickstartId]: getDefaultQuickStartState(),
-      });
-    }
+    setAllQuickStartStates((prev) => {
+      if (!prev[quickstartId]) {
+        return {
+          ...prev,
+          [quickstartId]: getDefaultQuickStartState(),
+        };
+      }
+      return prev;
+    });
   };
 
   const handleBackToList = () => {
