@@ -15,6 +15,7 @@ import HelpPanelCustomTabs, {
 import { HelpPanelTabContent } from './HelpPanelLink';
 import messages from '../../Messages';
 import './HelpPanelCustomTabs.scss';
+import '@patternfly/quickstarts/dist/quickstarts.min.css';
 
 const HelpPanelContent = ({
   toggleDrawer,

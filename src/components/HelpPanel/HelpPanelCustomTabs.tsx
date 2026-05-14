@@ -9,21 +9,12 @@ import React, {
 } from 'react';
 
 import HelpPanelTabContainer from './HelpPanelTabs/HelpPanelTabContainer';
-import QuickStartsPanel from './HelpPanelTabs/QuickStartsPanel';
 import { TabType } from './HelpPanelTabs/helpPanelTabsMapper';
 import { getOpenQuickstartInHelpPanelStore } from '../../store/openQuickstartInHelpPanelStore';
 import { useGetState } from '@scalprum/react-core';
 import { useFlag, useFlags } from '@unleash/proxy-client-react';
 import { SearchIcon } from '@patternfly/react-icons';
 import { AiChatbotIcon } from '../common/AiChatbotIcon';
-import {
-  QuickStartCloseModal,
-  QuickStartStatus,
-} from '@patternfly/quickstarts';
-import type { AllQuickStartStates } from '@patternfly/quickstarts';
-import useChrome from '@redhat-cloud-services/frontend-components/useChrome';
-import fetchQuickstarts from '../../utils/fetchQuickstarts';
-import type { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 import { HelpPanelTabContent } from './HelpPanelLink';
 import type { OpenQuickstartInHelpPanelState } from '../../store/openQuickstartInHelpPanelStore';
 
@@ -101,7 +92,6 @@ const filterTabsByFeatureFlags = (
 
 const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
   (_, ref) => {
-    const chrome = useChrome();
     const vaFlag = useFlag('platform.chrome.help-panel_chatbot');
     const vaEnvFlag = useFlag('platform.va.environment.enabled');
     const flags = useFlags();
@@ -122,69 +112,6 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
     const [activeTabId, setActiveTabId] = useState<string>(
       defaultTab?.id || 'learn'
     );
-
-    // Quickstart state (for when quickstarts are opened as overlays)
-    const [helpPanelQuickStarts, setHelpPanelQuickStarts] = useState<
-      ExtendedQuickstart[]
-    >([]);
-    const [helpPanelQuickStartsLoading, setHelpPanelQuickStartsLoading] =
-      useState(true);
-    const [allQuickStartStates, setAllQuickStartStates] =
-      useState<AllQuickStartStates>({});
-    const [activeQuickstartId, setActiveQuickstartId] = useState<string | null>(
-      null
-    );
-    const [closeModalOpen, setCloseModalOpen] = useState(false);
-
-    const closeQuickstart = useCallback(() => {
-      setActiveQuickstartId(null);
-    }, []);
-
-    const handleQuickstartDrawerClose = useCallback(
-      (activeQuickStartStatus: string | number) => {
-        if (activeQuickStartStatus === QuickStartStatus.IN_PROGRESS) {
-          setCloseModalOpen(true);
-        } else {
-          closeQuickstart();
-        }
-      },
-      [closeQuickstart]
-    );
-
-    // Load quickstarts for the panel
-    useEffect(() => {
-      let cancelled = false;
-      setHelpPanelQuickStartsLoading(true);
-      if (!chrome?.auth?.getUser) {
-        setHelpPanelQuickStartsLoading(false);
-        return () => {
-          cancelled = true;
-        };
-      }
-      chrome.auth
-        .getUser()
-        .then((user) => {
-          if (!user || cancelled) {
-            if (!cancelled) setHelpPanelQuickStartsLoading(false);
-            return;
-          }
-          return fetchQuickstarts(chrome.auth.getUser, {}).then((data) => {
-            if (!cancelled) {
-              setHelpPanelQuickStarts(data);
-              setHelpPanelQuickStartsLoading(false);
-            }
-          });
-        })
-        .catch((err) => {
-          if (!cancelled) {
-            setHelpPanelQuickStartsLoading(false);
-            console.error('Help Panel: failed to load quickstarts', err);
-          }
-        });
-      return () => {
-        cancelled = true;
-      };
-    }, [chrome?.auth]);
 
     // Placeholder for setNewActionTitle - no longer used but kept for TabContainer API compatibility
     const setNewActionTitle = useCallback((title: string) => {
@@ -227,13 +154,15 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
     useEffect(() => {
       const { pendingOpen } = openQuickstartState;
       if (!pendingOpen) return;
-      const { quickstartId } = pendingOpen;
 
-      // Open quickstart as an overlay (not as a separate tab)
-      setActiveQuickstartId(quickstartId);
+      // Switch to Learn tab (quickstart will be opened in drill-down mode by LearnPanel)
+      const learnTab = tabs.find((tab) => tab.tabType === TabType.learn);
+      if (learnTab) {
+        setActiveTabId(learnTab.id);
+      }
 
-      openQuickstartStore.updateState('CONSUMED_OPEN');
-    }, [openQuickstartState.pendingOpen, openQuickstartStore]);
+      // Note: we do NOT consume the event here - LearnPanel will consume it after opening the quickstart
+    }, [openQuickstartState.pendingOpen, tabs]);
 
     // Update active tab when tabs change (due to feature flags)
     useEffect(() => {
@@ -286,30 +215,6 @@ const HelpPanelCustomTabs = React.forwardRef<HelpPanelCustomTabsRef>(
             })}
           </Tabs>
         </div>
-        {/* Quickstart overlay - rendered on top of tabs when a quickstart is opened */}
-        {activeQuickstartId && (
-          <div className="lr-c-help-panel-quickstart-overlay">
-            <QuickStartsPanel
-              activeQuickStartID={activeQuickstartId}
-              quickStarts={helpPanelQuickStarts}
-              loading={helpPanelQuickStartsLoading}
-              allQuickStartStates={allQuickStartStates}
-              setAllQuickStartStates={setAllQuickStartStates}
-              onClose={handleQuickstartDrawerClose}
-              onCloseNotInProgress={closeQuickstart}
-            />
-          </div>
-        )}
-        <QuickStartCloseModal
-          isOpen={closeModalOpen}
-          onConfirm={() => {
-            closeQuickstart();
-            setCloseModalOpen(false);
-          }}
-          onCancel={() => {
-            setCloseModalOpen(false);
-          }}
-        />
       </>
     );
   }
