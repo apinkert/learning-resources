@@ -1,15 +1,17 @@
 // Help panel is rendered inside the platform's notification drawer with class "learningResources".
 // Override the notification drawer background so the whole drawer is white.
+// !important is needed to override PatternFly's default notification drawer background.
 .pf-v6-c-notification-drawer.learningResources,
 .pf-v5-c-notification-drawer.learningResources {
-  background-color: var(--pf-t--global--background--color--primary--default);
+  background-color: var(--pf-t--global--background--color--primary--default) !important;
 }
 
 // Top of Help panel drawer only: header (Help title, Ask Red Hat, close). Do not scope
 // quickstart drawer head (inside tab content), which should keep PatternFly's blue header.
-.pf-v6-c-notification-drawer.learningResources > .pf-v6-c-drawer__head,
-.pf-v5-c-notification-drawer.learningResources > .pf-v6-c-drawer__head {
-  background-color: var(--pf-t--global--background--color--primary--default);
+// Note: DrawerHead is nested inside DrawerPanelContent, so we use descendant selector instead of direct child.
+.pf-v6-c-notification-drawer.learningResources .pf-v6-c-drawer__panel > .pf-v6-c-drawer__head,
+.pf-v5-c-notification-drawer.learningResources .pf-v6-c-drawer__panel > .pf-v6-c-drawer__head {
+  background-color: var(--pf-t--global--background--color--primary--default) !important;
 }
 
 // Wrapper so tab list and tab content sections can share height; tab content gets remaining space.
