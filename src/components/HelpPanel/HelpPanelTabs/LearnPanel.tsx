@@ -178,6 +178,23 @@ const LearnPanelContent: React.FC<{
   const intl = useIntl();
   const chrome = useChrome();
   const navigate = useNavigate();
+
+  /**
+   * Navigate to a console page while keeping the help panel open.
+   * After client-side navigation, re-assert the drawer content so Chrome's
+   * safety-net effect does not close the panel if atoms briefly clear.
+   */
+  const navigateKeepPanel = (path: string) => {
+    const { drawerActions } = chrome;
+    navigate(path);
+    // Re-assert drawer content after route change settles
+    setTimeout(() => {
+      drawerActions?.setDrawerPanelContent({
+        scope: 'learningResources',
+        module: './HelpPanel',
+      });
+    }, 50);
+  };
   const { loader, purgeCache } = useSuspenseLoader(fetchAllData);
 
   const CONTENT_TYPE_OPTIONS = [
@@ -655,7 +672,7 @@ const LearnPanelContent: React.FC<{
               {intl.formatMessage(messages.learnPanelDescription)}{' '}
               <Button
                 variant="link"
-                onClick={() => navigate('/learning-resources?tab=all')}
+                onClick={() => navigateKeepPanel('/learning-resources?tab=all')}
                 isInline
                 iconPosition="end"
               >

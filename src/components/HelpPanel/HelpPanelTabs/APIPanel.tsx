@@ -22,7 +22,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import messages from '../../../Messages';
 import {
@@ -236,6 +236,22 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
   const chrome = useChrome();
   const navigate = useNavigate();
 
+  /**
+   * Navigate while keeping the help panel open.
+   * Re-asserts drawer content after route change so Chrome's safety-net
+   * effect does not close the panel.
+   */
+  const navigateKeepPanel = (path: string) => {
+    const { drawerActions } = chrome;
+    navigate(path);
+    setTimeout(() => {
+      drawerActions?.setDrawerPanelContent({
+        scope: 'learningResources',
+        module: './HelpPanel',
+      });
+    }, 50);
+  };
+
   const handleResourceClick = () => {
     const environment = chrome.getEnvironment();
     const consoleDocsUrl = convertToConsoleDocsUrl(
@@ -248,12 +264,12 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
       const url = new URL(consoleDocsUrl);
       const target = `${url.pathname}${url.search}${url.hash}`;
       if (url.origin === window.location.origin) {
-        navigate(target);
+        navigateKeepPanel(target);
       } else {
         window.location.assign(consoleDocsUrl);
       }
     } catch {
-      navigate(consoleDocsUrl);
+      navigateKeepPanel(consoleDocsUrl);
     }
   };
 
@@ -300,6 +316,17 @@ const APIPanelContent: React.FC = () => {
   const intl = useIntl();
   const chrome = useChrome();
   const navigate = useNavigate();
+
+  const navigateKeepPanel = (path: string) => {
+    const { drawerActions } = chrome;
+    navigate(path);
+    setTimeout(() => {
+      drawerActions?.setDrawerPanelContent({
+        scope: 'learningResources',
+        module: './HelpPanel',
+      });
+    }, 50);
+  };
   const [activeToggle, setActiveToggle] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -382,9 +409,14 @@ const APIPanelContent: React.FC = () => {
       <StackItem>
         <Content>
           {intl.formatMessage(messages.apiPanelDescription)}{' '}
-          <Link to="/docs/api" data-ouia-component-id="help-panel-api-docs-link">
+          <Button
+            variant="link"
+            onClick={() => navigateKeepPanel('/docs/api')}
+            isInline
+            data-ouia-component-id="help-panel-api-docs-link"
+          >
             {intl.formatMessage(messages.apiDocumentationCatalogLinkText)}
-          </Link>
+          </Button>
         </Content>
       </StackItem>
 

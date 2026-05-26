@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5';
 import React, { useState } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import { IntlProvider } from 'react-intl';
 import {
   AllQuickStartStates,
@@ -132,13 +133,15 @@ const LearnPanelWrapper = ({ bundle = 'insights' }: { bundle?: string }) => {
   }, [bundle]);
 
   return (
-    <IntlProvider locale="en" defaultLocale="en">
-      <QuickStartContextProvider value={quickStartContextValue}>
-        <div style={{ height: '600px', width: '400px' }}>
-          <LearnPanel setNewActionTitle={() => {}} />
-        </div>
-      </QuickStartContextProvider>
-    </IntlProvider>
+    <MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <QuickStartContextProvider value={quickStartContextValue}>
+          <div style={{ height: '600px', width: '400px' }}>
+            <LearnPanel setNewActionTitle={() => {}} />
+          </div>
+        </QuickStartContextProvider>
+      </IntlProvider>
+    </MemoryRouter>
   );
 };
 
