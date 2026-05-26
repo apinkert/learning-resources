@@ -28,6 +28,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
+import { useNavigate } from 'react-router-dom';
 import { suspenseLoader as useSuspenseLoader } from '@redhat-cloud-services/frontend-components-utilities/useSuspenseLoader';
 import fetchAllData from '../../../utils/fetchAllData';
 import { ExtendedQuickstart } from '../../../utils/fetchQuickstarts';
@@ -176,6 +177,7 @@ const LearnPanelContent: React.FC<{
 }) => {
   const intl = useIntl();
   const chrome = useChrome();
+  const navigate = useNavigate();
   const { loader, purgeCache } = useSuspenseLoader(fetchAllData);
 
   const CONTENT_TYPE_OPTIONS = [
@@ -653,8 +655,7 @@ const LearnPanelContent: React.FC<{
               {intl.formatMessage(messages.learnPanelDescription)}{' '}
               <Button
                 variant="link"
-                component="a"
-                href={`/learning-resources?tab=all`}
+                onClick={() => navigate('/learning-resources?tab=all')}
                 isInline
                 iconPosition="end"
               >

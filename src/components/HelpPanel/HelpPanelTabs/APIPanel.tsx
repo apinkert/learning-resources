@@ -22,6 +22,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
+import { useNavigate } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import messages from '../../../Messages';
 import {
@@ -233,6 +234,7 @@ const mapBundleInfoWithTitles = async (): Promise<APIDoc[]> => {
 
 const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
   const chrome = useChrome();
+  const navigate = useNavigate();
 
   const handleResourceClick = () => {
     const environment = chrome.getEnvironment();
@@ -241,8 +243,13 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
       resource.url,
       environment
     );
-    // Navigate within the same page (keeps help panel open)
-    window.location.href = consoleDocsUrl;
+    // Use client-side navigation to preserve help panel state
+    try {
+      const url = new URL(consoleDocsUrl);
+      navigate(url.pathname);
+    } catch {
+      navigate(consoleDocsUrl);
+    }
   };
 
   return (
@@ -287,6 +294,7 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
 const APIPanelContent: React.FC = () => {
   const intl = useIntl();
   const chrome = useChrome();
+  const navigate = useNavigate();
   const [activeToggle, setActiveToggle] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -371,8 +379,7 @@ const APIPanelContent: React.FC = () => {
           {intl.formatMessage(messages.apiPanelDescription)}{' '}
           <Button
             variant="link"
-            component="a"
-            href="https://console.redhat.com/docs/api"
+            onClick={() => navigate('/docs/api')}
             isInline
             data-ouia-component-id="help-panel-api-docs-link"
           >

@@ -20,6 +20,7 @@ import {
 } from '@patternfly/react-icons';
 import { useIntl } from 'react-intl';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useOpenQuickStartInHelpPanel } from '../../../../utils/openQuickStartInHelpPanel';
 import { getBundleDisplayName } from '../../../../utils/bundleUtils';
@@ -53,6 +54,7 @@ const SearchResultItem: React.FC<{
 }> = ({ result, onBookmarkToggle, onFavoriteToggle }) => {
   const intl = useIntl();
   const chrome = useChrome();
+  const navigate = useNavigate();
   const openQuickStartInHelpPanel = useOpenQuickStartInHelpPanel();
   const [isBookmarked, setIsBookmarked] = useState(
     result.isBookmarked ?? false
@@ -116,7 +118,8 @@ const SearchResultItem: React.FC<{
       });
     } else if (result.url) {
       if (result.type === 'service') {
-        window.location.assign(result.url);
+        // Use client-side navigation to preserve help panel state
+        navigate(result.url);
       } else {
         window.open(result.url, '_blank', 'noopener,noreferrer');
       }
