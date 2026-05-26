@@ -36,7 +36,7 @@ const HelpPanelContent = ({
 
   return (
     <>
-      <DrawerHead>
+      <DrawerHead className="lr-c-help-panel-background-override">
         <Title headingLevel="h2" data-ouia-component-id="help-panel-title">
           Help
         </Title>
@@ -61,7 +61,7 @@ const HelpPanelContent = ({
           />
         </DrawerActions>
       </DrawerHead>
-      <DrawerPanelBody>
+      <DrawerPanelBody className="lr-c-help-panel-background-override">
         <HelpPanelCustomTabs ref={tabsRef} />
       </DrawerPanelBody>
     </>
