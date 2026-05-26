@@ -176,24 +176,6 @@ const LearnPanelContent: React.FC<{
 }) => {
   const intl = useIntl();
   const chrome = useChrome();
-  /**
-   * Navigate to a console page while keeping the help panel open.
-   * Uses Chrome's own history object to avoid requiring a Router context
-   * (the help panel module may render outside the shell's BrowserRouter).
-   * After navigation, re-assert the drawer content so Chrome's safety-net
-   * effect does not close the panel if atoms briefly clear.
-   */
-  const navigateKeepPanel = (path: string) => {
-    const { drawerActions, chromeHistory } = chrome;
-    chromeHistory.push(path);
-    // Re-assert drawer content after route change settles
-    setTimeout(() => {
-      drawerActions?.setDrawerPanelContent({
-        scope: 'learningResources',
-        module: './HelpPanel',
-      });
-    }, 50);
-  };
   const { loader, purgeCache } = useSuspenseLoader(fetchAllData);
 
   const CONTENT_TYPE_OPTIONS = [
@@ -673,10 +655,6 @@ const LearnPanelContent: React.FC<{
                 variant="link"
                 component="a"
                 href="/learning-resources?tab=all"
-                onClick={(e: React.MouseEvent) => {
-                  e.preventDefault();
-                  navigateKeepPanel('/learning-resources?tab=all');
-                }}
                 isInline
                 iconPosition="end"
               >
