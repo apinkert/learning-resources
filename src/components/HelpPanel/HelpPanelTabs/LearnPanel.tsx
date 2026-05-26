@@ -28,7 +28,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { suspenseLoader as useSuspenseLoader } from '@redhat-cloud-services/frontend-components-utilities/useSuspenseLoader';
 import fetchAllData from '../../../utils/fetchAllData';
 import { ExtendedQuickstart } from '../../../utils/fetchQuickstarts';
@@ -670,14 +670,15 @@ const LearnPanelContent: React.FC<{
           <StackItem>
             <Content>
               {intl.formatMessage(messages.learnPanelDescription)}{' '}
-              <Button
-                variant="link"
-                onClick={() => navigateKeepPanel('/learning-resources?tab=all')}
-                isInline
-                iconPosition="end"
+              <Link
+                to="/learning-resources?tab=all"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateKeepPanel('/learning-resources?tab=all');
+                }}
               >
                 {intl.formatMessage(messages.allLearningCatalogLinkText)}
-              </Button>
+              </Link>
               .
             </Content>
           </StackItem>

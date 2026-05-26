@@ -135,7 +135,16 @@ const SearchResultItem: React.FC<{
     } else if (result.url) {
       if (result.type === 'service') {
         // Use client-side navigation to preserve help panel state
-        navigateKeepPanel(result.url);
+        try {
+          const url = new URL(result.url, window.location.origin);
+          if (url.origin === window.location.origin) {
+            navigateKeepPanel(`${url.pathname}${url.search}${url.hash}`);
+          } else {
+            window.location.assign(result.url);
+          }
+        } catch {
+          navigateKeepPanel(result.url);
+        }
       } else {
         window.open(result.url, '_blank', 'noopener,noreferrer');
       }
