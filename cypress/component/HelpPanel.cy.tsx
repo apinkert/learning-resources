@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FlagProvider, IConfig } from '@unleash/proxy-client-react';
 import { IntlProvider } from 'react-intl';
+import { MemoryRouter } from 'react-router-dom';
 import * as chrome from '@redhat-cloud-services/frontend-components/useChrome';
 import HelpPanel from '../../src/components/HelpPanel';
 import ScalprumProvider from '@scalprum/react-core';
@@ -97,18 +98,20 @@ const Wrapper = ({ children, flags = defaultFlags, api }: { children: React.Reac
     return null;
   }
   return (
-    <IntlProvider locale="en" defaultLocale="en">
-      <ScalprumProvider scalprum={scalprum.current}>
-        <FlagProvider config={{
-          appName: 'test-app',
-          url: 'https://unleash.example.com/api/',
-          clientKey: '123',
-          bootstrap: flags
-        }}>
-          {children}
-        </FlagProvider>
-      </ScalprumProvider>
-    </IntlProvider>
+    <MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <ScalprumProvider scalprum={scalprum.current}>
+          <FlagProvider config={{
+            appName: 'test-app',
+            url: 'https://unleash.example.com/api/',
+            clientKey: '123',
+            bootstrap: flags
+          }}>
+            {children}
+          </FlagProvider>
+        </ScalprumProvider>
+      </IntlProvider>
+    </MemoryRouter>
   );
 }
 
@@ -249,9 +252,9 @@ describe('HelpPanel', () => {
       cy.contains('OpenShift').should('be.visible');
       cy.contains('Settings').should('be.visible');
 
-      // Check internal link
+      // Check internal link (rendered as <a> via react-router Link)
       cy.contains(getMessageText('apiDocumentationCatalogLinkText'))
-        .should('have.attr', 'href', 'https://console.redhat.com/docs/api');
+        .should('have.attr', 'href', '/docs/api');
     });
   });
 

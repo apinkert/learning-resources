@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { IntlProvider } from 'react-intl';
+import { MemoryRouter } from 'react-router-dom';
 import ScalprumProvider from '@scalprum/react-core';
 import { initialize, removeScalprum } from '@scalprum/core';
 import SearchResultItem, {
@@ -58,11 +59,13 @@ const Wrapper = ({
   if (!isReady) return null;
 
   return (
-    <IntlProvider locale="en" defaultLocale="en">
-      <ScalprumProvider scalprum={scalprum.current}>
-        {children}
-      </ScalprumProvider>
-    </IntlProvider>
+    <MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <ScalprumProvider scalprum={scalprum.current}>
+          {children}
+        </ScalprumProvider>
+      </IntlProvider>
+    </MemoryRouter>
   );
 };
 

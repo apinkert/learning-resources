@@ -22,7 +22,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import messages from '../../../Messages';
 import {
@@ -246,7 +246,12 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
     // Use client-side navigation to preserve help panel state
     try {
       const url = new URL(consoleDocsUrl);
-      navigate(url.pathname);
+      const target = `${url.pathname}${url.search}${url.hash}`;
+      if (url.origin === window.location.origin) {
+        navigate(target);
+      } else {
+        window.location.assign(consoleDocsUrl);
+      }
     } catch {
       navigate(consoleDocsUrl);
     }
@@ -377,14 +382,9 @@ const APIPanelContent: React.FC = () => {
       <StackItem>
         <Content>
           {intl.formatMessage(messages.apiPanelDescription)}{' '}
-          <Button
-            variant="link"
-            onClick={() => navigate('/docs/api')}
-            isInline
-            data-ouia-component-id="help-panel-api-docs-link"
-          >
+          <Link to="/docs/api" data-ouia-component-id="help-panel-api-docs-link">
             {intl.formatMessage(messages.apiDocumentationCatalogLinkText)}
-          </Button>
+          </Link>
         </Content>
       </StackItem>
 
