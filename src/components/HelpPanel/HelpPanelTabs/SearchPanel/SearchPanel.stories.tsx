@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5';
 import React, { useState } from 'react';
 import { IntlProvider } from 'react-intl';
+import { MemoryRouter } from 'react-router-dom';
 import {
   AllQuickStartStates,
   QuickStartContextProvider,
@@ -55,13 +56,15 @@ const SearchPanelWrapper = ({ bundle = 'insights' }: { bundle?: string }) => {
   }, [bundle]);
 
   return (
-    <IntlProvider locale="en" defaultLocale="en">
-      <QuickStartContextProvider value={quickStartContextValue}>
-        <div style={{ height: '600px', width: '400px' }}>
-          <SearchPanel setNewActionTitle={() => {}} />
-        </div>
-      </QuickStartContextProvider>
-    </IntlProvider>
+    <MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <QuickStartContextProvider value={quickStartContextValue}>
+          <div style={{ height: '600px', width: '400px' }}>
+            <SearchPanel setNewActionTitle={() => {}} />
+          </div>
+        </QuickStartContextProvider>
+      </IntlProvider>
+    </MemoryRouter>
   );
 };
 

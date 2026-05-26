@@ -22,7 +22,7 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import messages from '../../../Messages';
 import {
@@ -409,14 +409,16 @@ const APIPanelContent: React.FC = () => {
       <StackItem>
         <Content>
           {intl.formatMessage(messages.apiPanelDescription)}{' '}
-          <Button
-            variant="link"
-            onClick={() => navigateKeepPanel('/docs/api')}
-            isInline
+          <Link
+            to="/docs/api"
             data-ouia-component-id="help-panel-api-docs-link"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateKeepPanel('/docs/api');
+            }}
           >
             {intl.formatMessage(messages.apiDocumentationCatalogLinkText)}
-          </Button>
+          </Link>
         </Content>
       </StackItem>
 
