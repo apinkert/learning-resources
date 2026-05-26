@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { IntlProvider } from 'react-intl';
-import { MemoryRouter } from 'react-router-dom';
 import APIPanel, {
   convertToConsoleDocsUrl,
   getConsoleBaseUrl,
@@ -19,6 +18,8 @@ jest.mock('@redhat-cloud-services/frontend-components/useChrome', () => ({
   useChrome: () => ({
     getBundleData: () => ({ bundleId: 'insights' }),
     getAvailableBundles: () => [{ id: 'insights', title: 'RHEL' }],
+    chromeHistory: { push: jest.fn(), replace: jest.fn() },
+    getEnvironment: () => 'prod',
   }),
 }));
 
@@ -41,11 +42,9 @@ describe('APIPanel', () => {
     mockFetchBundles.mockResolvedValue([]);
 
     render(
-      <MemoryRouter>
-        <IntlProvider locale="en" defaultLocale="en">
-          <APIPanel setNewActionTitle={mockSetNewActionTitle} />
-        </IntlProvider>
-      </MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
     );
 
     // Wait for the empty state message
@@ -75,11 +74,9 @@ describe('APIPanel', () => {
     ]);
 
     render(
-      <MemoryRouter>
-        <IntlProvider locale="en" defaultLocale="en">
-          <APIPanel setNewActionTitle={mockSetNewActionTitle} />
-        </IntlProvider>
-      </MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
     );
 
     await waitFor(() => {
@@ -108,11 +105,9 @@ describe('APIPanel', () => {
     ]);
 
     render(
-      <MemoryRouter>
-        <IntlProvider locale="en" defaultLocale="en">
-          <APIPanel setNewActionTitle={mockSetNewActionTitle} />
-        </IntlProvider>
-      </MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
     );
 
     await waitFor(() => {
@@ -137,11 +132,9 @@ describe('APIPanel', () => {
     ]);
 
     render(
-      <MemoryRouter>
-        <IntlProvider locale="en" defaultLocale="en">
-          <APIPanel setNewActionTitle={mockSetNewActionTitle} />
-        </IntlProvider>
-      </MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
     );
 
     await waitFor(() => {
@@ -166,11 +159,9 @@ describe('APIPanel', () => {
     ]);
 
     render(
-      <MemoryRouter>
-        <IntlProvider locale="en" defaultLocale="en">
-          <APIPanel setNewActionTitle={mockSetNewActionTitle} />
-        </IntlProvider>
-      </MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
     );
 
     await waitFor(() => {
@@ -202,11 +193,9 @@ describe('APIPanel', () => {
     ]);
 
     render(
-      <MemoryRouter>
-        <IntlProvider locale="en" defaultLocale="en">
-          <APIPanel setNewActionTitle={mockSetNewActionTitle} />
-        </IntlProvider>
-      </MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
     );
 
     await waitFor(() => {
@@ -244,11 +233,9 @@ describe('APIPanel', () => {
     ]);
 
     render(
-      <MemoryRouter>
-        <IntlProvider locale="en" defaultLocale="en">
-          <APIPanel setNewActionTitle={mockSetNewActionTitle} />
-        </IntlProvider>
-      </MemoryRouter>
+      <IntlProvider locale="en" defaultLocale="en">
+        <APIPanel setNewActionTitle={mockSetNewActionTitle} />
+      </IntlProvider>
     );
 
     await waitFor(() => {

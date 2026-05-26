@@ -20,7 +20,6 @@ import {
 } from '@patternfly/react-icons';
 import { useIntl } from 'react-intl';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useOpenQuickStartInHelpPanel } from '../../../../utils/openQuickStartInHelpPanel';
 import { getBundleDisplayName } from '../../../../utils/bundleUtils';
@@ -54,17 +53,18 @@ const SearchResultItem: React.FC<{
 }> = ({ result, onBookmarkToggle, onFavoriteToggle }) => {
   const intl = useIntl();
   const chrome = useChrome();
-  const navigate = useNavigate();
   const openQuickStartInHelpPanel = useOpenQuickStartInHelpPanel();
 
   /**
    * Navigate while keeping the help panel open.
+   * Uses Chrome's own history object to avoid requiring a Router context
+   * (the help panel module may render outside the shell's BrowserRouter).
    * Re-asserts drawer content after route change so Chrome's safety-net
    * effect does not close the panel.
    */
   const navigateKeepPanel = (path: string) => {
-    const { drawerActions } = chrome;
-    navigate(path);
+    const { drawerActions, chromeHistory } = chrome;
+    chromeHistory.push(path);
     setTimeout(() => {
       drawerActions?.setDrawerPanelContent({
         scope: 'learningResources',

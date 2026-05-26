@@ -28,7 +28,6 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { Link, useNavigate } from 'react-router-dom';
 import { suspenseLoader as useSuspenseLoader } from '@redhat-cloud-services/frontend-components-utilities/useSuspenseLoader';
 import fetchAllData from '../../../utils/fetchAllData';
 import { ExtendedQuickstart } from '../../../utils/fetchQuickstarts';
@@ -177,16 +176,16 @@ const LearnPanelContent: React.FC<{
 }) => {
   const intl = useIntl();
   const chrome = useChrome();
-  const navigate = useNavigate();
-
   /**
    * Navigate to a console page while keeping the help panel open.
-   * After client-side navigation, re-assert the drawer content so Chrome's
-   * safety-net effect does not close the panel if atoms briefly clear.
+   * Uses Chrome's own history object to avoid requiring a Router context
+   * (the help panel module may render outside the shell's BrowserRouter).
+   * After navigation, re-assert the drawer content so Chrome's safety-net
+   * effect does not close the panel if atoms briefly clear.
    */
   const navigateKeepPanel = (path: string) => {
-    const { drawerActions } = chrome;
-    navigate(path);
+    const { drawerActions, chromeHistory } = chrome;
+    chromeHistory.push(path);
     // Re-assert drawer content after route change settles
     setTimeout(() => {
       drawerActions?.setDrawerPanelContent({
@@ -670,15 +669,19 @@ const LearnPanelContent: React.FC<{
           <StackItem>
             <Content>
               {intl.formatMessage(messages.learnPanelDescription)}{' '}
-              <Link
-                to="/learning-resources?tab=all"
-                onClick={(e) => {
+              <Button
+                variant="link"
+                component="a"
+                href="/learning-resources?tab=all"
+                onClick={(e: React.MouseEvent) => {
                   e.preventDefault();
                   navigateKeepPanel('/learning-resources?tab=all');
                 }}
+                isInline
+                iconPosition="end"
               >
                 {intl.formatMessage(messages.allLearningCatalogLinkText)}
-              </Link>
+              </Button>
               .
             </Content>
           </StackItem>

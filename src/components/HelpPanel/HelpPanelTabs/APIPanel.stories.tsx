@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-webpack5';
 import React from 'react';
 import { IntlProvider } from 'react-intl';
-import { MemoryRouter } from 'react-router-dom';
 import { HttpResponse, http } from 'msw';
 import { expect, userEvent, waitFor, within } from 'storybook/test';
 import APIPanel from './APIPanel';
@@ -79,13 +78,11 @@ const APIPanelWrapper = ({ bundle = 'insights' }: { bundle?: string }) => {
   /* eslint-enable rulesdir/no-chrome-api-call-from-window */
 
   return (
-    <MemoryRouter>
-      <IntlProvider locale="en" defaultLocale="en">
-        <div style={{ height: '600px', width: '400px' }}>
-          <APIPanel setNewActionTitle={() => {}} />
-        </div>
-      </IntlProvider>
-    </MemoryRouter>
+    <IntlProvider locale="en" defaultLocale="en">
+      <div style={{ height: '600px', width: '400px' }}>
+        <APIPanel setNewActionTitle={() => {}} />
+      </div>
+    </IntlProvider>
   );
 };
 

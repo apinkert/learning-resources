@@ -22,7 +22,6 @@ import {
   ToolbarItem,
 } from '@patternfly/react-core';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
-import { Link, useNavigate } from 'react-router-dom';
 import { useIntl } from 'react-intl';
 import messages from '../../../Messages';
 import {
@@ -234,16 +233,17 @@ const mapBundleInfoWithTitles = async (): Promise<APIDoc[]> => {
 
 const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
   const chrome = useChrome();
-  const navigate = useNavigate();
 
   /**
    * Navigate while keeping the help panel open.
+   * Uses Chrome's own history object to avoid requiring a Router context
+   * (the help panel module may render outside the shell's BrowserRouter).
    * Re-asserts drawer content after route change so Chrome's safety-net
    * effect does not close the panel.
    */
   const navigateKeepPanel = (path: string) => {
-    const { drawerActions } = chrome;
-    navigate(path);
+    const { drawerActions, chromeHistory } = chrome;
+    chromeHistory.push(path);
     setTimeout(() => {
       drawerActions?.setDrawerPanelContent({
         scope: 'learningResources',
@@ -315,11 +315,9 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
 const APIPanelContent: React.FC = () => {
   const intl = useIntl();
   const chrome = useChrome();
-  const navigate = useNavigate();
-
   const navigateKeepPanel = (path: string) => {
-    const { drawerActions } = chrome;
-    navigate(path);
+    const { drawerActions, chromeHistory } = chrome;
+    chromeHistory.push(path);
     setTimeout(() => {
       drawerActions?.setDrawerPanelContent({
         scope: 'learningResources',
@@ -409,16 +407,19 @@ const APIPanelContent: React.FC = () => {
       <StackItem>
         <Content>
           {intl.formatMessage(messages.apiPanelDescription)}{' '}
-          <Link
-            to="/docs/api"
+          <Button
+            variant="link"
+            component="a"
+            href="/docs/api"
             data-ouia-component-id="help-panel-api-docs-link"
-            onClick={(e) => {
+            onClick={(e: React.MouseEvent) => {
               e.preventDefault();
               navigateKeepPanel('/docs/api');
             }}
+            isInline
           >
             {intl.formatMessage(messages.apiDocumentationCatalogLinkText)}
-          </Link>
+          </Button>
         </Content>
       </StackItem>
 
