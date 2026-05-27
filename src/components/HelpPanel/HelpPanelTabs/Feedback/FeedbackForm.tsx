@@ -140,6 +140,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
           <Breadcrumb>
             <BreadcrumbItem
               to="#"
+              className="feedback-breadcrumb-link"
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
                 onBreadcrumbClick();
