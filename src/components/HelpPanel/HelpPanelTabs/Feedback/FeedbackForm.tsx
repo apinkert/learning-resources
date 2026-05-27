@@ -139,8 +139,11 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
         <StackItem>
           <Breadcrumb>
             <BreadcrumbItem
-              onClick={onBreadcrumbClick}
-              className="feedback-breadcrumb-link"
+              to="#"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                onBreadcrumbClick();
+              }}
             >
               {intl.formatMessage(messages.breadcrumbShareFeedback)}
             </BreadcrumbItem>

@@ -4,11 +4,15 @@
 
 .feedback-card {
   background-color: var(--pf-t--global--background--color--secondary--default);
-  border: 1px solid var(--pf-t--global--border--color--default);
+  border-color: transparent;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--pf-t--global--border--color--brand--default);
+  }
 }
 
 .feedback-card-icon {
-  margin-right: var(--pf-t--global--spacer--sm);
   color: var(--pf-t--global--color--brand--default);
 }
 
@@ -16,15 +20,3 @@
   margin-left: 4px;
 }
 
-.feedback-breadcrumb-link {
-  color: var(--pf-t--global--color--brand--default);
-  text-decoration: underline;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: inherit;
-  font-family: inherit;
-  font-weight: inherit;
-  line-height: inherit;
-}
