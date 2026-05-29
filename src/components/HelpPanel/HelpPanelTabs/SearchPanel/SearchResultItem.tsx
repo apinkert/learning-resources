@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Breadcrumb,
+  BreadcrumbItem,
   Button,
-  Content,
   Flex,
   FlexItem,
   Label,
   Stack,
   StackItem,
 } from '@patternfly/react-core';
+import './SearchResultItem.scss';
 import {
-  AngleRightIcon,
   BookOpenIcon,
   BookmarkIcon,
   CloudIcon,
@@ -151,90 +152,54 @@ const SearchResultItem: React.FC<{
     }
   };
 
-  const renderBreadcrumb = () => {
-    const getBreadcrumbConfig = (type: SearchResult['type']) => {
-      switch (type) {
-        case 'documentation':
-          return {
-            tabType: intl.formatMessage(messages.breadcrumbLearn),
-            sectionTitle: intl.formatMessage(messages.contentTypeDocumentation),
-            icon: <BookOpenIcon />,
-          };
-        case 'quickstart':
-          return {
-            tabType: intl.formatMessage(messages.breadcrumbLearn),
-            sectionTitle: intl.formatMessage(messages.contentTypeQuickstarts),
-            icon: <BookmarkIcon />,
-          };
-        case 'api':
-          return {
-            tabType: intl.formatMessage(messages.breadcrumbApis),
-            sectionTitle: intl.formatMessage(
-              messages.breadcrumbApiDocumentation
-            ),
-            icon: <VectorSquareIcon />,
-          };
-        case 'kb':
-          return {
-            tabType: intl.formatMessage(messages.breadcrumbKnowledgeBase),
-            sectionTitle: intl.formatMessage(
-              messages.breadcrumbKnowledgeBaseArticles
-            ),
-            icon: <LightbulbIcon />,
-          };
-        case 'support':
-          return {
-            tabType: intl.formatMessage(messages.breadcrumbSupport),
-            sectionTitle: intl.formatMessage(messages.breadcrumbSupportTickets),
-            icon: <HeadsetIcon />,
-          };
-        case 'service':
-          return {
-            tabType: null,
-            sectionTitle: intl.formatMessage(
-              messages.breadcrumbHybridCloudService
-            ),
-            icon: <CloudIcon className="pf-v6-u-color-blue-400" />,
-          };
-        default:
-          return { tabType: null, sectionTitle: type, icon: null };
-      }
-    };
-
-    const config = getBreadcrumbConfig(result.type);
-
-    return (
-      <Flex
-        alignItems={{ default: 'alignItemsCenter' }}
-        spaceItems={{ default: 'spaceItemsXs' }}
-      >
-        {config.icon && (
-          <FlexItem>
-            <span className="pf-v6-u-font-size-sm pf-v6-u-color-200">
-              {config.icon}
-            </span>
-          </FlexItem>
-        )}
-        {config.tabType && (
-          <>
-            <FlexItem>
-              <Content component="small" className="pf-v6-u-color-200">
-                {config.tabType}
-              </Content>
-            </FlexItem>
-            <FlexItem>
-              <AngleRightIcon className="pf-v6-u-font-size-sm pf-v6-u-color-200" />
-            </FlexItem>
-          </>
-        )}
-        <FlexItem>
-          <Content component="small" className="pf-v6-u-color-200">
-            {config.sectionTitle}
-          </Content>
-        </FlexItem>
-      </Flex>
-    );
+  const getBreadcrumbConfig = (type: SearchResult['type']) => {
+    switch (type) {
+      case 'documentation':
+        return {
+          tabType: intl.formatMessage(messages.breadcrumbLearn),
+          sectionTitle: intl.formatMessage(messages.contentTypeDocumentation),
+          icon: <BookOpenIcon />,
+        };
+      case 'quickstart':
+        return {
+          tabType: intl.formatMessage(messages.breadcrumbLearn),
+          sectionTitle: intl.formatMessage(messages.contentTypeQuickstarts),
+          icon: <BookmarkIcon />,
+        };
+      case 'api':
+        return {
+          tabType: intl.formatMessage(messages.breadcrumbApis),
+          sectionTitle: intl.formatMessage(messages.breadcrumbApiDocumentation),
+          icon: <VectorSquareIcon />,
+        };
+      case 'kb':
+        return {
+          tabType: intl.formatMessage(messages.breadcrumbKnowledgeBase),
+          sectionTitle: intl.formatMessage(
+            messages.breadcrumbKnowledgeBaseArticles
+          ),
+          icon: <LightbulbIcon />,
+        };
+      case 'support':
+        return {
+          tabType: intl.formatMessage(messages.breadcrumbSupport),
+          sectionTitle: intl.formatMessage(messages.breadcrumbSupportTickets),
+          icon: <HeadsetIcon />,
+        };
+      case 'service':
+        return {
+          tabType: null,
+          sectionTitle: intl.formatMessage(
+            messages.breadcrumbHybridCloudService
+          ),
+          icon: <CloudIcon className="pf-v6-u-color-blue-400" />,
+        };
+      default:
+        return { tabType: null, sectionTitle: type, icon: null };
+    }
   };
+
+  const config = getBreadcrumbConfig(result.type);
 
   return (
     <Flex
@@ -306,7 +271,26 @@ const SearchResultItem: React.FC<{
               justifyContent={{ default: 'justifyContentSpaceBetween' }}
               alignItems={{ default: 'alignItemsCenter' }}
             >
-              <FlexItem>{renderBreadcrumb()}</FlexItem>
+              <FlexItem>
+                <Flex
+                  alignItems={{ default: 'alignItemsCenter' }}
+                  spaceItems={{ default: 'spaceItemsSm' }}
+                >
+                  {config.icon && (
+                    <FlexItem className="pf-v6-u-font-size-sm pf-v6-u-color-200">
+                      {config.icon}
+                    </FlexItem>
+                  )}
+                  <FlexItem>
+                    <Breadcrumb className="lr-c-search-result-breadcrumb">
+                      {config.tabType && (
+                        <BreadcrumbItem>{config.tabType}</BreadcrumbItem>
+                      )}
+                      <BreadcrumbItem>{config.sectionTitle}</BreadcrumbItem>
+                    </Breadcrumb>
+                  </FlexItem>
+                </Flex>
+              </FlexItem>
               {result.bundleTags && result.bundleTags.length > 0 && (
                 <FlexItem>
                   <Flex spaceItems={{ default: 'spaceItemsXs' }}>
