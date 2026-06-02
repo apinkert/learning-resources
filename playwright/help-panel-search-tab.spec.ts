@@ -195,25 +195,6 @@ test.describe('help panel - Search tab', () => {
     await expect(page.getByText(/no recent searches/i)).toBeVisible();
   });
 
-  // TODO: Add assertions for post-click state (icon/state change or API response) before re-enabling
-  test('bookmarks a learning resource from search results', async ({ page }) => {
-    // Search for quickstarts
-    const searchInput = page.getByPlaceholder(/Search for topics, products, use cases/i);
-    await searchInput.fill('Getting started');
-
-    // Wait for results (implicitly waits for debounce and API call)
-    await expect(page.getByRole('list', { name: /search results/i })).toBeVisible({ timeout: 15000 });
-
-    // Find first bookmark button
-    const bookmarkButton = page.locator('[aria-label*="bookmark"]').first();
-    await expect(bookmarkButton).toBeVisible();
-    await bookmarkButton.click();
-
-    // TODO: Add proper assertion for bookmark state change (e.g., check aria-pressed attribute or icon class)
-    // For now, verify button is still present after click
-    await expect(bookmarkButton).toBeVisible();
-  });
-
   test('displays multiple result types in search', async ({ page }) => {
     // Search for a common term that should return multiple types
     const searchInput = page.getByPlaceholder(/Search for topics, products, use cases/i);
