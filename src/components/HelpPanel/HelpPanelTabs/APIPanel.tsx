@@ -29,6 +29,7 @@ import {
   fetchBundles,
 } from '../../../utils/fetchBundleInfoAPI';
 import { getBundleDisplayName } from '../../../utils/bundleUtils';
+import useNavigateKeepPanel from '../../../hooks/useNavigateKeepPanel';
 
 interface APIDoc {
   name: string;
@@ -233,24 +234,7 @@ const mapBundleInfoWithTitles = async (): Promise<APIDoc[]> => {
 
 const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
   const chrome = useChrome();
-
-  /**
-   * Navigate while keeping the help panel open.
-   * Uses Chrome's own history object to avoid requiring a Router context
-   * (the help panel module may render outside the shell's BrowserRouter).
-   * Re-asserts drawer content after route change so Chrome's safety-net
-   * effect does not close the panel.
-   */
-  const navigateKeepPanel = (path: string) => {
-    const { drawerActions, chromeHistory } = chrome;
-    chromeHistory.push(path);
-    setTimeout(() => {
-      drawerActions?.setDrawerPanelContent({
-        scope: 'learningResources',
-        module: './HelpPanel',
-      });
-    }, 50);
-  };
+  const navigateKeepPanel = useNavigateKeepPanel();
 
   const handleResourceClick = () => {
     const environment = chrome.getEnvironment();
@@ -315,16 +299,7 @@ const APIResourceItem: React.FC<{ resource: APIDoc }> = ({ resource }) => {
 const APIPanelContent: React.FC = () => {
   const intl = useIntl();
   const chrome = useChrome();
-  const navigateKeepPanel = (path: string) => {
-    const { drawerActions, chromeHistory } = chrome;
-    chromeHistory.push(path);
-    setTimeout(() => {
-      drawerActions?.setDrawerPanelContent({
-        scope: 'learningResources',
-        module: './HelpPanel',
-      });
-    }, 50);
-  };
+  const navigateKeepPanel = useNavigateKeepPanel();
   const [activeToggle, setActiveToggle] = useState<string>('all');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
