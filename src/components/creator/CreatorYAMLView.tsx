@@ -43,20 +43,17 @@ import {
   UploadIcon,
 } from '@patternfly/react-icons';
 import {
-  createQuickstartPR,
   getRepoQuickstartContent,
   listRepoQuickstarts,
-  quickstartExists,
-  PRResponse,
   RepoQuickstartEntry,
 } from '../../utils/createQuickstartPR';
 import Editor from '@monaco-editor/react';
 import YAML from 'yaml';
 import { QuickStartSpec } from '@patternfly/quickstarts';
 import { downloadFile } from '@redhat-cloud-services/frontend-components-utilities/helpers';
-import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 import { CreatorWizardContext } from './context';
+import { useCreatePR } from './useCreatePR';
 import { ALL_KIND_ENTRIES, ItemKind } from './meta';
 import { FilterData } from '../../utils/FiltersCategoryInterface';
 import './CreatorYAMLView.scss';
@@ -440,17 +437,23 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   bundles: bundleOptions,
 }) => {
   const { files } = useContext(CreatorWizardContext);
-  const chrome = useChrome();
 
   // Hardcoded to true for local dev — revert to useFlag before opening PR:
   // const showCreatePR = useFlag('platform.learning-resources.quickstarts.create-pr');
   const showCreatePR = true;
 
-  const [prLoading, setPrLoading] = useState(false);
-  const [prResult, setPrResult] = useState<PRResponse | null>(null);
-  const [prError, setPrError] = useState<string | null>(null);
-  const [isUpdate, setIsUpdate] = useState(false);
   const [parsedName, setParsedName] = useState<string | null>(null);
+  const {
+    prLoading,
+    prResult,
+    prError,
+    isUpdate,
+    canCreatePR,
+    handleCreatePR,
+    setPrResult,
+    setPrError,
+  } = useCreatePR(parsedName);
+
   const [repoModalOpen, setRepoModalOpen] = useState(false);
   const [repoQuickstarts, setRepoQuickstarts] = useState<RepoQuickstartEntry[]>([]);
   const [repoLoading, setRepoLoading] = useState(false);
@@ -548,15 +551,9 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       // Update state
       setParseError(null);
 
-      // Track parsed name for mode detection
       const name = metadata.name || null;
       if (name !== parsedName) {
         setParsedName(name);
-        if (name && name !== 'untitled-quickstart') {
-          quickstartExists(name).then(setIsUpdate);
-        } else {
-          setIsUpdate(false);
-        }
       }
 
       // Detect and propagate kind from spec.type
@@ -694,38 +691,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     });
   };
 
-  const handleCreatePR = async () => {
-    if (!parsedName || prLoading) return;
-    setPrLoading(true);
-    setPrResult(null);
-    setPrError(null);
-    try {
-      const timestamp = Date.now();
-      const prefix = isUpdate ? 'update' : 'create';
-      let commitMessage = `feat(quickstarts): ${prefix} ${parsedName}`;
-      const user = await chrome.auth.getUser();
-      const identity = user?.identity?.user;
-      if (identity?.email) {
-        const name = [identity.first_name, identity.last_name].filter(Boolean).join(' ') || identity.email;
-        commitMessage += `\n\nCo-authored-by: ${name} <${identity.email}>`;
-      }
-      const result = await createQuickstartPR(files, {
-        branchName: `qs-${prefix}-${parsedName}-${timestamp}`,
-        commitMessage,
-        prTitle: `feat(quickstarts): ${prefix} ${parsedName}`,
-        prBody: `${isUpdate ? 'Updating' : 'Adding new'} quickstart via the Quickstarts Creator tool.\n\nDirectory: docs/quickstarts/${parsedName}/`,
-        isUpdate,
-        directoryName: parsedName,
-        ...(isUpdate ? { existingPath: `docs/quickstarts/${parsedName}/` } : {}),
-      });
-      setPrResult(result);
-    } catch (err) {
-      setPrError(err instanceof Error ? err.message : 'Failed to create PR');
-    } finally {
-      setPrLoading(false);
-    }
-  };
-
   const handleOpenRepoModal = async () => {
     setRepoModalOpen(true);
     setRepoLoading(true);
@@ -815,9 +780,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 
   const canDownload =
     isUserContent(yamlContent) && !parseError && files.length > 0;
-
-  const canCreatePR =
-    canDownload && !!parsedName && parsedName !== 'untitled-quickstart';
 
   return (
     <PageSection className="lr-c-creator-yaml-view">
@@ -1005,7 +967,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
                 icon={prLoading ? <Spinner size="sm" /> : <CodeBranchIcon />}
                 onClick={handleCreatePR}
                 size="sm"
-                isDisabled={!canCreatePR || prLoading}
+                isDisabled={!canCreatePR || !canDownload || prLoading}
                 isLoading={prLoading}
               >
                 {prLoading ? 'Creating PR...' : 'Create PR'}

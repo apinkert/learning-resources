@@ -1,4 +1,5 @@
 import {
+  Alert,
   Banner,
   Button,
   ClipboardCopy,
@@ -6,6 +7,7 @@ import {
   Content,
   Flex,
   FlexItem,
+  Spinner,
   Stack,
   StackItem,
   Tab,
@@ -14,6 +16,7 @@ import {
   Title,
 } from '@patternfly/react-core';
 import CheckCircleIcon from '@patternfly/react-icons/dist/dynamic/icons/check-circle-icon';
+import CodeBranchIcon from '@patternfly/react-icons/dist/dynamic/icons/code-branch-icon';
 import DownloadIcon from '@patternfly/react-icons/dist/dynamic/icons/download-icon';
 import React, {
   Fragment,
@@ -56,6 +59,7 @@ import { CreatorFiles } from './types';
 import { FilterData } from '../../utils/FiltersCategoryInterface';
 import TagsSelector from './TagsSelector';
 import CreatorYAMLView from './CreatorYAMLView';
+import { useCreatePR } from './useCreatePR';
 
 export type CreatorWizardProps = {
   onChangeKind: (newKind: ItemKind | null) => void;
@@ -216,6 +220,25 @@ const PropUpdater = ({
 const FileDownload = () => {
   const { files } = useContext(CreatorWizardContext);
 
+  const quickstartName = useMemo(() => {
+    const yamlFile = files.find(
+      (f) => f.name !== 'metadata.yaml' && f.name.endsWith('.yaml')
+    );
+    if (!yamlFile) return null;
+    const name = yamlFile.name.replace(/\.yaml$/, '');
+    return name || null;
+  }, [files]);
+
+  const {
+    prLoading,
+    prResult,
+    prError,
+    canCreatePR,
+    handleCreatePR,
+    setPrResult,
+    setPrError,
+  } = useCreatePR(quickstartName);
+
   function doDownload(file: { content: string; name: string }) {
     const dotIndex = file.name.lastIndexOf('.');
     const baseName =
@@ -240,29 +263,84 @@ const FileDownload = () => {
       <Stack hasGutter className="pf-v6-u-m-lg">
         <StackItem>
           <Content component="p">
-            Download these files and use them to create the learning resource PR
-            in the{' '}
-            <a
-              href="https://github.com/RedHatInsights/quickstarts/tree/main/docs/quickstarts"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {' '}
-              correct repo
-            </a>
-            .
+            Download these files or submit them directly as a pull request.
           </Content>
         </StackItem>
 
         <StackItem>
-          <Button
-            variant="primary"
-            icon={<DownloadIcon />}
-            onClick={() => files.forEach((file) => doDownload(file))}
-          >
-            Download all ({files.length}) files
-          </Button>
+          <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+            <FlexItem>
+              <Button
+                variant="primary"
+                icon={<DownloadIcon />}
+                onClick={() => files.forEach((file) => doDownload(file))}
+              >
+                Download all ({files.length}) files
+              </Button>
+            </FlexItem>
+            <FlexItem>
+              <Button
+                variant="primary"
+                icon={
+                  prLoading ? <Spinner size="sm" /> : <CodeBranchIcon />
+                }
+                onClick={handleCreatePR}
+                isDisabled={!canCreatePR || prLoading}
+                isLoading={prLoading}
+              >
+                {prLoading ? 'Creating PR...' : 'Create PR'}
+              </Button>
+            </FlexItem>
+          </Flex>
         </StackItem>
+
+        {prResult && (
+          <StackItem>
+            <Alert
+              variant="success"
+              title="Pull Request Created"
+              isInline
+              actionClose={
+                <Button
+                  variant="plain"
+                  onClick={() => setPrResult(null)}
+                >
+                  ✕
+                </Button>
+              }
+            >
+              <a
+                href={prResult.prUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {prResult.prUrl}
+              </a>
+            </Alert>
+          </StackItem>
+        )}
+        {prError && (
+          <StackItem>
+            <Alert
+              variant="danger"
+              title="Failed to Create PR"
+              isInline
+              actionClose={
+                <Button
+                  variant="plain"
+                  onClick={() => setPrError(null)}
+                >
+                  ✕
+                </Button>
+              }
+            >
+              {prError}{' '}
+              <Button variant="link" isInline onClick={handleCreatePR}>
+                Retry
+              </Button>
+            </Alert>
+          </StackItem>
+        )}
 
         {files.map((file) => (
           <StackItem key={file.name}>
