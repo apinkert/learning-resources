@@ -443,8 +443,8 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   const chrome = useChrome();
 
   // Hardcoded to true for local dev — revert to useFlag before opening PR:
-  const showCreatePR = useFlag('platform.learning-resources.quickstarts.create-pr');
-  // const showCreatePR = true;
+  // const showCreatePR = useFlag('platform.learning-resources.quickstarts.create-pr');
+  const showCreatePR = true;
 
   const [prLoading, setPrLoading] = useState(false);
   const [prResult, setPrResult] = useState<PRResponse | null>(null);
@@ -847,33 +847,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           </List>
         </Alert>
       )}
-      {prResult && (
-        <Alert
-          variant="success"
-          title="Pull Request Created"
-          className="pf-v6-u-mb-md"
-          isInline
-          actionClose={<Button variant="plain" onClick={() => setPrResult(null)}>✕</Button>}
-        >
-          <a href={prResult.prUrl} target="_blank" rel="noopener noreferrer">
-            {prResult.prUrl}
-          </a>
-        </Alert>
-      )}
-      {prError && (
-        <Alert
-          variant="danger"
-          title="Failed to Create PR"
-          className="pf-v6-u-mb-md"
-          isInline
-          actionClose={<Button variant="plain" onClick={() => setPrError(null)}>✕</Button>}
-        >
-          {prError}{' '}
-          <Button variant="link" isInline onClick={handleCreatePR}>
-            Retry
-          </Button>
-        </Alert>
-      )}
       <Flex
         spaceItems={{ default: 'spaceItemsSm' }}
         className="lr-c-creator-yaml-view__toolbar"
@@ -907,52 +880,17 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
             data-testid="yaml-file-input"
           />
         </FlexItem>
-        <FlexItem>
-          <Tooltip
-            content="Download metadata.yaml and quickstart YAML files, same as wizard"
-            position="top"
-          >
-            <Button
-              variant="primary"
-              icon={<DownloadIcon />}
-              onClick={handleDownload}
-              size="sm"
-              isDisabled={!canDownload}
-            >
-              Download Files ({files.length})
-            </Button>
-          </Tooltip>
-        </FlexItem>
         {showCreatePR && (
-          <>
-            <FlexItem>
-              <Button
-                variant="secondary"
-                icon={<UploadIcon />}
-                onClick={handleOpenRepoModal}
-                size="sm"
-              >
-                Load from Repo
-              </Button>
-            </FlexItem>
-            <FlexItem>
-              <Tooltip
-                content="Submit quickstart YAML as a GitHub pull request"
-                position="top"
-              >
-                <Button
-                  variant="primary"
-                  icon={prLoading ? <Spinner size="sm" /> : <CodeBranchIcon />}
-                  onClick={handleCreatePR}
-                  size="sm"
-                  isDisabled={!canCreatePR || prLoading}
-                  isLoading={prLoading}
-                >
-                  {prLoading ? 'Creating PR...' : 'Create PR'}
-                </Button>
-              </Tooltip>
-            </FlexItem>
-          </>
+          <FlexItem>
+            <Button
+              variant="secondary"
+              icon={<UploadIcon />}
+              onClick={handleOpenRepoModal}
+              size="sm"
+            >
+              Load from Repo
+            </Button>
+          </FlexItem>
         )}
         {showCreatePR && parsedName && parsedName !== 'untitled-quickstart' && (
           <FlexItem>
@@ -1008,6 +946,74 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           }}
         />
       </div>
+      {prResult && (
+        <Alert
+          variant="success"
+          title="Pull Request Created"
+          className="pf-v6-u-mb-md"
+          isInline
+          actionClose={<Button variant="plain" onClick={() => setPrResult(null)}>✕</Button>}
+        >
+          <a href={prResult.prUrl} target="_blank" rel="noopener noreferrer">
+            {prResult.prUrl}
+          </a>
+        </Alert>
+      )}
+      {prError && (
+        <Alert
+          variant="danger"
+          title="Failed to Create PR"
+          className="pf-v6-u-mb-md"
+          isInline
+          actionClose={<Button variant="plain" onClick={() => setPrError(null)}>✕</Button>}
+        >
+          {prError}{' '}
+          <Button variant="link" isInline onClick={handleCreatePR}>
+            Retry
+          </Button>
+        </Alert>
+      )}
+      <Flex
+        spaceItems={{ default: 'spaceItemsSm' }}
+        className="lr-c-creator-yaml-view__toolbar"
+        alignItems={{ default: 'alignItemsCenter' }}
+      >
+        <FlexItem>
+          <Tooltip
+            content="Download metadata.yaml and quickstart YAML files, same as wizard"
+            position="top"
+          >
+            <Button
+              variant="primary"
+              icon={<DownloadIcon />}
+              onClick={handleDownload}
+              size="sm"
+              isDisabled={!canDownload}
+            >
+              Download Files ({files.length})
+            </Button>
+          </Tooltip>
+        </FlexItem>
+        {showCreatePR && (
+          <FlexItem>
+            <Tooltip
+              content="Submit quickstart YAML as a GitHub pull request"
+              position="top"
+            >
+              <Button
+                variant="primary"
+                icon={prLoading ? <Spinner size="sm" /> : <CodeBranchIcon />}
+                onClick={handleCreatePR}
+                size="sm"
+                isDisabled={!canCreatePR || prLoading}
+                isLoading={prLoading}
+              >
+                {prLoading ? 'Creating PR...' : 'Create PR'}
+              </Button>
+            </Tooltip>
+          </FlexItem>
+        )}
+      </Flex>
       {showCreatePR && (
         <Modal
           isOpen={repoModalOpen}
