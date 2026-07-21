@@ -11,6 +11,12 @@ import { CreatorWizardContext } from './context';
 import { CreatorFiles } from './types';
 import { DEFAULT_QUICKSTART_YAML } from '../../data/quickstart-templates';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
+import {
+  createQuickstartPR,
+  quickstartExists,
+  listRepoQuickstarts,
+  getRepoQuickstartContent,
+} from '../../utils/createQuickstartPR';
 
 // Mock downloadFile from frontend-components-utilities
 const mockDownloadFile = jest.fn();
@@ -20,6 +26,23 @@ jest.mock(
     downloadFile: (...args: unknown[]) => mockDownloadFile(...args),
   })
 );
+
+// Mock useChrome for SSO user email (co-authored-by)
+const mockGetUser = jest.fn().mockResolvedValue({
+  identity: {
+    user: {
+      email: 'testuser@redhat.com',
+      first_name: 'Test',
+      last_name: 'User',
+    },
+  },
+});
+jest.mock('@redhat-cloud-services/frontend-components/useChrome', () => ({
+  __esModule: true,
+  useChrome: () => ({
+    auth: { getUser: mockGetUser },
+  }),
+}));
 
 // Mock Monaco Editor — render a simple textarea that mirrors onChange behavior
 jest.mock('@monaco-editor/react', () => {
@@ -39,6 +62,18 @@ jest.mock('@monaco-editor/react', () => {
   MockEditor.displayName = 'MockEditor';
   return { __esModule: true, default: MockEditor };
 });
+
+jest.mock('../../utils/createQuickstartPR', () => ({
+  createQuickstartPR: jest.fn(),
+  quickstartExists: jest.fn().mockResolvedValue(false),
+  listRepoQuickstarts: jest.fn().mockResolvedValue([]),
+  getRepoQuickstartContent: jest.fn().mockResolvedValue({ name: '', files: [] }),
+}));
+
+const mockedCreatePR = createQuickstartPR as jest.MockedFunction<typeof createQuickstartPR>;
+const mockedQuickstartExists = quickstartExists as jest.MockedFunction<typeof quickstartExists>;
+const mockedListRepoQuickstarts = listRepoQuickstarts as jest.MockedFunction<typeof listRepoQuickstarts>;
+const mockedGetRepoQuickstartContent = getRepoQuickstartContent as jest.MockedFunction<typeof getRepoQuickstartContent>;
 
 const MOCK_FILES: CreatorFiles = [
   { name: 'metadata.yaml', content: 'kind: QuickStarts\nname: test\n' },
@@ -630,6 +665,202 @@ spec:
       expect(onChangeSpec).toHaveBeenCalledWith(
         expect.objectContaining({ displayName: 'Debounce' })
       );
+    });
+  });
+
+  describe('Create PR button', () => {
+    it('renders Create PR button', () => {
+      renderWithContext(<CreatorYAMLView />);
+      expect(
+        screen.getByRole('button', { name: /create pr/i })
+      ).toBeInTheDocument();
+    });
+
+    it('disables Create PR button when YAML has parse error', () => {
+      renderWithContext(<CreatorYAMLView />);
+
+      const editor = screen.getByTestId('mock-monaco-editor');
+      fireEvent.change(editor, { target: { value: 'invalid: [unclosed' } });
+      act(() => { jest.advanceTimersByTime(200); });
+
+      const prBtn = screen.getByRole('button', { name: /create pr/i });
+      expect(prBtn).toBeDisabled();
+    });
+
+    it('shows success alert with PR link on success', async () => {
+      mockedCreatePR.mockResolvedValueOnce({
+        prUrl: 'https://github.com/org/repo/pull/99',
+        branchName: 'qs-create-my-qs-123',
+        commitSha: 'abc123',
+        status: 'created',
+      });
+
+      renderWithContext(<CreatorYAMLView />);
+
+      const editor = screen.getByTestId('mock-monaco-editor');
+      fireEvent.change(editor, {
+        target: { value: 'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n' },
+      });
+      act(() => { jest.advanceTimersByTime(200); });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /create pr/i })).not.toBeDisabled();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('https://github.com/org/repo/pull/99')).toBeInTheDocument();
+      });
+    });
+
+    it('includes co-authored-by from SSO user in commit message', async () => {
+      mockedCreatePR.mockResolvedValueOnce({
+        prUrl: 'https://github.com/org/repo/pull/99',
+        branchName: 'qs-create-my-qs-123',
+        commitSha: 'abc123',
+        status: 'created',
+      });
+
+      renderWithContext(<CreatorYAMLView />);
+
+      const editor = screen.getByTestId('mock-monaco-editor');
+      fireEvent.change(editor, {
+        target: { value: 'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n' },
+      });
+      act(() => { jest.advanceTimersByTime(200); });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /create pr/i })).not.toBeDisabled();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
+
+      await waitFor(() => {
+        expect(mockedCreatePR).toHaveBeenCalled();
+      });
+
+      const metadata = mockedCreatePR.mock.calls[0][1];
+      expect(metadata.commitMessage).toContain('Co-authored-by: Test User <testuser@redhat.com>');
+    });
+
+    it('shows error alert with retry on failure', async () => {
+      mockedCreatePR.mockRejectedValueOnce(new Error('Network error'));
+
+      renderWithContext(<CreatorYAMLView />);
+
+      const editor = screen.getByTestId('mock-monaco-editor');
+      fireEvent.change(editor, {
+        target: { value: 'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n' },
+      });
+      act(() => { jest.advanceTimersByTime(200); });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /create pr/i })).not.toBeDisabled();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/Network error/)).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+    });
+  });
+
+  describe('Mode detection label', () => {
+    it('shows "Creating" label for new quickstarts', async () => {
+      mockedQuickstartExists.mockResolvedValue(false);
+
+      renderWithContext(<CreatorYAMLView />);
+      const editor = screen.getByTestId('mock-monaco-editor');
+      fireEvent.change(editor, {
+        target: { value: 'metadata:\n  name: brand-new-qs\nspec:\n  displayName: New\n' },
+      });
+      act(() => { jest.advanceTimersByTime(200); });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Creating: brand-new-qs/)).toBeInTheDocument();
+      });
+    });
+
+    it('shows "Updating" label for existing quickstarts', async () => {
+      mockedQuickstartExists.mockResolvedValue(true);
+
+      renderWithContext(<CreatorYAMLView />);
+      const editor = screen.getByTestId('mock-monaco-editor');
+      fireEvent.change(editor, {
+        target: { value: 'metadata:\n  name: existing-qs\nspec:\n  displayName: Existing\n' },
+      });
+      act(() => { jest.advanceTimersByTime(200); });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Updating: existing-qs/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('Load from Repo', () => {
+    it('renders Load from Repo button', () => {
+      renderWithContext(<CreatorYAMLView />);
+      expect(
+        screen.getByRole('button', { name: /load from repo/i })
+      ).toBeInTheDocument();
+    });
+
+    it('opens modal and shows quickstarts list', async () => {
+      mockedListRepoQuickstarts.mockResolvedValueOnce([
+        { name: 'getting-started', displayName: 'Getting Started' },
+        { name: 'cost-mgmt', displayName: 'Cost Management' },
+      ]);
+
+      renderWithContext(<CreatorYAMLView />);
+      fireEvent.click(screen.getByRole('button', { name: /load from repo/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('Getting Started')).toBeInTheDocument();
+        expect(screen.getByText('Cost Management')).toBeInTheDocument();
+      });
+    });
+
+    it('loads quickstart content into editor on selection', async () => {
+      jest.useRealTimers();
+
+      mockedListRepoQuickstarts.mockResolvedValueOnce([
+        { name: 'getting-started', displayName: 'Getting Started' },
+      ]);
+      const yamlContent = 'metadata:\n  name: getting-started\nspec:\n  displayName: GS\n';
+      mockedGetRepoQuickstartContent.mockResolvedValueOnce({
+        name: 'getting-started',
+        files: [
+          { name: 'metadata.yaml', content: 'kind: QuickStarts\n' },
+          { name: 'getting-started.yml', content: yamlContent },
+        ],
+      });
+
+      renderWithContext(<CreatorYAMLView />);
+
+      await act(async () => {
+        fireEvent.click(screen.getByRole('button', { name: /load from repo/i }));
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Getting Started')).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: 'Getting Started' }));
+
+      // Flush the async handleLoadFromRepo + React state updates
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 0));
+      });
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 0));
+      });
+
+      expect(mockedGetRepoQuickstartContent).toHaveBeenCalledWith('getting-started');
+      const editor = screen.getByTestId('mock-monaco-editor');
+      expect((editor as HTMLTextAreaElement).value).toBe(yamlContent);
     });
   });
 });

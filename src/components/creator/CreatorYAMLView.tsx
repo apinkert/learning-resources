@@ -9,30 +9,52 @@ import React, {
 import {
   Alert,
   Button,
+  DataList,
+  DataListCell,
+  DataListItem,
+  DataListItemCells,
+  DataListItemRow,
   Divider,
   Flex,
   FlexItem,
   FormGroup,
+  Label,
   List,
   ListItem,
   MenuToggle,
   MenuToggleElement,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   PageSection,
+  SearchInput,
   Select,
   SelectGroup,
   SelectList,
   SelectOption,
+  Spinner,
   Tooltip,
 } from '@patternfly/react-core';
 import {
+  CodeBranchIcon,
   DownloadIcon,
   FileImportIcon,
   UploadIcon,
 } from '@patternfly/react-icons';
+import {
+  createQuickstartPR,
+  getRepoQuickstartContent,
+  listRepoQuickstarts,
+  quickstartExists,
+  PRResponse,
+  RepoQuickstartEntry,
+} from '../../utils/createQuickstartPR';
 import Editor from '@monaco-editor/react';
 import YAML from 'yaml';
 import { QuickStartSpec } from '@patternfly/quickstarts';
 import { downloadFile } from '@redhat-cloud-services/frontend-components-utilities/helpers';
+import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 import { CreatorWizardContext } from './context';
 import { ALL_KIND_ENTRIES, ItemKind } from './meta';
@@ -418,6 +440,22 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   bundles: bundleOptions,
 }) => {
   const { files } = useContext(CreatorWizardContext);
+  const chrome = useChrome();
+
+  // Hardcoded to true for local dev — revert to useFlag before opening PR:
+  const showCreatePR = useFlag('platform.learning-resources.quickstarts.create-pr');
+  // const showCreatePR = true;
+
+  const [prLoading, setPrLoading] = useState(false);
+  const [prResult, setPrResult] = useState<PRResponse | null>(null);
+  const [prError, setPrError] = useState<string | null>(null);
+  const [isUpdate, setIsUpdate] = useState(false);
+  const [parsedName, setParsedName] = useState<string | null>(null);
+  const [repoModalOpen, setRepoModalOpen] = useState(false);
+  const [repoQuickstarts, setRepoQuickstarts] = useState<RepoQuickstartEntry[]>([]);
+  const [repoLoading, setRepoLoading] = useState(false);
+  const [repoSearch, setRepoSearch] = useState('');
+  const [repoError, setRepoError] = useState<string | null>(null);
 
   // On mount, serialize current state to YAML if we have data from the wizard.
   // This enables switching wizard → YAML without losing data.
@@ -509,6 +547,17 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 
       // Update state
       setParseError(null);
+
+      // Track parsed name for mode detection
+      const name = metadata.name || null;
+      if (name !== parsedName) {
+        setParsedName(name);
+        if (name && name !== 'untitled-quickstart') {
+          quickstartExists(name).then(setIsUpdate);
+        } else {
+          setIsUpdate(false);
+        }
+      }
 
       // Detect and propagate kind from spec.type
       const detectedKind = detectKind(spec);
@@ -645,6 +694,77 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     });
   };
 
+  const handleCreatePR = async () => {
+    if (!parsedName || prLoading) return;
+    setPrLoading(true);
+    setPrResult(null);
+    setPrError(null);
+    try {
+      const timestamp = Date.now();
+      const prefix = isUpdate ? 'update' : 'create';
+      let commitMessage = `feat(quickstarts): ${prefix} ${parsedName}`;
+      const user = await chrome.auth.getUser();
+      const identity = user?.identity?.user;
+      if (identity?.email) {
+        const name = [identity.first_name, identity.last_name].filter(Boolean).join(' ') || identity.email;
+        commitMessage += `\n\nCo-authored-by: ${name} <${identity.email}>`;
+      }
+      const result = await createQuickstartPR(files, {
+        branchName: `qs-${prefix}-${parsedName}-${timestamp}`,
+        commitMessage,
+        prTitle: `feat(quickstarts): ${prefix} ${parsedName}`,
+        prBody: `${isUpdate ? 'Updating' : 'Adding new'} quickstart via the Quickstarts Creator tool.\n\nDirectory: docs/quickstarts/${parsedName}/`,
+        isUpdate,
+        directoryName: parsedName,
+        ...(isUpdate ? { existingPath: `docs/quickstarts/${parsedName}/` } : {}),
+      });
+      setPrResult(result);
+    } catch (err) {
+      setPrError(err instanceof Error ? err.message : 'Failed to create PR');
+    } finally {
+      setPrLoading(false);
+    }
+  };
+
+  const handleOpenRepoModal = async () => {
+    setRepoModalOpen(true);
+    setRepoLoading(true);
+    setRepoError(null);
+    setRepoSearch('');
+    try {
+      const entries = await listRepoQuickstarts();
+      setRepoQuickstarts(entries);
+    } catch (err) {
+      setRepoError(err instanceof Error ? err.message : 'Failed to load quickstarts');
+    } finally {
+      setRepoLoading(false);
+    }
+  };
+
+  const handleLoadFromRepo = async (name: string) => {
+    setRepoModalOpen(false);
+    try {
+      const content = await getRepoQuickstartContent(name);
+      const yamlFile = content.files.find(
+        (f) =>
+          (f.name.endsWith('.yml') || f.name.endsWith('.yaml')) &&
+          f.name !== 'metadata.yaml'
+      );
+      if (yamlFile) {
+        setYamlContent(yamlFile.content);
+        parseAndUpdateQuickstart(yamlFile.content);
+      }
+    } catch (err) {
+      setParseError(err instanceof Error ? err.message : 'Failed to load quickstart');
+    }
+  };
+
+  const filteredRepoQuickstarts = repoQuickstarts.filter(
+    (qs) =>
+      qs.name.toLowerCase().includes(repoSearch.toLowerCase()) ||
+      qs.displayName.toLowerCase().includes(repoSearch.toLowerCase())
+  );
+
   /**
    * Update the metadata.tags section inside the current YAML editor content
    * when bundles or tags are changed via the UI selectors.
@@ -696,6 +816,9 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   const canDownload =
     isUserContent(yamlContent) && !parseError && files.length > 0;
 
+  const canCreatePR =
+    canDownload && !!parsedName && parsedName !== 'untitled-quickstart';
+
   return (
     <PageSection className="lr-c-creator-yaml-view">
       {parseError && (
@@ -724,9 +847,37 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           </List>
         </Alert>
       )}
+      {prResult && (
+        <Alert
+          variant="success"
+          title="Pull Request Created"
+          className="pf-v6-u-mb-md"
+          isInline
+          actionClose={<Button variant="plain" onClick={() => setPrResult(null)}>✕</Button>}
+        >
+          <a href={prResult.prUrl} target="_blank" rel="noopener noreferrer">
+            {prResult.prUrl}
+          </a>
+        </Alert>
+      )}
+      {prError && (
+        <Alert
+          variant="danger"
+          title="Failed to Create PR"
+          className="pf-v6-u-mb-md"
+          isInline
+          actionClose={<Button variant="plain" onClick={() => setPrError(null)}>✕</Button>}
+        >
+          {prError}{' '}
+          <Button variant="link" isInline onClick={handleCreatePR}>
+            Retry
+          </Button>
+        </Alert>
+      )}
       <Flex
         spaceItems={{ default: 'spaceItemsSm' }}
         className="lr-c-creator-yaml-view__toolbar"
+        alignItems={{ default: 'alignItemsCenter' }}
       >
         <FlexItem>
           <Button
@@ -772,6 +923,44 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
             </Button>
           </Tooltip>
         </FlexItem>
+        {showCreatePR && (
+          <>
+            <FlexItem>
+              <Button
+                variant="secondary"
+                icon={<UploadIcon />}
+                onClick={handleOpenRepoModal}
+                size="sm"
+              >
+                Load from Repo
+              </Button>
+            </FlexItem>
+            <FlexItem>
+              <Tooltip
+                content="Submit quickstart YAML as a GitHub pull request"
+                position="top"
+              >
+                <Button
+                  variant="primary"
+                  icon={prLoading ? <Spinner size="sm" /> : <CodeBranchIcon />}
+                  onClick={handleCreatePR}
+                  size="sm"
+                  isDisabled={!canCreatePR || prLoading}
+                  isLoading={prLoading}
+                >
+                  {prLoading ? 'Creating PR...' : 'Create PR'}
+                </Button>
+              </Tooltip>
+            </FlexItem>
+          </>
+        )}
+        {showCreatePR && parsedName && parsedName !== 'untitled-quickstart' && (
+          <FlexItem>
+            <Label color={isUpdate ? 'blue' : 'green'}>
+              {isUpdate ? 'Updating' : 'Creating'}: {parsedName}
+            </Label>
+          </FlexItem>
+        )}
       </Flex>
       {hasMetadataSelectors && (
         <Flex
@@ -819,6 +1008,72 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           }}
         />
       </div>
+      {showCreatePR && (
+        <Modal
+          isOpen={repoModalOpen}
+          onClose={() => setRepoModalOpen(false)}
+          aria-label="Load from Repository"
+          variant="medium"
+        >
+          <ModalHeader title="Load from Repository" />
+          <ModalBody>
+            <SearchInput
+              placeholder="Search quickstarts..."
+              value={repoSearch}
+              onChange={(_event, value) => setRepoSearch(value)}
+              onClear={() => setRepoSearch('')}
+              className="pf-v6-u-mb-md"
+            />
+            {repoLoading && <Spinner size="lg" />}
+            {repoError && (
+              <Alert variant="danger" title="Error" isInline>
+                {repoError}
+              </Alert>
+            )}
+            {!repoLoading && !repoError && (
+              <DataList aria-label="Repository quickstarts" isCompact>
+                {filteredRepoQuickstarts.map((qs) => (
+                  <DataListItem key={qs.name}>
+                    <DataListItemRow>
+                      <DataListItemCells
+                        dataListCells={[
+                          <DataListCell key="name">
+                            <Button
+                              variant="link"
+                              isInline
+                              onClick={() => handleLoadFromRepo(qs.name)}
+                            >
+                              {qs.displayName || qs.name}
+                            </Button>
+                          </DataListCell>,
+                        ]}
+                      />
+                    </DataListItemRow>
+                  </DataListItem>
+                ))}
+                {filteredRepoQuickstarts.length === 0 && (
+                  <DataListItem key="empty">
+                    <DataListItemRow>
+                      <DataListItemCells
+                        dataListCells={[
+                          <DataListCell key="empty-msg">
+                            No quickstarts found
+                          </DataListCell>,
+                        ]}
+                      />
+                    </DataListItemRow>
+                  </DataListItem>
+                )}
+              </DataList>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="link" onClick={() => setRepoModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Modal>
+      )}
     </PageSection>
   );
 };

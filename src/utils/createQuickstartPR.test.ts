@@ -1,0 +1,181 @@
+import axios from 'axios';
+import {
+  createQuickstartPR,
+  getRepoQuickstartContent,
+  listRepoQuickstarts,
+  PRFile,
+  PRMetadata,
+} from './createQuickstartPR';
+
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
+
+const MOCK_FILES: PRFile[] = [
+  { name: 'metadata.yaml', content: 'kind: QuickStarts\nmetadata:\n  name: my-qs\n' },
+  { name: 'my-qs.yaml', content: 'spec:\n  displayName: My QS\n' },
+];
+
+const MOCK_METADATA: PRMetadata = {
+  branchName: 'qs-create-my-qs-1234567890',
+  commitMessage: 'feat(quickstarts): add my-qs',
+  prTitle: 'feat(quickstarts): add my-qs',
+  prBody: 'Adding new quickstart via the Quickstarts Creator tool.\n\nDirectory: docs/quickstarts/my-qs/',
+  isUpdate: false,
+  directoryName: 'my-qs',
+};
+
+const MOCK_RESPONSE = {
+  prUrl: 'https://github.com/org/repo/pull/42',
+  branchName: 'qs-create-my-qs-1234567890',
+  commitSha: 'abc123def456',
+  status: 'created',
+};
+
+describe('createQuickstartPR', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('POSTs to /api/quickstarts/v1/pull-request with files and metadata', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { data: MOCK_RESPONSE } });
+
+    const result = await createQuickstartPR(MOCK_FILES, MOCK_METADATA);
+
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      '/api/quickstarts/v1/pull-request',
+      { files: MOCK_FILES, metadata: MOCK_METADATA }
+    );
+    expect(result).toEqual(MOCK_RESPONSE);
+  });
+
+  it('returns the PR URL, branchName, commitSha, and status from the response', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { data: MOCK_RESPONSE } });
+
+    const result = await createQuickstartPR(MOCK_FILES, MOCK_METADATA);
+
+    expect(result.prUrl).toBe('https://github.com/org/repo/pull/42');
+    expect(result.branchName).toBe('qs-create-my-qs-1234567890');
+    expect(result.commitSha).toBe('abc123def456');
+    expect(result.status).toBe('created');
+  });
+
+  it('propagates network errors', async () => {
+    mockedAxios.post.mockRejectedValueOnce(new Error('Network error'));
+
+    await expect(createQuickstartPR(MOCK_FILES, MOCK_METADATA)).rejects.toThrow('Network error');
+  });
+
+  it('propagates 4xx/5xx errors from the API', async () => {
+    const apiError = { response: { status: 502, data: { msg: 'git-service unreachable' } } };
+    mockedAxios.post.mockRejectedValueOnce(apiError);
+
+    await expect(createQuickstartPR(MOCK_FILES, MOCK_METADATA)).rejects.toEqual(apiError);
+  });
+
+  it('sends isUpdate: false for new quickstarts', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { data: MOCK_RESPONSE } });
+
+    await createQuickstartPR(MOCK_FILES, { ...MOCK_METADATA, isUpdate: false });
+
+    const body = mockedAxios.post.mock.calls[0][1] as { metadata: PRMetadata };
+    expect(body.metadata.isUpdate).toBe(false);
+    expect(body.metadata.existingPath).toBeUndefined();
+  });
+
+  it('forwards existingPath and isUpdate: true for updates (48694 path)', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: { data: { ...MOCK_RESPONSE, status: 'updated' } } });
+
+    const updateMetadata: PRMetadata = {
+      ...MOCK_METADATA,
+      isUpdate: true,
+      existingPath: 'docs/quickstarts/my-qs/',
+    };
+
+    const result = await createQuickstartPR(MOCK_FILES, updateMetadata);
+
+    const body = mockedAxios.post.mock.calls[0][1] as { metadata: PRMetadata };
+    expect(body.metadata.isUpdate).toBe(true);
+    expect(body.metadata.existingPath).toBe('docs/quickstarts/my-qs/');
+    expect(result.status).toBe('updated');
+  });
+});
+
+describe('listRepoQuickstarts', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('GETs /api/quickstarts/v1/repo-quickstarts and returns quickstarts array', async () => {
+    const mockQuickstarts = [
+      { name: 'getting-started', displayName: 'Getting Started' },
+      { name: 'cost-management', displayName: 'Cost Management' },
+    ];
+    mockedAxios.get.mockResolvedValueOnce({
+      data: { data: { quickstarts: mockQuickstarts } },
+    });
+
+    const result = await listRepoQuickstarts();
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(
+      '/api/quickstarts/v1/repo-quickstarts'
+    );
+    expect(result).toEqual(mockQuickstarts);
+    expect(result).toHaveLength(2);
+  });
+
+  it('propagates errors', async () => {
+    mockedAxios.get.mockRejectedValueOnce(new Error('Network error'));
+
+    await expect(listRepoQuickstarts()).rejects.toThrow('Network error');
+  });
+});
+
+describe('getRepoQuickstartContent', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('GETs /api/quickstarts/v1/repo-quickstarts/{name} and returns content', async () => {
+    const mockContent = {
+      name: 'getting-started',
+      files: [
+        { name: 'metadata.yaml', content: 'kind: QuickStarts\n' },
+        { name: 'getting-started.yml', content: 'spec:\n  displayName: GS\n' },
+      ],
+    };
+    mockedAxios.get.mockResolvedValueOnce({
+      data: { data: mockContent },
+    });
+
+    const result = await getRepoQuickstartContent('getting-started');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(
+      '/api/quickstarts/v1/repo-quickstarts/getting-started'
+    );
+    expect(result.name).toBe('getting-started');
+    expect(result.files).toHaveLength(2);
+  });
+
+  it('encodes the quickstart name in the URL', async () => {
+    mockedAxios.get.mockResolvedValueOnce({
+      data: { data: { name: 'my qs', files: [] } },
+    });
+
+    await getRepoQuickstartContent('my qs');
+
+    expect(mockedAxios.get).toHaveBeenCalledWith(
+      '/api/quickstarts/v1/repo-quickstarts/my%20qs'
+    );
+  });
+
+  it('propagates 404 errors', async () => {
+    const apiError = {
+      response: { status: 404, data: { msg: 'quickstart not found' } },
+    };
+    mockedAxios.get.mockRejectedValueOnce(apiError);
+
+    await expect(getRepoQuickstartContent('nonexistent')).rejects.toEqual(
+      apiError
+    );
+  });
+});
