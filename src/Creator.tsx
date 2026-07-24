@@ -23,10 +23,6 @@ import fetchFilters from './utils/fetchFilters';
 import { ExtendedQuickstart } from './utils/fetchQuickstarts';
 import useFilterMap from './hooks/useFilterMap';
 
-const BASE_METADATA = {
-  name: 'test-quickstart',
-};
-
 function makeDemoQuickStart(
   kind: ItemKind | null,
   baseQuickStart: ExtendedQuickstart
@@ -37,7 +33,6 @@ function makeDemoQuickStart(
     ...baseQuickStart,
     metadata: {
       ...baseQuickStart.metadata,
-      name: 'test-quickstart',
       ...(kindMeta?.extraMetadata ?? {}),
     },
   };
@@ -85,6 +80,16 @@ const CreatorInternal = ({
       spec: {
         ...old.spec,
         ...updater(old.spec),
+      },
+    }));
+  };
+
+  const updateMetadataName = (name: string) => {
+    setRawQuickStart((old) => ({
+      ...old,
+      metadata: {
+        ...old.metadata,
+        name,
       },
     }));
   };
@@ -139,8 +144,8 @@ const CreatorInternal = ({
           });
         });
         updates.metadata = {
+          name: old.metadata.name,
           tags: allTags,
-          ...BASE_METADATA,
           ...meta.extraMetadata,
         };
 
@@ -233,6 +238,7 @@ const CreatorInternal = ({
                 updateSpec(() => spec);
               }}
               onChangeMetadataTags={updateMetadataTags}
+              onChangeMetadataName={updateMetadataName}
               filterData={filterData}
               onChangeBundles={setBundles}
               onChangeCurrentStage={setCurrentStage}

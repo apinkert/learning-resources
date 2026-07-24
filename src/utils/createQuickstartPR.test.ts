@@ -36,20 +36,20 @@ describe('createQuickstartPR', () => {
     jest.clearAllMocks();
   });
 
-  it('POSTs to /api/quickstarts/v1/pull-request with files and metadata', async () => {
-    mockedAxios.post.mockResolvedValueOnce({ data: { data: MOCK_RESPONSE } });
+  it('POSTs to /api/v1/submit-pr with files and metadata', async () => {
+    mockedAxios.post.mockResolvedValueOnce({ data: MOCK_RESPONSE });
 
     const result = await createQuickstartPR(MOCK_FILES, MOCK_METADATA);
 
     expect(mockedAxios.post).toHaveBeenCalledWith(
-      '/api/quickstarts/v1/pull-request',
+      '/api/v1/submit-pr',
       { files: MOCK_FILES, metadata: MOCK_METADATA }
     );
     expect(result).toEqual(MOCK_RESPONSE);
   });
 
   it('returns the PR URL, branchName, commitSha, and status from the response', async () => {
-    mockedAxios.post.mockResolvedValueOnce({ data: { data: MOCK_RESPONSE } });
+    mockedAxios.post.mockResolvedValueOnce({ data: MOCK_RESPONSE });
 
     const result = await createQuickstartPR(MOCK_FILES, MOCK_METADATA);
 
@@ -73,7 +73,7 @@ describe('createQuickstartPR', () => {
   });
 
   it('sends isUpdate: false for new quickstarts', async () => {
-    mockedAxios.post.mockResolvedValueOnce({ data: { data: MOCK_RESPONSE } });
+    mockedAxios.post.mockResolvedValueOnce({ data: MOCK_RESPONSE });
 
     await createQuickstartPR(MOCK_FILES, { ...MOCK_METADATA, isUpdate: false });
 
@@ -83,7 +83,7 @@ describe('createQuickstartPR', () => {
   });
 
   it('forwards existingPath and isUpdate: true for updates (48694 path)', async () => {
-    mockedAxios.post.mockResolvedValueOnce({ data: { data: { ...MOCK_RESPONSE, status: 'updated' } } });
+    mockedAxios.post.mockResolvedValueOnce({ data: { ...MOCK_RESPONSE, status: 'updated' } });
 
     const updateMetadata: PRMetadata = {
       ...MOCK_METADATA,
@@ -105,19 +105,19 @@ describe('listRepoQuickstarts', () => {
     jest.clearAllMocks();
   });
 
-  it('GETs /api/quickstarts/v1/repo-quickstarts and returns quickstarts array', async () => {
+  it('GETs /api/v1/list-quickstarts and returns quickstarts array', async () => {
     const mockQuickstarts = [
       { name: 'getting-started', displayName: 'Getting Started' },
       { name: 'cost-management', displayName: 'Cost Management' },
     ];
     mockedAxios.get.mockResolvedValueOnce({
-      data: { data: { quickstarts: mockQuickstarts } },
+      data: { quickstarts: mockQuickstarts },
     });
 
     const result = await listRepoQuickstarts();
 
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      '/api/quickstarts/v1/repo-quickstarts'
+      '/api/v1/list-quickstarts'
     );
     expect(result).toEqual(mockQuickstarts);
     expect(result).toHaveLength(2);
@@ -135,7 +135,7 @@ describe('getRepoQuickstartContent', () => {
     jest.clearAllMocks();
   });
 
-  it('GETs /api/quickstarts/v1/repo-quickstarts/{name} and returns content', async () => {
+  it('GETs /api/v1/quickstart-content/{name} and returns content', async () => {
     const mockContent = {
       name: 'getting-started',
       files: [
@@ -144,13 +144,13 @@ describe('getRepoQuickstartContent', () => {
       ],
     };
     mockedAxios.get.mockResolvedValueOnce({
-      data: { data: mockContent },
+      data: mockContent,
     });
 
     const result = await getRepoQuickstartContent('getting-started');
 
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      '/api/quickstarts/v1/repo-quickstarts/getting-started'
+      '/api/v1/quickstart-content/getting-started'
     );
     expect(result.name).toBe('getting-started');
     expect(result.files).toHaveLength(2);
@@ -158,13 +158,13 @@ describe('getRepoQuickstartContent', () => {
 
   it('encodes the quickstart name in the URL', async () => {
     mockedAxios.get.mockResolvedValueOnce({
-      data: { data: { name: 'my qs', files: [] } },
+      data: { name: 'my qs', files: [] },
     });
 
     await getRepoQuickstartContent('my qs');
 
     expect(mockedAxios.get).toHaveBeenCalledWith(
-      '/api/quickstarts/v1/repo-quickstarts/my%20qs'
+      '/api/v1/quickstart-content/my%20qs'
     );
   });
 

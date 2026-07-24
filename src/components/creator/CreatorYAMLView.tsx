@@ -223,9 +223,6 @@ function serializeToYaml(
       ...(quickStart.spec.description
         ? { description: quickStart.spec.description }
         : {}),
-      ...(quickStart.spec.durationMinutes !== undefined
-        ? { durationMinutes: quickStart.spec.durationMinutes }
-        : {}),
       ...(quickStart.spec.type
         ? {
             type: {
@@ -233,6 +230,9 @@ function serializeToYaml(
               color: quickStart.spec.type.color,
             },
           }
+        : {}),
+      ...(quickStart.spec.durationMinutes !== undefined
+        ? { durationMinutes: quickStart.spec.durationMinutes }
         : {}),
       ...(quickStart.spec.link
         ? {
@@ -498,6 +498,15 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     yamlContentRef.current = yamlContent;
   }, [yamlContent]);
 
+  // Parse initial YAML on mount so parsedName is set when wizard data is present
+  const initialYamlRef = useRef(true);
+  useEffect(() => {
+    if (initialYamlRef.current && isUserContent(yamlContent)) {
+      parseAndUpdateQuickstart(yamlContent);
+    }
+    initialYamlRef.current = false;
+  }, []);
+
   const configureMonacoEnvironment = () => {
     // Disable Monaco workers to prevent CDN fetching in CI environments
     self.MonacoEnvironment = {
@@ -716,8 +725,21 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           f.name !== 'metadata.yaml'
       );
       if (yamlFile) {
-        setYamlContent(yamlFile.content);
-        parseAndUpdateQuickstart(yamlFile.content);
+        let finalContent = yamlFile.content;
+        try {
+          const parsed = YAML.parse(finalContent);
+          if (parsed && !parsed.kind) {
+            const { metadata, spec, ...rest } = parsed;
+            finalContent = YAML.stringify(
+              { kind: 'QuickStarts', metadata, spec, ...rest },
+              { lineWidth: 0 }
+            );
+          }
+        } catch {
+          // use raw content if parse fails
+        }
+        setYamlContent(finalContent);
+        parseAndUpdateQuickstart(finalContent);
       }
     } catch (err) {
       setParseError(err instanceof Error ? err.message : 'Failed to load quickstart');

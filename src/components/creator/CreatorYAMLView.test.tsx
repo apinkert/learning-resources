@@ -860,7 +860,10 @@ spec:
 
       expect(mockedGetRepoQuickstartContent).toHaveBeenCalledWith('getting-started');
       const editor = screen.getByTestId('mock-monaco-editor');
-      expect((editor as HTMLTextAreaElement).value).toBe(yamlContent);
+      const editorValue = (editor as HTMLTextAreaElement).value;
+      expect(editorValue).toContain('kind: QuickStarts');
+      expect(editorValue).toContain('name: getting-started');
+      expect(editorValue).toContain('displayName: GS');
     });
   });
 });

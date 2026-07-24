@@ -45,6 +45,7 @@ import {
   NAME_DESCRIPTION,
   NAME_DURATION,
   NAME_KIND,
+  NAME_METADATA_NAME,
   NAME_PANEL_INTRODUCTION,
   NAME_PREREQUISITES,
   NAME_TAGS,
@@ -60,6 +61,7 @@ import { FilterData } from '../../utils/FiltersCategoryInterface';
 import TagsSelector from './TagsSelector';
 import CreatorYAMLView from './CreatorYAMLView';
 import { useCreatePR } from './useCreatePR';
+import SourceSelector from './SourceSelector';
 
 export type CreatorWizardProps = {
   onChangeKind: (newKind: ItemKind | null) => void;
@@ -71,6 +73,7 @@ export type CreatorWizardProps = {
   filterData: FilterData;
   onChangeTags: (tags: { [kind: string]: string[] }) => void;
   onChangeMetadataTags: (tags: Array<{ kind: string; value: string }>) => void;
+  onChangeMetadataName?: (name: string) => void;
   quickStart?: ExtendedQuickstart;
   currentBundles?: string[];
   currentTags?: { [kind: string]: string[] };
@@ -88,6 +91,7 @@ type UpdaterProps = {
   onChangeBundles: (bundles: string[]) => void;
   onChangeQuickStartSpec: (newValue: QuickStartSpec) => void;
   onChangeTags: CreatorWizardProps['onChangeTags'];
+  onChangeMetadataName?: (name: string) => void;
 };
 
 const DEFAULT_TASK_TITLES: string[] = [''];
@@ -116,9 +120,11 @@ const PropUpdater = ({
   onChangeTags,
   onChangeBundles,
   onChangeQuickStartSpec,
+  onChangeMetadataName,
 }: UpdaterProps) => {
   const bundles = values[NAME_BUNDLES];
   const tags = values[NAME_TAGS];
+  const metadataName: string | undefined = values[NAME_METADATA_NAME];
 
   useEffect(() => {
     onChangeBundles(bundles ?? []);
@@ -127,6 +133,12 @@ const PropUpdater = ({
   useEffect(() => {
     onChangeTags(tags ?? {});
   }, [tags]);
+
+  useEffect(() => {
+    if (metadataName && onChangeMetadataName) {
+      onChangeMetadataName(metadataName);
+    }
+  }, [metadataName]);
 
   const rawKind: string | undefined = values[NAME_KIND];
   const title: string | undefined = values[NAME_TITLE];
@@ -403,6 +415,7 @@ const CreatorWizard = ({
   resetCreator,
   onChangeTags,
   onChangeMetadataTags,
+  onChangeMetadataName,
   files,
   filterData,
   quickStart,
@@ -468,6 +481,7 @@ const CreatorWizard = ({
     'lr-task-title-preview': TaskTitlePreview,
     'lr-string-array': StringArrayInput,
     'lr-tag-filter-selector': TagsSelector,
+    'lr-source-selector': SourceSelector,
   };
 
   return (
@@ -522,6 +536,7 @@ const CreatorWizard = ({
                     onChangeTags={onChangeTags}
                     onChangeBundles={onChangeBundles}
                     onChangeQuickStartSpec={onChangeQuickStartSpec}
+                    onChangeMetadataName={onChangeMetadataName}
                   />
                 )}
               </FormSpy>
