@@ -44,6 +44,11 @@ jest.mock('@redhat-cloud-services/frontend-components/useChrome', () => ({
   }),
 }));
 
+let mockGitServiceFlag = false;
+jest.mock('@unleash/proxy-client-react', () => ({
+  useFlag: () => mockGitServiceFlag,
+}));
+
 // Mock Monaco Editor — render a simple textarea that mirrors onChange behavior
 jest.mock('@monaco-editor/react', () => {
   const MockEditor = ({
@@ -669,6 +674,12 @@ spec:
   });
 
   describe('Create PR button', () => {
+    beforeEach(() => {
+      mockGitServiceFlag = true;
+    });
+    afterEach(() => {
+      mockGitServiceFlag = false;
+    });
     it('renders Create PR button', () => {
       renderWithContext(<CreatorYAMLView />);
       expect(
@@ -769,6 +780,12 @@ spec:
   });
 
   describe('Mode detection label', () => {
+    beforeEach(() => {
+      mockGitServiceFlag = true;
+    });
+    afterEach(() => {
+      mockGitServiceFlag = false;
+    });
     it('shows "Creating" label for new quickstarts', async () => {
       mockedQuickstartExists.mockResolvedValue(false);
 
@@ -801,6 +818,12 @@ spec:
   });
 
   describe('Load from Repo', () => {
+    beforeEach(() => {
+      mockGitServiceFlag = true;
+    });
+    afterEach(() => {
+      mockGitServiceFlag = false;
+    });
     it('renders Load from Repo button', () => {
       renderWithContext(<CreatorYAMLView />);
       expect(

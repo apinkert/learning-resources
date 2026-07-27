@@ -22,6 +22,7 @@ import useSuspenseLoader, {
 import fetchFilters from './utils/fetchFilters';
 import { ExtendedQuickstart } from './utils/fetchQuickstarts';
 import useFilterMap from './hooks/useFilterMap';
+import { useFlag } from '@unleash/proxy-client-react';
 
 function makeDemoQuickStart(
   kind: ItemKind | null,
@@ -46,6 +47,7 @@ const CreatorInternal = ({
   filterLoader: UnwrappedLoader<typeof fetchFilters>;
 }) => {
   const { data: filterData } = filterLoader();
+  const showGitService = useFlag('platform.learning-resources.quickstarts.git-service');
   const [rawKind, setRawKind] = useState<ItemKind | null>(null);
   const filterMap = useFilterMap({ data: filterData });
 
@@ -156,10 +158,27 @@ const CreatorInternal = ({
     setRawKind(newKind);
   };
 
-  const quickStart = useMemo(
-    () => makeDemoQuickStart(rawKind, rawQuickStart),
-    [rawKind, rawQuickStart]
-  );
+  const quickStart = useMemo(() => {
+    const demo = makeDemoQuickStart(rawKind, rawQuickStart);
+    if (!showGitService) return demo;
+
+    const allTags = bundles.toSorted().map((bundle) => ({
+      kind: 'bundle',
+      value: bundle,
+    }));
+    Object.entries(tags).forEach(([kind, values]) => {
+      values.forEach((value) => {
+        allTags.push({ kind, value });
+      });
+    });
+    return {
+      ...demo,
+      metadata: {
+        ...demo.metadata,
+        tags: allTags,
+      },
+    };
+  }, [rawKind, rawQuickStart, bundles, tags, showGitService]);
 
   const files = useMemo(() => {
     const effectiveName = quickStart.spec.displayName
@@ -238,7 +257,7 @@ const CreatorInternal = ({
                 updateSpec(() => spec);
               }}
               onChangeMetadataTags={updateMetadataTags}
-              onChangeMetadataName={updateMetadataName}
+              onChangeMetadataName={showGitService ? updateMetadataName : undefined}
               filterData={filterData}
               onChangeBundles={setBundles}
               onChangeCurrentStage={setCurrentStage}

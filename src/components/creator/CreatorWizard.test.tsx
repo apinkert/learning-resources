@@ -3,6 +3,10 @@ import { act, render, screen, waitFor } from '@testing-library/react';
 import CreatorWizard, { CreatorWizardProps } from './CreatorWizard';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 
+jest.mock('@unleash/proxy-client-react', () => ({
+  useFlag: () => false,
+}));
+
 jest.mock('@redhat-cloud-services/frontend-components/useChrome', () => ({
   __esModule: true,
   useChrome: () => ({

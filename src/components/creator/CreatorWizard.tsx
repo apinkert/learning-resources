@@ -7,7 +7,6 @@ import {
   Content,
   Flex,
   FlexItem,
-  Spinner,
   Stack,
   StackItem,
   Tab,
@@ -62,6 +61,7 @@ import TagsSelector from './TagsSelector';
 import CreatorYAMLView from './CreatorYAMLView';
 import { useCreatePR } from './useCreatePR';
 import SourceSelector from './SourceSelector';
+import { useFlag } from '@unleash/proxy-client-react';
 
 export type CreatorWizardProps = {
   onChangeKind: (newKind: ItemKind | null) => void;
@@ -230,6 +230,7 @@ const PropUpdater = ({
 };
 
 const FileDownload = () => {
+  const showGitService = useFlag('platform.learning-resources.quickstarts.git-service');
   const { files } = useContext(CreatorWizardContext);
 
   const quickstartName = useMemo(() => {
@@ -274,39 +275,65 @@ const FileDownload = () => {
 
       <Stack hasGutter className="pf-v6-u-m-lg">
         <StackItem>
-          <Content component="p">
-            Download these files or submit them directly as a pull request.
-          </Content>
+          {showGitService ? (
+            <Content component="p">
+              Download these files or submit them directly as a pull request.
+            </Content>
+          ) : (
+            <Content component="p">
+              Download these files and use them to create the learning resource PR
+              in the{' '}
+              <a
+                href="https://github.com/RedHatInsights/quickstarts/tree/main/docs/quickstarts"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {' '}
+                correct repo
+              </a>
+              .
+            </Content>
+          )}
         </StackItem>
 
         <StackItem>
-          <Flex spaceItems={{ default: 'spaceItemsSm' }}>
-            <FlexItem>
-              <Button
-                variant="primary"
-                icon={<DownloadIcon />}
-                onClick={() => files.forEach((file) => doDownload(file))}
-              >
-                Download all ({files.length}) files
-              </Button>
-            </FlexItem>
-            <FlexItem>
-              <Button
-                variant="primary"
-                icon={
-                  prLoading ? <Spinner size="sm" /> : <CodeBranchIcon />
-                }
-                onClick={handleCreatePR}
-                isDisabled={!canCreatePR || prLoading}
-                isLoading={prLoading}
-              >
-                {prLoading ? 'Creating PR...' : 'Create PR'}
-              </Button>
-            </FlexItem>
-          </Flex>
+          {showGitService ? (
+            <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+              <FlexItem>
+                <Button
+                  variant="primary"
+                  icon={<DownloadIcon />}
+                  onClick={() => files.forEach((file) => doDownload(file))}
+                >
+                  Download all ({files.length}) files
+                </Button>
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant="primary"
+                  icon={
+                    prLoading ? undefined : <CodeBranchIcon />
+                  }
+                  onClick={handleCreatePR}
+                  isDisabled={!canCreatePR || prLoading}
+                  isLoading={prLoading}
+                >
+                  {prLoading ? 'Creating PR...' : 'Create PR'}
+                </Button>
+              </FlexItem>
+            </Flex>
+          ) : (
+            <Button
+              variant="primary"
+              icon={<DownloadIcon />}
+              onClick={() => files.forEach((file) => doDownload(file))}
+            >
+              Download all ({files.length}) files
+            </Button>
+          )}
         </StackItem>
 
-        {prResult && (
+        {showGitService && prResult && (
           <StackItem>
             <Alert
               variant="success"
@@ -331,7 +358,7 @@ const FileDownload = () => {
             </Alert>
           </StackItem>
         )}
-        {prError && (
+        {showGitService && prError && (
           <StackItem>
             <Alert
               variant="danger"
@@ -425,8 +452,9 @@ const CreatorWizard = ({
   onChangeKindDirect,
 }: CreatorWizardProps) => {
   const chrome = useChrome();
+  const showGitService = useFlag('platform.learning-resources.quickstarts.git-service');
   const [viewMode, setViewMode] = useState<ViewMode>('wizard');
-  const schema = useMemo(() => makeSchema(chrome, filterData), []);
+  const schema = useMemo(() => makeSchema(chrome, filterData, showGitService), [showGitService]);
   const availableBundles = useMemo(() => chrome.getAvailableBundles(), []);
 
   // [viewMode] only, including props like quickStart, currentKind, etc would recompute on

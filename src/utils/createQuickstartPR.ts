@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 export const API_BASE = '/api/quickstarts/v1';
-export const GIT_API_BASE = '/api/v1';
 
 export interface PRFile {
   name: string;
@@ -42,11 +41,11 @@ export const createQuickstartPR = async (
   files: PRFile[],
   metadata: PRMetadata
 ): Promise<PRResponse> => {
-  const { data } = await axios.post<PRResponse>(
-    `${GIT_API_BASE}/submit-pr`,
+  const { data } = await axios.post<{ data: PRResponse }>(
+    `${API_BASE}/pull-request`,
     { files, metadata }
   );
-  return data;
+  return data.data;
 };
 
 export interface RepoQuickstartEntry {
@@ -60,17 +59,17 @@ export interface RepoQuickstartContent {
 }
 
 export const listRepoQuickstarts = async (): Promise<RepoQuickstartEntry[]> => {
-  const { data } = await axios.get<{ quickstarts: RepoQuickstartEntry[] }>(
-    `${GIT_API_BASE}/list-quickstarts`
-  );
-  return data.quickstarts;
+  const { data } = await axios.get<{
+    data: { quickstarts: RepoQuickstartEntry[] };
+  }>(`${API_BASE}/repo-quickstarts`);
+  return data.data.quickstarts;
 };
 
 export const getRepoQuickstartContent = async (
   name: string
 ): Promise<RepoQuickstartContent> => {
-  const { data } = await axios.get<RepoQuickstartContent>(
-    `${GIT_API_BASE}/quickstart-content/${encodeURIComponent(name)}`
+  const { data } = await axios.get<{ data: RepoQuickstartContent }>(
+    `${API_BASE}/repo-quickstarts/${encodeURIComponent(name)}`
   );
-  return data;
+  return data.data;
 };

@@ -56,6 +56,7 @@ import { CreatorWizardContext } from './context';
 import { useCreatePR } from './useCreatePR';
 import { ALL_KIND_ENTRIES, ItemKind } from './meta';
 import { FilterData } from '../../utils/FiltersCategoryInterface';
+import { useFlag } from '@unleash/proxy-client-react';
 import './CreatorYAMLView.scss';
 import { DEFAULT_QUICKSTART_YAML } from '../../data/quickstart-templates';
 
@@ -438,9 +439,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 }) => {
   const { files } = useContext(CreatorWizardContext);
 
-  // Hardcoded to true for local dev — revert to useFlag before opening PR:
-  // const showCreatePR = useFlag('platform.learning-resources.quickstarts.create-pr');
-  const showCreatePR = true;
+  const showCreatePR = useFlag('platform.learning-resources.quickstarts.git-service');
 
   const [parsedName, setParsedName] = useState<string | null>(null);
   const {
@@ -834,7 +833,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       <Flex
         spaceItems={{ default: 'spaceItemsSm' }}
         className="lr-c-creator-yaml-view__toolbar"
-        alignItems={{ default: 'alignItemsCenter' }}
       >
         <FlexItem>
           <Button
@@ -864,6 +862,24 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
             data-testid="yaml-file-input"
           />
         </FlexItem>
+        {!showCreatePR && (
+          <FlexItem>
+            <Tooltip
+              content="Download metadata.yaml and quickstart YAML files, same as wizard"
+              position="top"
+            >
+              <Button
+                variant="primary"
+                icon={<DownloadIcon />}
+                onClick={handleDownload}
+                size="sm"
+                isDisabled={!canDownload}
+              >
+                Download Files ({files.length})
+              </Button>
+            </Tooltip>
+          </FlexItem>
+        )}
         {showCreatePR && (
           <FlexItem>
             <Button
@@ -930,7 +946,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           }}
         />
       </div>
-      {prResult && (
+      {showCreatePR && prResult && (
         <Alert
           variant="success"
           title="Pull Request Created"
@@ -943,7 +959,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           </a>
         </Alert>
       )}
-      {prError && (
+      {showCreatePR && prError && (
         <Alert
           variant="danger"
           title="Failed to Create PR"
@@ -957,28 +973,28 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           </Button>
         </Alert>
       )}
-      <Flex
-        spaceItems={{ default: 'spaceItemsSm' }}
-        className="lr-c-creator-yaml-view__toolbar"
-        alignItems={{ default: 'alignItemsCenter' }}
-      >
-        <FlexItem>
-          <Tooltip
-            content="Download metadata.yaml and quickstart YAML files, same as wizard"
-            position="top"
-          >
-            <Button
-              variant="primary"
-              icon={<DownloadIcon />}
-              onClick={handleDownload}
-              size="sm"
-              isDisabled={!canDownload}
+      {showCreatePR && (
+        <Flex
+          spaceItems={{ default: 'spaceItemsSm' }}
+          className="lr-c-creator-yaml-view__toolbar"
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
+          <FlexItem>
+            <Tooltip
+              content="Download metadata.yaml and quickstart YAML files, same as wizard"
+              position="top"
             >
-              Download Files ({files.length})
-            </Button>
-          </Tooltip>
-        </FlexItem>
-        {showCreatePR && (
+              <Button
+                variant="primary"
+                icon={<DownloadIcon />}
+                onClick={handleDownload}
+                size="sm"
+                isDisabled={!canDownload}
+              >
+                Download Files ({files.length})
+              </Button>
+            </Tooltip>
+          </FlexItem>
           <FlexItem>
             <Tooltip
               content="Submit quickstart YAML as a GitHub pull request"
@@ -986,7 +1002,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
             >
               <Button
                 variant="primary"
-                icon={prLoading ? <Spinner size="sm" /> : <CodeBranchIcon />}
+                icon={prLoading ? undefined : <CodeBranchIcon />}
                 onClick={handleCreatePR}
                 size="sm"
                 isDisabled={!canCreatePR || !canDownload || prLoading}
@@ -996,8 +1012,8 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
               </Button>
             </Tooltip>
           </FlexItem>
-        )}
-      </Flex>
+        </Flex>
+      )}
       {showCreatePR && (
         <Modal
           isOpen={repoModalOpen}
