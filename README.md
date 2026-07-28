@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/RedHatInsights/frontend-starter-app.svg?branch=master)](https://travis-ci.org/RedHatInsights/frontend-starter-app)
-
 # Learning resources
 React.js starter app for Red Hat Insights products that includes Patternfly 5 and shared Red Hat cloud service frontend components.
 
