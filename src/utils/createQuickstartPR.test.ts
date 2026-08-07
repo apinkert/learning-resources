@@ -1,17 +1,20 @@
 import axios from 'axios';
 import {
+  PRFile,
+  PRMetadata,
   createQuickstartPR,
   getRepoQuickstartContent,
   listRepoQuickstarts,
-  PRFile,
-  PRMetadata,
 } from './createQuickstartPR';
 
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 const MOCK_FILES: PRFile[] = [
-  { name: 'metadata.yaml', content: 'kind: QuickStarts\nmetadata:\n  name: my-qs\n' },
+  {
+    name: 'metadata.yaml',
+    content: 'kind: QuickStarts\nmetadata:\n  name: my-qs\n',
+  },
   { name: 'my-qs.yaml', content: 'spec:\n  displayName: My QS\n' },
 ];
 
@@ -19,7 +22,8 @@ const MOCK_METADATA: PRMetadata = {
   branchName: 'qs-create-my-qs-1234567890',
   commitMessage: 'feat(quickstarts): add my-qs',
   prTitle: 'feat(quickstarts): add my-qs',
-  prBody: 'Adding new quickstart via the Quickstarts Creator tool.\n\nDirectory: docs/quickstarts/my-qs/',
+  prBody:
+    'Adding new quickstart via the Quickstarts Creator tool.\n\nDirectory: docs/quickstarts/my-qs/',
   isUpdate: false,
   directoryName: 'my-qs',
 };
@@ -62,14 +66,20 @@ describe('createQuickstartPR', () => {
   it('propagates network errors', async () => {
     mockedAxios.post.mockRejectedValueOnce(new Error('Network error'));
 
-    await expect(createQuickstartPR(MOCK_FILES, MOCK_METADATA)).rejects.toThrow('Network error');
+    await expect(createQuickstartPR(MOCK_FILES, MOCK_METADATA)).rejects.toThrow(
+      'Network error'
+    );
   });
 
   it('propagates 4xx/5xx errors from the API', async () => {
-    const apiError = { response: { status: 502, data: { msg: 'git-service unreachable' } } };
+    const apiError = {
+      response: { status: 502, data: { msg: 'git-service unreachable' } },
+    };
     mockedAxios.post.mockRejectedValueOnce(apiError);
 
-    await expect(createQuickstartPR(MOCK_FILES, MOCK_METADATA)).rejects.toEqual(apiError);
+    await expect(createQuickstartPR(MOCK_FILES, MOCK_METADATA)).rejects.toEqual(
+      apiError
+    );
   });
 
   it('sends isUpdate: false for new quickstarts', async () => {
@@ -83,7 +93,9 @@ describe('createQuickstartPR', () => {
   });
 
   it('forwards existingPath and isUpdate: true for updates (48694 path)', async () => {
-    mockedAxios.post.mockResolvedValueOnce({ data: { data: { ...MOCK_RESPONSE, status: 'updated' } } });
+    mockedAxios.post.mockResolvedValueOnce({
+      data: { data: { ...MOCK_RESPONSE, status: 'updated' } },
+    });
 
     const updateMetadata: PRMetadata = {
       ...MOCK_METADATA,

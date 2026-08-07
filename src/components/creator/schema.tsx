@@ -91,7 +91,11 @@ export function stageFromStepName(name: string): CreatorWizardStage {
   throw new Error('unable to parse step name: ' + name);
 }
 
-export function makeSchema(chrome: ChromeAPI, filterData: FilterData, showGitService = false): Schema {
+export function makeSchema(
+  chrome: ChromeAPI,
+  filterData: FilterData,
+  showGitService = false
+): Schema {
   const bundles = chrome.getAvailableBundles();
 
   const taskSteps = [];

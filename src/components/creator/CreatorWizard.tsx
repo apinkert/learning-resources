@@ -230,7 +230,9 @@ const PropUpdater = ({
 };
 
 const FileDownload = () => {
-  const showGitService = useFlag('platform.learning-resources.quickstarts.git-service');
+  const showGitService = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
   const { files } = useContext(CreatorWizardContext);
 
   const quickstartName = useMemo(() => {
@@ -281,8 +283,8 @@ const FileDownload = () => {
             </Content>
           ) : (
             <Content component="p">
-              Download these files and use them to create the learning resource PR
-              in the{' '}
+              Download these files and use them to create the learning resource
+              PR in the{' '}
               <a
                 href="https://github.com/RedHatInsights/quickstarts/tree/main/docs/quickstarts"
                 target="_blank"
@@ -311,9 +313,7 @@ const FileDownload = () => {
               <FlexItem>
                 <Button
                   variant="primary"
-                  icon={
-                    prLoading ? undefined : <CodeBranchIcon />
-                  }
+                  icon={prLoading ? undefined : <CodeBranchIcon />}
                   onClick={handleCreatePR}
                   isDisabled={!canCreatePR || prLoading}
                   isLoading={prLoading}
@@ -340,10 +340,7 @@ const FileDownload = () => {
               title="Pull Request Created"
               isInline
               actionClose={
-                <Button
-                  variant="plain"
-                  onClick={() => setPrResult(null)}
-                >
+                <Button variant="plain" onClick={() => setPrResult(null)}>
                   ✕
                 </Button>
               }
@@ -365,10 +362,7 @@ const FileDownload = () => {
               title="Failed to Create PR"
               isInline
               actionClose={
-                <Button
-                  variant="plain"
-                  onClick={() => setPrError(null)}
-                >
+                <Button variant="plain" onClick={() => setPrError(null)}>
                   ✕
                 </Button>
               }
@@ -452,9 +446,14 @@ const CreatorWizard = ({
   onChangeKindDirect,
 }: CreatorWizardProps) => {
   const chrome = useChrome();
-  const showGitService = useFlag('platform.learning-resources.quickstarts.git-service');
+  const showGitService = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
   const [viewMode, setViewMode] = useState<ViewMode>('wizard');
-  const schema = useMemo(() => makeSchema(chrome, filterData, showGitService), [showGitService]);
+  const schema = useMemo(
+    () => makeSchema(chrome, filterData, showGitService),
+    [showGitService]
+  );
   const availableBundles = useMemo(() => chrome.getAvailableBundles(), []);
 
   // [viewMode] only, including props like quickStart, currentKind, etc would recompute on

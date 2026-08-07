@@ -47,7 +47,9 @@ const CreatorInternal = ({
   filterLoader: UnwrappedLoader<typeof fetchFilters>;
 }) => {
   const { data: filterData } = filterLoader();
-  const showGitService = useFlag('platform.learning-resources.quickstarts.git-service');
+  const showGitService = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
   const [rawKind, setRawKind] = useState<ItemKind | null>(null);
   const filterMap = useFilterMap({ data: filterData });
 
@@ -257,7 +259,9 @@ const CreatorInternal = ({
                 updateSpec(() => spec);
               }}
               onChangeMetadataTags={updateMetadataTags}
-              onChangeMetadataName={showGitService ? updateMetadataName : undefined}
+              onChangeMetadataName={
+                showGitService ? updateMetadataName : undefined
+              }
               filterData={filterData}
               onChangeBundles={setBundles}
               onChangeCurrentStage={setCurrentStage}

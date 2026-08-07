@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Content,
   DataList,
   DataListCell,
   DataListItem,
@@ -8,7 +9,6 @@ import {
   DataListItemRow,
   SearchInput,
   Spinner,
-  Content,
 } from '@patternfly/react-core';
 import {
   UseFieldApiConfig,
@@ -17,23 +17,23 @@ import {
 } from '@data-driven-forms/react-form-renderer';
 import YAML from 'yaml';
 import {
-  listRepoQuickstarts,
-  getRepoQuickstartContent,
   RepoQuickstartEntry,
+  getRepoQuickstartContent,
+  listRepoQuickstarts,
 } from '../../utils/createQuickstartPR';
 import {
-  NAME_KIND,
-  NAME_METADATA_NAME,
-  NAME_TITLE,
+  NAME_BUNDLES,
   NAME_DESCRIPTION,
   NAME_DURATION,
-  NAME_URL,
-  NAME_BUNDLES,
-  NAME_TAGS,
+  NAME_KIND,
+  NAME_METADATA_NAME,
   NAME_PANEL_INTRODUCTION,
   NAME_PREREQUISITES,
-  NAME_TASK_TITLES,
+  NAME_TAGS,
   NAME_TASKS_ARRAY,
+  NAME_TASK_TITLES,
+  NAME_TITLE,
+  NAME_URL,
 } from './steps/common';
 import { ALL_KIND_ENTRIES, ItemKind } from './meta';
 
@@ -207,102 +207,113 @@ const SourceSelector = (props: UseFieldApiConfig) => {
       <div className="pf-v6-c-form__group">
         <label className="pf-v6-c-form__label">
           <span className="pf-v6-c-form__label-text">Select source</span>
-          <span className="pf-v6-c-form__label-required" aria-hidden="true"> *</span>
+          <span className="pf-v6-c-form__label-required" aria-hidden="true">
+            {' '}
+            *
+          </span>
         </label>
         <div className="pf-v6-c-form__group-control">
+          <SearchInput
+            placeholder="Search quickstarts..."
+            value={search}
+            onChange={(_event, value) => setSearch(value)}
+            onClear={() => setSearch('')}
+            className="pf-v6-u-mb-sm"
+          />
 
-      <SearchInput
-        placeholder="Search quickstarts..."
-        value={search}
-        onChange={(_event, value) => setSearch(value)}
-        onClear={() => setSearch('')}
-        className="pf-v6-u-mb-sm"
-      />
+          {loading && <Spinner size="lg" className="pf-v6-u-mt-md" />}
 
-      {loading && <Spinner size="lg" className="pf-v6-u-mt-md" />}
-
-      {error && (
-        <Alert variant="danger" title="Error" isInline className="pf-v6-u-mt-md">
-          {error}
-        </Alert>
-      )}
-
-      {!loading && !error && (
-        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-          <DataList aria-label="Source selection" isCompact>
-            <DataListItem
-              key="scratch"
-              aria-labelledby="source-scratch"
-              className={selected === SOURCE_SCRATCH ? 'pf-m-selected' : ''}
+          {error && (
+            <Alert
+              variant="danger"
+              title="Error"
+              isInline
+              className="pf-v6-u-mt-md"
             >
-              <DataListItemRow>
-                <DataListItemCells
-                  dataListCells={[
-                    <DataListCell key="name">
-                      <button
-                        id="source-scratch"
-                        type="button"
-                        className={`pf-v6-c-button pf-m-link pf-m-inline${
-                          selected === SOURCE_SCRATCH ? ' pf-m-current' : ''
-                        }`}
-                        onClick={handleSelectScratch}
-                        style={{ fontWeight: selected === SOURCE_SCRATCH ? 700 : 400 }}
-                      >
-                        Start from scratch
-                      </button>
-                    </DataListCell>,
-                  ]}
-                />
-              </DataListItemRow>
-            </DataListItem>
-            {filtered.map((qs) => (
-              <DataListItem
-                key={qs.name}
-                aria-labelledby={`source-${qs.name}`}
-                className={selected === qs.name ? 'pf-m-selected' : ''}
-              >
-                <DataListItemRow>
-                  <DataListItemCells
-                    dataListCells={[
-                      <DataListCell key="name">
-                        <button
-                          id={`source-${qs.name}`}
-                          type="button"
-                          className={`pf-v6-c-button pf-m-link pf-m-inline${
-                            selected === qs.name ? ' pf-m-current' : ''
-                          }`}
-                          onClick={() => handleSelectRepo(qs.name)}
-                          disabled={loadingName !== null}
-                          style={{ fontWeight: selected === qs.name ? 700 : 400 }}
-                        >
-                          {qs.displayName || qs.name}
-                          {loadingName === qs.name && (
-                            <Spinner size="sm" className="pf-v6-u-ml-sm" />
-                          )}
-                        </button>
-                      </DataListCell>,
-                    ]}
-                  />
-                </DataListItemRow>
-              </DataListItem>
-            ))}
-            {filtered.length === 0 && quickstarts.length > 0 && (
-              <DataListItem key="empty">
-                <DataListItemRow>
-                  <DataListItemCells
-                    dataListCells={[
-                      <DataListCell key="empty-msg">
-                        No quickstarts found
-                      </DataListCell>,
-                    ]}
-                  />
-                </DataListItemRow>
-              </DataListItem>
-            )}
-          </DataList>
-        </div>
-      )}
+              {error}
+            </Alert>
+          )}
 
+          {!loading && !error && (
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <DataList aria-label="Source selection" isCompact>
+                <DataListItem
+                  key="scratch"
+                  aria-labelledby="source-scratch"
+                  className={selected === SOURCE_SCRATCH ? 'pf-m-selected' : ''}
+                >
+                  <DataListItemRow>
+                    <DataListItemCells
+                      dataListCells={[
+                        <DataListCell key="name">
+                          <button
+                            id="source-scratch"
+                            type="button"
+                            className={`pf-v6-c-button pf-m-link pf-m-inline${
+                              selected === SOURCE_SCRATCH ? ' pf-m-current' : ''
+                            }`}
+                            onClick={handleSelectScratch}
+                            style={{
+                              fontWeight:
+                                selected === SOURCE_SCRATCH ? 700 : 400,
+                            }}
+                          >
+                            Start from scratch
+                          </button>
+                        </DataListCell>,
+                      ]}
+                    />
+                  </DataListItemRow>
+                </DataListItem>
+                {filtered.map((qs) => (
+                  <DataListItem
+                    key={qs.name}
+                    aria-labelledby={`source-${qs.name}`}
+                    className={selected === qs.name ? 'pf-m-selected' : ''}
+                  >
+                    <DataListItemRow>
+                      <DataListItemCells
+                        dataListCells={[
+                          <DataListCell key="name">
+                            <button
+                              id={`source-${qs.name}`}
+                              type="button"
+                              className={`pf-v6-c-button pf-m-link pf-m-inline${
+                                selected === qs.name ? ' pf-m-current' : ''
+                              }`}
+                              onClick={() => handleSelectRepo(qs.name)}
+                              disabled={loadingName !== null}
+                              style={{
+                                fontWeight: selected === qs.name ? 700 : 400,
+                              }}
+                            >
+                              {qs.displayName || qs.name}
+                              {loadingName === qs.name && (
+                                <Spinner size="sm" className="pf-v6-u-ml-sm" />
+                              )}
+                            </button>
+                          </DataListCell>,
+                        ]}
+                      />
+                    </DataListItemRow>
+                  </DataListItem>
+                ))}
+                {filtered.length === 0 && quickstarts.length > 0 && (
+                  <DataListItem key="empty">
+                    <DataListItemRow>
+                      <DataListItemCells
+                        dataListCells={[
+                          <DataListCell key="empty-msg">
+                            No quickstarts found
+                          </DataListCell>,
+                        ]}
+                      />
+                    </DataListItemRow>
+                  </DataListItem>
+                )}
+              </DataList>
+            </div>
+          )}
         </div>
       </div>
     </div>

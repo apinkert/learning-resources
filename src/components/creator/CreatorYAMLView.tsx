@@ -43,9 +43,9 @@ import {
   UploadIcon,
 } from '@patternfly/react-icons';
 import {
+  RepoQuickstartEntry,
   getRepoQuickstartContent,
   listRepoQuickstarts,
-  RepoQuickstartEntry,
 } from '../../utils/createQuickstartPR';
 import Editor from '@monaco-editor/react';
 import YAML from 'yaml';
@@ -439,7 +439,9 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 }) => {
   const { files } = useContext(CreatorWizardContext);
 
-  const showCreatePR = useFlag('platform.learning-resources.quickstarts.git-service');
+  const showCreatePR = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
 
   const [parsedName, setParsedName] = useState<string | null>(null);
   const {
@@ -454,7 +456,9 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   } = useCreatePR(parsedName);
 
   const [repoModalOpen, setRepoModalOpen] = useState(false);
-  const [repoQuickstarts, setRepoQuickstarts] = useState<RepoQuickstartEntry[]>([]);
+  const [repoQuickstarts, setRepoQuickstarts] = useState<RepoQuickstartEntry[]>(
+    []
+  );
   const [repoLoading, setRepoLoading] = useState(false);
   const [repoSearch, setRepoSearch] = useState('');
   const [repoError, setRepoError] = useState<string | null>(null);
@@ -708,7 +712,9 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       const entries = await listRepoQuickstarts();
       setRepoQuickstarts(entries);
     } catch (err) {
-      setRepoError(err instanceof Error ? err.message : 'Failed to load quickstarts');
+      setRepoError(
+        err instanceof Error ? err.message : 'Failed to load quickstarts'
+      );
     } finally {
       setRepoLoading(false);
     }
@@ -741,7 +747,9 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
         parseAndUpdateQuickstart(finalContent);
       }
     } catch (err) {
-      setParseError(err instanceof Error ? err.message : 'Failed to load quickstart');
+      setParseError(
+        err instanceof Error ? err.message : 'Failed to load quickstart'
+      );
     }
   };
 
@@ -952,7 +960,11 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           title="Pull Request Created"
           className="pf-v6-u-mb-md"
           isInline
-          actionClose={<Button variant="plain" onClick={() => setPrResult(null)}>✕</Button>}
+          actionClose={
+            <Button variant="plain" onClick={() => setPrResult(null)}>
+              ✕
+            </Button>
+          }
         >
           <a href={prResult.prUrl} target="_blank" rel="noopener noreferrer">
             {prResult.prUrl}
@@ -965,7 +977,11 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           title="Failed to Create PR"
           className="pf-v6-u-mb-md"
           isInline
-          actionClose={<Button variant="plain" onClick={() => setPrError(null)}>✕</Button>}
+          actionClose={
+            <Button variant="plain" onClick={() => setPrError(null)}>
+              ✕
+            </Button>
+          }
         >
           {prError}{' '}
           <Button variant="link" isInline onClick={handleCreatePR}>

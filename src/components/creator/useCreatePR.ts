@@ -1,8 +1,8 @@
 import { useContext, useEffect, useState } from 'react';
 import { useChrome } from '@redhat-cloud-services/frontend-components/useChrome';
 import {
-  createQuickstartPR,
   PRResponse,
+  createQuickstartPR,
   quickstartExists,
 } from '../../utils/createQuickstartPR';
 import { CreatorWizardContext } from './context';
@@ -42,9 +42,8 @@ export function useCreatePR(quickstartName: string | null) {
       const identity = user?.identity?.user;
       if (identity?.email) {
         const name =
-          [identity.first_name, identity.last_name]
-            .filter(Boolean)
-            .join(' ') || identity.email;
+          [identity.first_name, identity.last_name].filter(Boolean).join(' ') ||
+          identity.email;
         commitMessage += `\n\nCo-authored-by: ${name} <${identity.email}>`;
       }
       const result = await createQuickstartPR(files, {

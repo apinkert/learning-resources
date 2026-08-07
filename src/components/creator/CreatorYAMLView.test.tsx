@@ -13,9 +13,9 @@ import { DEFAULT_QUICKSTART_YAML } from '../../data/quickstart-templates';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 import {
   createQuickstartPR,
-  quickstartExists,
-  listRepoQuickstarts,
   getRepoQuickstartContent,
+  listRepoQuickstarts,
+  quickstartExists,
 } from '../../utils/createQuickstartPR';
 
 // Mock downloadFile from frontend-components-utilities
@@ -72,13 +72,24 @@ jest.mock('../../utils/createQuickstartPR', () => ({
   createQuickstartPR: jest.fn(),
   quickstartExists: jest.fn().mockResolvedValue(false),
   listRepoQuickstarts: jest.fn().mockResolvedValue([]),
-  getRepoQuickstartContent: jest.fn().mockResolvedValue({ name: '', files: [] }),
+  getRepoQuickstartContent: jest
+    .fn()
+    .mockResolvedValue({ name: '', files: [] }),
 }));
 
-const mockedCreatePR = createQuickstartPR as jest.MockedFunction<typeof createQuickstartPR>;
-const mockedQuickstartExists = quickstartExists as jest.MockedFunction<typeof quickstartExists>;
-const mockedListRepoQuickstarts = listRepoQuickstarts as jest.MockedFunction<typeof listRepoQuickstarts>;
-const mockedGetRepoQuickstartContent = getRepoQuickstartContent as jest.MockedFunction<typeof getRepoQuickstartContent>;
+const mockedCreatePR = createQuickstartPR as jest.MockedFunction<
+  typeof createQuickstartPR
+>;
+const mockedQuickstartExists = quickstartExists as jest.MockedFunction<
+  typeof quickstartExists
+>;
+const mockedListRepoQuickstarts = listRepoQuickstarts as jest.MockedFunction<
+  typeof listRepoQuickstarts
+>;
+const mockedGetRepoQuickstartContent =
+  getRepoQuickstartContent as jest.MockedFunction<
+    typeof getRepoQuickstartContent
+  >;
 
 const MOCK_FILES: CreatorFiles = [
   { name: 'metadata.yaml', content: 'kind: QuickStarts\nname: test\n' },
@@ -692,7 +703,9 @@ spec:
 
       const editor = screen.getByTestId('mock-monaco-editor');
       fireEvent.change(editor, { target: { value: 'invalid: [unclosed' } });
-      act(() => { jest.advanceTimersByTime(200); });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
 
       const prBtn = screen.getByRole('button', { name: /create pr/i });
       expect(prBtn).toBeDisabled();
@@ -710,18 +723,27 @@ spec:
 
       const editor = screen.getByTestId('mock-monaco-editor');
       fireEvent.change(editor, {
-        target: { value: 'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n' },
+        target: {
+          value:
+            'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n',
+        },
       });
-      act(() => { jest.advanceTimersByTime(200); });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /create pr/i })).not.toBeDisabled();
+        expect(
+          screen.getByRole('button', { name: /create pr/i })
+        ).not.toBeDisabled();
       });
 
       fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('https://github.com/org/repo/pull/99')).toBeInTheDocument();
+        expect(
+          screen.getByText('https://github.com/org/repo/pull/99')
+        ).toBeInTheDocument();
       });
     });
 
@@ -737,12 +759,19 @@ spec:
 
       const editor = screen.getByTestId('mock-monaco-editor');
       fireEvent.change(editor, {
-        target: { value: 'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n' },
+        target: {
+          value:
+            'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n',
+        },
       });
-      act(() => { jest.advanceTimersByTime(200); });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /create pr/i })).not.toBeDisabled();
+        expect(
+          screen.getByRole('button', { name: /create pr/i })
+        ).not.toBeDisabled();
       });
 
       fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
@@ -752,7 +781,9 @@ spec:
       });
 
       const metadata = mockedCreatePR.mock.calls[0][1];
-      expect(metadata.commitMessage).toContain('Co-authored-by: Test User <testuser@redhat.com>');
+      expect(metadata.commitMessage).toContain(
+        'Co-authored-by: Test User <testuser@redhat.com>'
+      );
     });
 
     it('shows error alert with retry on failure', async () => {
@@ -762,12 +793,19 @@ spec:
 
       const editor = screen.getByTestId('mock-monaco-editor');
       fireEvent.change(editor, {
-        target: { value: 'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n' },
+        target: {
+          value:
+            'metadata:\n  name: my-qs\nspec:\n  displayName: My QS\n  description: Desc\n',
+        },
       });
-      act(() => { jest.advanceTimersByTime(200); });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /create pr/i })).not.toBeDisabled();
+        expect(
+          screen.getByRole('button', { name: /create pr/i })
+        ).not.toBeDisabled();
       });
 
       fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
@@ -775,7 +813,9 @@ spec:
       await waitFor(() => {
         expect(screen.getByText(/Network error/)).toBeInTheDocument();
       });
-      expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /retry/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -792,9 +832,13 @@ spec:
       renderWithContext(<CreatorYAMLView />);
       const editor = screen.getByTestId('mock-monaco-editor');
       fireEvent.change(editor, {
-        target: { value: 'metadata:\n  name: brand-new-qs\nspec:\n  displayName: New\n' },
+        target: {
+          value: 'metadata:\n  name: brand-new-qs\nspec:\n  displayName: New\n',
+        },
       });
-      act(() => { jest.advanceTimersByTime(200); });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Creating: brand-new-qs/)).toBeInTheDocument();
@@ -807,9 +851,14 @@ spec:
       renderWithContext(<CreatorYAMLView />);
       const editor = screen.getByTestId('mock-monaco-editor');
       fireEvent.change(editor, {
-        target: { value: 'metadata:\n  name: existing-qs\nspec:\n  displayName: Existing\n' },
+        target: {
+          value:
+            'metadata:\n  name: existing-qs\nspec:\n  displayName: Existing\n',
+        },
       });
-      act(() => { jest.advanceTimersByTime(200); });
+      act(() => {
+        jest.advanceTimersByTime(200);
+      });
 
       await waitFor(() => {
         expect(screen.getByText(/Updating: existing-qs/)).toBeInTheDocument();
@@ -852,7 +901,8 @@ spec:
       mockedListRepoQuickstarts.mockResolvedValueOnce([
         { name: 'getting-started', displayName: 'Getting Started' },
       ]);
-      const yamlContent = 'metadata:\n  name: getting-started\nspec:\n  displayName: GS\n';
+      const yamlContent =
+        'metadata:\n  name: getting-started\nspec:\n  displayName: GS\n';
       mockedGetRepoQuickstartContent.mockResolvedValueOnce({
         name: 'getting-started',
         files: [
@@ -864,7 +914,9 @@ spec:
       renderWithContext(<CreatorYAMLView />);
 
       await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: /load from repo/i }));
+        fireEvent.click(
+          screen.getByRole('button', { name: /load from repo/i })
+        );
       });
 
       await waitFor(() => {
@@ -881,7 +933,9 @@ spec:
         await new Promise((r) => setTimeout(r, 0));
       });
 
-      expect(mockedGetRepoQuickstartContent).toHaveBeenCalledWith('getting-started');
+      expect(mockedGetRepoQuickstartContent).toHaveBeenCalledWith(
+        'getting-started'
+      );
       const editor = screen.getByTestId('mock-monaco-editor');
       const editorValue = (editor as HTMLTextAreaElement).value;
       expect(editorValue).toContain('kind: QuickStarts');
