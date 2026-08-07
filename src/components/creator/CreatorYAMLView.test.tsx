@@ -737,6 +737,14 @@ spec:
 
       await waitFor(() => {
         expect(
+          screen.getByRole('button', { name: /confirm/i })
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+
+      await waitFor(() => {
+        expect(
           screen.getByText('https://github.com/org/repo/pull/99')
         ).toBeInTheDocument();
       });
@@ -772,6 +780,14 @@ spec:
       fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
 
       await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: /confirm/i })
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
+
+      await waitFor(() => {
         expect(mockedCreatePR).toHaveBeenCalled();
       });
 
@@ -804,6 +820,14 @@ spec:
       });
 
       fireEvent.click(screen.getByRole('button', { name: /create pr/i }));
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: /confirm/i })
+        ).toBeInTheDocument();
+      });
+
+      fireEvent.click(screen.getByRole('button', { name: /confirm/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/Network error/)).toBeInTheDocument();

@@ -57,6 +57,7 @@ import { useCreatePR } from './useCreatePR';
 import { ALL_KIND_ENTRIES, ItemKind } from './meta';
 import { FilterData } from '../../utils/FiltersCategoryInterface';
 import { useFlag } from '@unleash/proxy-client-react';
+import CreatePRModal from './CreatePRModal';
 import './CreatorYAMLView.scss';
 import { DEFAULT_QUICKSTART_YAML } from '../../data/quickstart-templates';
 
@@ -453,6 +454,18 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     setPrResult,
     setPrError,
   } = useCreatePR(parsedName);
+
+  const [prModalOpen, setPrModalOpen] = useState(false);
+
+  const handleOpenPRModal = () => {
+    setPrResult(null);
+    setPrError(null);
+    setPrModalOpen(true);
+  };
+
+  const handleClosePRModal = () => {
+    setPrModalOpen(false);
+  };
 
   const [repoModalOpen, setRepoModalOpen] = useState(false);
   const [repoQuickstarts, setRepoQuickstarts] = useState<RepoQuickstartEntry[]>(
@@ -951,41 +964,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           }}
         />
       </div>
-      {showCreatePR && prResult && (
-        <Alert
-          variant="success"
-          title="Pull Request Created"
-          className="pf-v6-u-mb-md"
-          isInline
-          actionClose={
-            <Button variant="plain" onClick={() => setPrResult(null)}>
-              ✕
-            </Button>
-          }
-        >
-          <a href={prResult.prUrl} target="_blank" rel="noopener noreferrer">
-            {prResult.prUrl}
-          </a>
-        </Alert>
-      )}
-      {showCreatePR && prError && (
-        <Alert
-          variant="danger"
-          title="Failed to Create PR"
-          className="pf-v6-u-mb-md"
-          isInline
-          actionClose={
-            <Button variant="plain" onClick={() => setPrError(null)}>
-              ✕
-            </Button>
-          }
-        >
-          {prError}{' '}
-          <Button variant="link" isInline onClick={handleCreatePR}>
-            Retry
-          </Button>
-        </Alert>
-      )}
       {showCreatePR && (
         <Flex
           spaceItems={{ default: 'spaceItemsSm' }}
@@ -1015,17 +993,27 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
             >
               <Button
                 variant="primary"
-                icon={prLoading ? undefined : <CodeBranchIcon />}
-                onClick={handleCreatePR}
+                icon={<CodeBranchIcon />}
+                onClick={handleOpenPRModal}
                 size="sm"
-                isDisabled={!canCreatePR || !canDownload || prLoading}
-                isLoading={prLoading}
+                isDisabled={!canCreatePR || !canDownload}
               >
-                {prLoading ? 'Creating PR...' : 'Create PR'}
+                Create PR
               </Button>
             </Tooltip>
           </FlexItem>
         </Flex>
+      )}
+      {showCreatePR && parsedName && (
+        <CreatePRModal
+          isOpen={prModalOpen}
+          onClose={handleClosePRModal}
+          onConfirm={handleCreatePR}
+          quickstartName={parsedName}
+          prLoading={prLoading}
+          prResult={prResult}
+          prError={prError}
+        />
       )}
       {showCreatePR && (
         <Modal

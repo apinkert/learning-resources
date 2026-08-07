@@ -1,6 +1,4 @@
 import {
-  Alert,
-  AlertActionCloseButton,
   Banner,
   Button,
   ClipboardCopy,
@@ -63,6 +61,7 @@ import CreatorYAMLView from './CreatorYAMLView';
 import { useCreatePR } from './useCreatePR';
 import SourceSelector from './SourceSelector';
 import { useFlag } from '@unleash/proxy-client-react';
+import CreatePRModal from './CreatePRModal';
 
 export type CreatorWizardProps = {
   onChangeKind: (newKind: ItemKind | null) => void;
@@ -255,6 +254,18 @@ const FileDownload = () => {
     setPrError,
   } = useCreatePR(quickstartName);
 
+  const [prModalOpen, setPrModalOpen] = useState(false);
+
+  const handleOpenPRModal = () => {
+    setPrResult(null);
+    setPrError(null);
+    setPrModalOpen(true);
+  };
+
+  const handleClosePRModal = () => {
+    setPrModalOpen(false);
+  };
+
   function doDownload(file: { content: string; name: string }) {
     const dotIndex = file.name.lastIndexOf('.');
     const baseName =
@@ -314,12 +325,11 @@ const FileDownload = () => {
               <FlexItem>
                 <Button
                   variant="primary"
-                  icon={prLoading ? undefined : <CodeBranchIcon />}
-                  onClick={handleCreatePR}
-                  isDisabled={!canCreatePR || prLoading}
-                  isLoading={prLoading}
+                  icon={<CodeBranchIcon />}
+                  onClick={handleOpenPRModal}
+                  isDisabled={!canCreatePR}
                 >
-                  {prLoading ? 'Submitting PR...' : 'Create PR'}
+                  Create PR
                 </Button>
               </FlexItem>
             </Flex>
@@ -334,42 +344,16 @@ const FileDownload = () => {
           )}
         </StackItem>
 
-        {showGitService && prResult && (
-          <StackItem>
-            <Alert
-              variant="success"
-              title="Pull Request Created"
-              isInline
-              actionClose={
-                <AlertActionCloseButton onClose={() => setPrResult(null)} />
-              }
-            >
-              <a
-                href={prResult.prUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {prResult.prUrl}
-              </a>
-            </Alert>
-          </StackItem>
-        )}
-        {showGitService && prError && (
-          <StackItem>
-            <Alert
-              variant="danger"
-              title="Failed to Create PR"
-              isInline
-              actionClose={
-                <AlertActionCloseButton onClose={() => setPrError(null)} />
-              }
-            >
-              {prError}{' '}
-              <Button variant="link" isInline onClick={handleCreatePR}>
-                Retry
-              </Button>
-            </Alert>
-          </StackItem>
+        {showGitService && quickstartName && (
+          <CreatePRModal
+            isOpen={prModalOpen}
+            onClose={handleClosePRModal}
+            onConfirm={handleCreatePR}
+            quickstartName={quickstartName}
+            prLoading={prLoading}
+            prResult={prResult}
+            prError={prError}
+          />
         )}
 
         {files.map((file) => (
