@@ -1,5 +1,6 @@
 import {
   Alert,
+  AlertActionCloseButton,
   Banner,
   Button,
   ClipboardCopy,
@@ -318,7 +319,7 @@ const FileDownload = () => {
                   isDisabled={!canCreatePR || prLoading}
                   isLoading={prLoading}
                 >
-                  {prLoading ? 'Creating PR...' : 'Create PR'}
+                  {prLoading ? 'Submitting PR...' : 'Create PR'}
                 </Button>
               </FlexItem>
             </Flex>
@@ -340,9 +341,7 @@ const FileDownload = () => {
               title="Pull Request Created"
               isInline
               actionClose={
-                <Button variant="plain" onClick={() => setPrResult(null)}>
-                  ✕
-                </Button>
+                <AlertActionCloseButton onClose={() => setPrResult(null)} />
               }
             >
               <a
@@ -362,9 +361,7 @@ const FileDownload = () => {
               title="Failed to Create PR"
               isInline
               actionClose={
-                <Button variant="plain" onClick={() => setPrError(null)}>
-                  ✕
-                </Button>
+                <AlertActionCloseButton onClose={() => setPrError(null)} />
               }
             >
               {prError}{' '}
@@ -452,7 +449,7 @@ const CreatorWizard = ({
   const [viewMode, setViewMode] = useState<ViewMode>('wizard');
   const schema = useMemo(
     () => makeSchema(chrome, filterData, showGitService),
-    [showGitService]
+    [chrome, filterData, showGitService]
   );
   const availableBundles = useMemo(() => chrome.getAvailableBundles(), []);
 

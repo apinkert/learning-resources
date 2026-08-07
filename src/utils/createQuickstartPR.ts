@@ -26,15 +26,11 @@ export interface PRResponse {
 
 export const quickstartExists = async (name: string): Promise<boolean> => {
   if (!name || name === 'untitled-quickstart') return false;
-  try {
-    const { data } = await axios.get<{ data: { content: unknown }[] }>(
-      `${API_BASE}/quickstarts`,
-      { params: { name, limit: 1 } }
-    );
-    return data.data.length > 0;
-  } catch {
-    return false;
-  }
+  const { data } = await axios.get<{ data: { content: unknown }[] }>(
+    `${API_BASE}/quickstarts`,
+    { params: { name, limit: 1 } }
+  );
+  return data.data.length > 0;
 };
 
 export const createQuickstartPR = async (
@@ -62,7 +58,7 @@ export const listRepoQuickstarts = async (): Promise<RepoQuickstartEntry[]> => {
   const { data } = await axios.get<{
     data: { quickstarts: RepoQuickstartEntry[] };
   }>(`${API_BASE}/repo-quickstarts`);
-  return data.data.quickstarts;
+  return data.data?.quickstarts ?? [];
 };
 
 export const getRepoQuickstartContent = async (

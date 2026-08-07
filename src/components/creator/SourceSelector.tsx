@@ -86,18 +86,16 @@ const SourceSelector = (props: UseFieldApiConfig) => {
     };
   }, []);
 
-  const filtered = useMemo(
-    () =>
-      quickstarts.filter(
-        (qs) =>
-          qs.name.toLowerCase().includes(search.toLowerCase()) ||
-          qs.displayName.toLowerCase().includes(search.toLowerCase())
-      ),
-    [quickstarts, search]
-  );
+  const filtered = useMemo(() => {
+    const needle = search.toLowerCase();
+    return quickstarts.filter(
+      (qs) =>
+        (qs.name ?? '').toLowerCase().includes(needle) ||
+        (qs.displayName ?? '').toLowerCase().includes(needle)
+    );
+  }, [quickstarts, search]);
 
-  const handleSelectScratch = () => {
-    input.onChange(SOURCE_SCRATCH);
+  const clearQuickstartFields = () => {
     formApi.change(NAME_KIND, undefined);
     formApi.change(NAME_METADATA_NAME, undefined);
     formApi.change(NAME_TITLE, undefined);
@@ -112,9 +110,16 @@ const SourceSelector = (props: UseFieldApiConfig) => {
     formApi.change(NAME_TASKS_ARRAY, undefined);
   };
 
+  const handleSelectScratch = () => {
+    input.onChange(SOURCE_SCRATCH);
+    clearQuickstartFields();
+  };
+
   const handleSelectRepo = async (name: string) => {
     setLoadingName(name);
     input.onChange(name);
+    setError(null);
+    clearQuickstartFields();
     try {
       const content = await getRepoQuickstartContent(name);
       const yamlFile = content.files.find(
@@ -122,10 +127,16 @@ const SourceSelector = (props: UseFieldApiConfig) => {
           (f.name.endsWith('.yml') || f.name.endsWith('.yaml')) &&
           f.name !== 'metadata.yaml'
       );
-      if (!yamlFile) return;
+      if (!yamlFile) {
+        setError(`No quickstart YAML file found in "${name}".`);
+        return;
+      }
 
       const parsed = YAML.parse(yamlFile.content);
-      if (!parsed) return;
+      if (!parsed) {
+        setError(`The quickstart YAML in "${name}" is empty or not valid.`);
+        return;
+      }
 
       const spec = parsed.spec || {};
       const metadata = parsed.metadata || {};

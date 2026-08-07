@@ -15,7 +15,6 @@ import {
   createQuickstartPR,
   getRepoQuickstartContent,
   listRepoQuickstarts,
-  quickstartExists,
 } from '../../utils/createQuickstartPR';
 
 // Mock downloadFile from frontend-components-utilities
@@ -70,7 +69,6 @@ jest.mock('@monaco-editor/react', () => {
 
 jest.mock('../../utils/createQuickstartPR', () => ({
   createQuickstartPR: jest.fn(),
-  quickstartExists: jest.fn().mockResolvedValue(false),
   listRepoQuickstarts: jest.fn().mockResolvedValue([]),
   getRepoQuickstartContent: jest
     .fn()
@@ -79,9 +77,6 @@ jest.mock('../../utils/createQuickstartPR', () => ({
 
 const mockedCreatePR = createQuickstartPR as jest.MockedFunction<
   typeof createQuickstartPR
->;
-const mockedQuickstartExists = quickstartExists as jest.MockedFunction<
-  typeof quickstartExists
 >;
 const mockedListRepoQuickstarts = listRepoQuickstarts as jest.MockedFunction<
   typeof listRepoQuickstarts
@@ -826,9 +821,7 @@ spec:
     afterEach(() => {
       mockGitServiceFlag = false;
     });
-    it('shows "Creating" label for new quickstarts', async () => {
-      mockedQuickstartExists.mockResolvedValue(false);
-
+    it('shows "Editing" label when quickstart name is set', async () => {
       renderWithContext(<CreatorYAMLView />);
       const editor = screen.getByTestId('mock-monaco-editor');
       fireEvent.change(editor, {
@@ -841,27 +834,7 @@ spec:
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/Creating: brand-new-qs/)).toBeInTheDocument();
-      });
-    });
-
-    it('shows "Updating" label for existing quickstarts', async () => {
-      mockedQuickstartExists.mockResolvedValue(true);
-
-      renderWithContext(<CreatorYAMLView />);
-      const editor = screen.getByTestId('mock-monaco-editor');
-      fireEvent.change(editor, {
-        target: {
-          value:
-            'metadata:\n  name: existing-qs\nspec:\n  displayName: Existing\n',
-        },
-      });
-      act(() => {
-        jest.advanceTimersByTime(200);
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText(/Updating: existing-qs/)).toBeInTheDocument();
+        expect(screen.getByText(/Editing: brand-new-qs/)).toBeInTheDocument();
       });
     });
   });

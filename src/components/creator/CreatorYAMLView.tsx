@@ -448,7 +448,6 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     prLoading,
     prResult,
     prError,
-    isUpdate,
     canCreatePR,
     handleCreatePR,
     setPrResult,
@@ -902,9 +901,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
         )}
         {showCreatePR && parsedName && parsedName !== 'untitled-quickstart' && (
           <FlexItem>
-            <Label color={isUpdate ? 'blue' : 'green'}>
-              {isUpdate ? 'Updating' : 'Creating'}: {parsedName}
-            </Label>
+            <Label color="blue">Editing: {parsedName}</Label>
           </FlexItem>
         )}
       </Flex>
