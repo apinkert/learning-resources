@@ -25,7 +25,7 @@ const CatalogHeader = () => {
           <div className="iconMinWidth-1-2-2">
             <img
               src="/apps/frontend-assets/technology-icons/learning-resources.svg"
-              alt="learning-resources-header-icon"
+              alt=""
             />
           </div>
         </FlexItem>
@@ -37,18 +37,19 @@ const CatalogHeader = () => {
           <Content component={ContentVariants.p}>
             <FormattedMessage
               {...messages.catalogHeaderDescription}
-              values={{ bundleTitle }}
-            />{' '}
-            <a
-              href="/learning-resources"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <FormattedMessage
-                {...messages.catalogHeaderAllLearningCatalogLink}
-              />
-            </a>
-            .
+              values={{
+                bundleTitle,
+                a: (chunks) => (
+                  <a
+                    href="/learning-resources"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {chunks}
+                  </a>
+                ),
+              }}
+            />
           </Content>
         </FlexItem>
       </Flex>
