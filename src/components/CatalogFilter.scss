@@ -1,3 +1,8 @@
 .lr-c-catalog__filter {
   font-size: var(--pf-t--global--font--size--sm);
+
+  &__count {
+    font-weight: var(--pf-t--global--font--weight--body--bold);
+    margin-left: var(--pf-t--global--spacer--md);
+  }
 }

@@ -13,13 +13,13 @@ const CatalogFilter = ({
 }) => {
   return (
     <Level className="pf-v6-u-pt-sm pf-v6-u-pb-sm lr-c-catalog__filter">
-      <LevelItem className="pfext-quick-start-catalog-filter__input">
+      <LevelItem className="pfext-quick-start-catalog-filter__input pf-v6-u-flex-grow-1">
         <SearchInput
           placeholder="Filter by keywords..."
           onChange={(_ev, str) => onSearchInputChange(str)}
         />
       </LevelItem>
-      <LevelItem className="pf-v6-u-mr-md">
+      <LevelItem className="lr-c-catalog__filter__count">
         <QuickStartCatalogFilterCountWrapper
           quickStartsCount={quickStartsCount}
         />

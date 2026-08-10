@@ -1,16 +1,30 @@
 .lr-c-catalog-section {
+  background-color: var(--pf-t--global--background--color--secondary--default);
+  padding: var(--pf-t--global--spacer--md);
+  border-radius: var(--pf-t--global--border--radius--medium);
+  margin-bottom: var(--pf-t--global--spacer--lg);
+
+  // Fix expandable section arrow rotation
+  --pf-v6-c-expandable-section__toggle-icon--Rotate: 0deg;
+
+  &.pf-m-expanded {
+    --pf-v6-c-expandable-section__toggle-icon--Rotate: 90deg;
+  }
+
   &__static {
     // No PF variable exists for this
     padding-left: 28px;
   }
+
   .pf-v6-c-expandable-section__toggle {
-    display: flex;
-    align-items: center;
     padding-top: 0;
   }
+
   .pf-v6-c-expandable-section__content {
     margin-top: 0;
   }
+
+
   h3 {
     color: var(--pf-t--global--text--color--regular);
     span {
