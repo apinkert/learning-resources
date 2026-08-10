@@ -452,7 +452,9 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 }) => {
   const { files } = useContext(CreatorWizardContext);
 
-  const showCreatePR = true; // useFlag('platform.learning-resources.quickstarts.git-service');
+  const showCreatePR = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
 
   const [parsedName, setParsedName] = useState<string | null>(null);
   const {

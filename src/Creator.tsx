@@ -47,7 +47,9 @@ const CreatorInternal = ({
   filterLoader: UnwrappedLoader<typeof fetchFilters>;
 }) => {
   const { data: filterData } = filterLoader();
-  const showGitService = true; // useFlag('platform.learning-resources.quickstarts.git-service');
+  const showGitService = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
   const [rawKind, setRawKind] = useState<ItemKind | null>(null);
   const filterMap = useFilterMap({ data: filterData });
 
