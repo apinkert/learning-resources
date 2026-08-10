@@ -18,6 +18,7 @@ import {
   makePanelOverviewStep,
 } from './steps/panel-overview';
 import { isKindStep, makeKindStep } from './steps/kind';
+import { isSourceStep, makeSourceStep } from './steps/source';
 import {
   STEP_DOWNLOAD,
   isDownloadStep,
@@ -68,7 +69,8 @@ const CustomButtons = (props: WizardButtonsProps) => {
 const STEP_TITLE_PANEL_PARENT = 'Create panel';
 
 export function stageFromStepName(name: string): CreatorWizardStage {
-  if (isKindStep(name) || isDetailsStep(name)) return { type: 'card' };
+  if (isSourceStep(name) || isKindStep(name) || isDetailsStep(name))
+    return { type: 'card' };
 
   if (isPanelOverviewStep(name)) return { type: 'panel-overview' };
 
@@ -89,7 +91,11 @@ export function stageFromStepName(name: string): CreatorWizardStage {
   throw new Error('unable to parse step name: ' + name);
 }
 
-export function makeSchema(chrome: ChromeAPI, filterData: FilterData): Schema {
+export function makeSchema(
+  chrome: ChromeAPI,
+  filterData: FilterData,
+  showGitService = false
+): Schema {
   const bundles = chrome.getAvailableBundles();
 
   const taskSteps = [];
@@ -113,6 +119,7 @@ export function makeSchema(chrome: ChromeAPI, filterData: FilterData): Schema {
     isDynamic: true,
     crossroads: [NAME_KIND, NAME_TASK_TITLES],
     fields: [
+      ...(showGitService ? [makeSourceStep()] : []),
       makeKindStep(),
       ...ALL_ITEM_KINDS.map((kind) =>
         makeDetailsStep({

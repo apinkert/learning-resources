@@ -9,34 +9,55 @@ import React, {
 import {
   Alert,
   Button,
+  DataList,
+  DataListCell,
+  DataListItem,
+  DataListItemCells,
+  DataListItemRow,
   Divider,
   Flex,
   FlexItem,
   FormGroup,
+  Label,
   List,
   ListItem,
   MenuToggle,
   MenuToggleElement,
+  Modal,
+  ModalBody,
+  ModalFooter,
+  ModalHeader,
   PageSection,
+  SearchInput,
   Select,
   SelectGroup,
   SelectList,
   SelectOption,
+  Spinner,
   Tooltip,
 } from '@patternfly/react-core';
 import {
+  CodeBranchIcon,
   DownloadIcon,
   FileImportIcon,
   UploadIcon,
 } from '@patternfly/react-icons';
+import {
+  RepoQuickstartEntry,
+  getRepoQuickstartContent,
+  listRepoQuickstarts,
+} from '../../utils/createQuickstartPR';
 import Editor from '@monaco-editor/react';
 import YAML from 'yaml';
 import { QuickStartSpec } from '@patternfly/quickstarts';
 import { downloadFile } from '@redhat-cloud-services/frontend-components-utilities/helpers';
 import { ExtendedQuickstart } from '../../utils/fetchQuickstarts';
 import { CreatorWizardContext } from './context';
+import { useCreatePR } from './useCreatePR';
 import { ALL_KIND_ENTRIES, ItemKind } from './meta';
 import { FilterData } from '../../utils/FiltersCategoryInterface';
+import { useFlag } from '@unleash/proxy-client-react';
+import CreatePRModal from './CreatePRModal';
 import './CreatorYAMLView.scss';
 import { DEFAULT_QUICKSTART_YAML } from '../../data/quickstart-templates';
 
@@ -204,9 +225,6 @@ function serializeToYaml(
       ...(quickStart.spec.description
         ? { description: quickStart.spec.description }
         : {}),
-      ...(quickStart.spec.durationMinutes !== undefined
-        ? { durationMinutes: quickStart.spec.durationMinutes }
-        : {}),
       ...(quickStart.spec.type
         ? {
             type: {
@@ -214,6 +232,9 @@ function serializeToYaml(
               color: quickStart.spec.type.color,
             },
           }
+        : {}),
+      ...(quickStart.spec.durationMinutes !== undefined
+        ? { durationMinutes: quickStart.spec.durationMinutes }
         : {}),
       ...(quickStart.spec.link
         ? {
@@ -419,6 +440,41 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 }) => {
   const { files } = useContext(CreatorWizardContext);
 
+  const showCreatePR = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
+
+  const [parsedName, setParsedName] = useState<string | null>(null);
+  const {
+    prLoading,
+    prResult,
+    prError,
+    canCreatePR,
+    handleCreatePR,
+    setPrResult,
+    setPrError,
+  } = useCreatePR(parsedName);
+
+  const [prModalOpen, setPrModalOpen] = useState(false);
+
+  const handleOpenPRModal = () => {
+    setPrResult(null);
+    setPrError(null);
+    setPrModalOpen(true);
+  };
+
+  const handleClosePRModal = () => {
+    setPrModalOpen(false);
+  };
+
+  const [repoModalOpen, setRepoModalOpen] = useState(false);
+  const [repoQuickstarts, setRepoQuickstarts] = useState<RepoQuickstartEntry[]>(
+    []
+  );
+  const [repoLoading, setRepoLoading] = useState(false);
+  const [repoSearch, setRepoSearch] = useState('');
+  const [repoError, setRepoError] = useState<string | null>(null);
+
   // On mount, serialize current state to YAML if we have data from the wizard.
   // This enables switching wizard → YAML without losing data.
   const getInitialYaml = (): string => {
@@ -456,6 +512,15 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
   useEffect(() => {
     yamlContentRef.current = yamlContent;
   }, [yamlContent]);
+
+  // Parse initial YAML on mount so parsedName is set when wizard data is present
+  const initialYamlRef = useRef(true);
+  useEffect(() => {
+    if (initialYamlRef.current && isUserContent(yamlContent)) {
+      parseAndUpdateQuickstart(yamlContent);
+    }
+    initialYamlRef.current = false;
+  }, []);
 
   const configureMonacoEnvironment = () => {
     // Disable Monaco workers to prevent CDN fetching in CI environments
@@ -509,6 +574,11 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 
       // Update state
       setParseError(null);
+
+      const name = metadata.name || null;
+      if (name !== parsedName) {
+        setParsedName(name);
+      }
 
       // Detect and propagate kind from spec.type
       const detectedKind = detectKind(spec);
@@ -645,6 +715,62 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
     });
   };
 
+  const handleOpenRepoModal = async () => {
+    setRepoModalOpen(true);
+    setRepoLoading(true);
+    setRepoError(null);
+    setRepoSearch('');
+    try {
+      const entries = await listRepoQuickstarts();
+      setRepoQuickstarts(entries);
+    } catch (err) {
+      setRepoError(
+        err instanceof Error ? err.message : 'Failed to load quickstarts'
+      );
+    } finally {
+      setRepoLoading(false);
+    }
+  };
+
+  const handleLoadFromRepo = async (name: string) => {
+    setRepoModalOpen(false);
+    try {
+      const content = await getRepoQuickstartContent(name);
+      const yamlFile = content.files.find(
+        (f) =>
+          (f.name.endsWith('.yml') || f.name.endsWith('.yaml')) &&
+          f.name !== 'metadata.yaml'
+      );
+      if (yamlFile) {
+        let finalContent = yamlFile.content;
+        try {
+          const parsed = YAML.parse(finalContent);
+          if (parsed && !parsed.kind) {
+            const { metadata, spec, ...rest } = parsed;
+            finalContent = YAML.stringify(
+              { kind: 'QuickStarts', metadata, spec, ...rest },
+              { lineWidth: 0 }
+            );
+          }
+        } catch {
+          // use raw content if parse fails
+        }
+        setYamlContent(finalContent);
+        parseAndUpdateQuickstart(finalContent);
+      }
+    } catch (err) {
+      setParseError(
+        err instanceof Error ? err.message : 'Failed to load quickstart'
+      );
+    }
+  };
+
+  const filteredRepoQuickstarts = repoQuickstarts.filter(
+    (qs) =>
+      qs.name.toLowerCase().includes(repoSearch.toLowerCase()) ||
+      qs.displayName.toLowerCase().includes(repoSearch.toLowerCase())
+  );
+
   /**
    * Update the metadata.tags section inside the current YAML editor content
    * when bundles or tags are changed via the UI selectors.
@@ -756,22 +882,41 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
             data-testid="yaml-file-input"
           />
         </FlexItem>
-        <FlexItem>
-          <Tooltip
-            content="Download metadata.yaml and quickstart YAML files, same as wizard"
-            position="top"
-          >
-            <Button
-              variant="primary"
-              icon={<DownloadIcon />}
-              onClick={handleDownload}
-              size="sm"
-              isDisabled={!canDownload}
+        {!showCreatePR && (
+          <FlexItem>
+            <Tooltip
+              content="Download metadata.yaml and quickstart YAML files, same as wizard"
+              position="top"
             >
-              Download Files ({files.length})
+              <Button
+                variant="primary"
+                icon={<DownloadIcon />}
+                onClick={handleDownload}
+                size="sm"
+                isDisabled={!canDownload}
+              >
+                Download Files ({files.length})
+              </Button>
+            </Tooltip>
+          </FlexItem>
+        )}
+        {showCreatePR && (
+          <FlexItem>
+            <Button
+              variant="secondary"
+              icon={<UploadIcon />}
+              onClick={handleOpenRepoModal}
+              size="sm"
+            >
+              Load from Repo
             </Button>
-          </Tooltip>
-        </FlexItem>
+          </FlexItem>
+        )}
+        {showCreatePR && parsedName && parsedName !== 'untitled-quickstart' && (
+          <FlexItem>
+            <Label color="blue">Editing: {parsedName}</Label>
+          </FlexItem>
+        )}
       </Flex>
       {hasMetadataSelectors && (
         <Flex
@@ -819,6 +964,123 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
           }}
         />
       </div>
+      {showCreatePR && (
+        <Flex
+          spaceItems={{ default: 'spaceItemsSm' }}
+          className="lr-c-creator-yaml-view__toolbar"
+          alignItems={{ default: 'alignItemsCenter' }}
+        >
+          <FlexItem>
+            <Tooltip
+              content="Download metadata.yaml and quickstart YAML files, same as wizard"
+              position="top"
+            >
+              <Button
+                variant="primary"
+                icon={<DownloadIcon />}
+                onClick={handleDownload}
+                size="sm"
+                isDisabled={!canDownload}
+              >
+                Download Files ({files.length})
+              </Button>
+            </Tooltip>
+          </FlexItem>
+          <FlexItem>
+            <Tooltip
+              content="Submit quickstart YAML as a GitHub pull request"
+              position="top"
+            >
+              <Button
+                variant="primary"
+                icon={<CodeBranchIcon />}
+                onClick={handleOpenPRModal}
+                size="sm"
+                isDisabled={!canCreatePR || !canDownload}
+              >
+                Create PR
+              </Button>
+            </Tooltip>
+          </FlexItem>
+        </Flex>
+      )}
+      {showCreatePR && parsedName && (
+        <CreatePRModal
+          isOpen={prModalOpen}
+          onClose={handleClosePRModal}
+          onConfirm={handleCreatePR}
+          quickstartName={parsedName}
+          prLoading={prLoading}
+          prResult={prResult}
+          prError={prError}
+        />
+      )}
+      {showCreatePR && (
+        <Modal
+          isOpen={repoModalOpen}
+          onClose={() => setRepoModalOpen(false)}
+          aria-label="Load from Repository"
+          variant="medium"
+        >
+          <ModalHeader title="Load from Repository" />
+          <ModalBody>
+            <SearchInput
+              placeholder="Search quickstarts..."
+              value={repoSearch}
+              onChange={(_event, value) => setRepoSearch(value)}
+              onClear={() => setRepoSearch('')}
+              className="pf-v6-u-mb-md"
+            />
+            {repoLoading && <Spinner size="lg" />}
+            {repoError && (
+              <Alert variant="danger" title="Error" isInline>
+                {repoError}
+              </Alert>
+            )}
+            {!repoLoading && !repoError && (
+              <DataList aria-label="Repository quickstarts" isCompact>
+                {filteredRepoQuickstarts.map((qs) => (
+                  <DataListItem key={qs.name}>
+                    <DataListItemRow>
+                      <DataListItemCells
+                        dataListCells={[
+                          <DataListCell key="name">
+                            <Button
+                              variant="link"
+                              isInline
+                              onClick={() => handleLoadFromRepo(qs.name)}
+                            >
+                              {qs.displayName || qs.name}
+                            </Button>
+                          </DataListCell>,
+                        ]}
+                      />
+                    </DataListItemRow>
+                  </DataListItem>
+                ))}
+                {filteredRepoQuickstarts.length === 0 && (
+                  <DataListItem key="empty">
+                    <DataListItemRow>
+                      <DataListItemCells
+                        dataListCells={[
+                          <DataListCell key="empty-msg">
+                            No quickstarts found
+                          </DataListCell>,
+                        ]}
+                      />
+                    </DataListItemRow>
+                  </DataListItem>
+                )}
+              </DataList>
+            )}
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="link" onClick={() => setRepoModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </Modal>
+      )}
     </PageSection>
   );
 };

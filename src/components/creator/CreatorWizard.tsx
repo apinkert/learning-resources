@@ -14,6 +14,7 @@ import {
   Title,
 } from '@patternfly/react-core';
 import CheckCircleIcon from '@patternfly/react-icons/dist/dynamic/icons/check-circle-icon';
+import CodeBranchIcon from '@patternfly/react-icons/dist/dynamic/icons/code-branch-icon';
 import DownloadIcon from '@patternfly/react-icons/dist/dynamic/icons/download-icon';
 import React, {
   Fragment,
@@ -42,6 +43,7 @@ import {
   NAME_DESCRIPTION,
   NAME_DURATION,
   NAME_KIND,
+  NAME_METADATA_NAME,
   NAME_PANEL_INTRODUCTION,
   NAME_PREREQUISITES,
   NAME_TAGS,
@@ -56,6 +58,10 @@ import { CreatorFiles } from './types';
 import { FilterData } from '../../utils/FiltersCategoryInterface';
 import TagsSelector from './TagsSelector';
 import CreatorYAMLView from './CreatorYAMLView';
+import { useCreatePR } from './useCreatePR';
+import SourceSelector from './SourceSelector';
+import { useFlag } from '@unleash/proxy-client-react';
+import CreatePRModal from './CreatePRModal';
 
 export type CreatorWizardProps = {
   onChangeKind: (newKind: ItemKind | null) => void;
@@ -67,6 +73,7 @@ export type CreatorWizardProps = {
   filterData: FilterData;
   onChangeTags: (tags: { [kind: string]: string[] }) => void;
   onChangeMetadataTags: (tags: Array<{ kind: string; value: string }>) => void;
+  onChangeMetadataName?: (name: string) => void;
   quickStart?: ExtendedQuickstart;
   currentBundles?: string[];
   currentTags?: { [kind: string]: string[] };
@@ -84,6 +91,7 @@ type UpdaterProps = {
   onChangeBundles: (bundles: string[]) => void;
   onChangeQuickStartSpec: (newValue: QuickStartSpec) => void;
   onChangeTags: CreatorWizardProps['onChangeTags'];
+  onChangeMetadataName?: (name: string) => void;
 };
 
 const DEFAULT_TASK_TITLES: string[] = [''];
@@ -112,9 +120,11 @@ const PropUpdater = ({
   onChangeTags,
   onChangeBundles,
   onChangeQuickStartSpec,
+  onChangeMetadataName,
 }: UpdaterProps) => {
   const bundles = values[NAME_BUNDLES];
   const tags = values[NAME_TAGS];
+  const metadataName: string | undefined = values[NAME_METADATA_NAME];
 
   useEffect(() => {
     onChangeBundles(bundles ?? []);
@@ -123,6 +133,12 @@ const PropUpdater = ({
   useEffect(() => {
     onChangeTags(tags ?? {});
   }, [tags]);
+
+  useEffect(() => {
+    if (metadataName && onChangeMetadataName) {
+      onChangeMetadataName(metadataName);
+    }
+  }, [metadataName]);
 
   const rawKind: string | undefined = values[NAME_KIND];
   const title: string | undefined = values[NAME_TITLE];
@@ -214,7 +230,41 @@ const PropUpdater = ({
 };
 
 const FileDownload = () => {
+  const showGitService = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
   const { files } = useContext(CreatorWizardContext);
+
+  const quickstartName = useMemo(() => {
+    const yamlFile = files.find(
+      (f) => f.name !== 'metadata.yaml' && f.name.endsWith('.yaml')
+    );
+    if (!yamlFile) return null;
+    const name = yamlFile.name.replace(/\.yaml$/, '');
+    return name || null;
+  }, [files]);
+
+  const {
+    prLoading,
+    prResult,
+    prError,
+    canCreatePR,
+    handleCreatePR,
+    setPrResult,
+    setPrError,
+  } = useCreatePR(quickstartName);
+
+  const [prModalOpen, setPrModalOpen] = useState(false);
+
+  const handleOpenPRModal = () => {
+    setPrResult(null);
+    setPrError(null);
+    setPrModalOpen(true);
+  };
+
+  const handleClosePRModal = () => {
+    setPrModalOpen(false);
+  };
 
   function doDownload(file: { content: string; name: string }) {
     const dotIndex = file.name.lastIndexOf('.');
@@ -239,30 +289,72 @@ const FileDownload = () => {
 
       <Stack hasGutter className="pf-v6-u-m-lg">
         <StackItem>
-          <Content component="p">
-            Download these files and use them to create the learning resource PR
-            in the{' '}
-            <a
-              href="https://github.com/RedHatInsights/quickstarts/tree/main/docs/quickstarts"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {' '}
-              correct repo
-            </a>
-            .
-          </Content>
+          {showGitService ? (
+            <Content component="p">
+              Download these files or submit them directly as a pull request.
+            </Content>
+          ) : (
+            <Content component="p">
+              Download these files and use them to create the learning resource
+              PR in the{' '}
+              <a
+                href="https://github.com/RedHatInsights/quickstarts/tree/main/docs/quickstarts"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {' '}
+                correct repo
+              </a>
+              .
+            </Content>
+          )}
         </StackItem>
 
         <StackItem>
-          <Button
-            variant="primary"
-            icon={<DownloadIcon />}
-            onClick={() => files.forEach((file) => doDownload(file))}
-          >
-            Download all ({files.length}) files
-          </Button>
+          {showGitService ? (
+            <Flex spaceItems={{ default: 'spaceItemsSm' }}>
+              <FlexItem>
+                <Button
+                  variant="primary"
+                  icon={<DownloadIcon />}
+                  onClick={() => files.forEach((file) => doDownload(file))}
+                >
+                  Download all ({files.length}) files
+                </Button>
+              </FlexItem>
+              <FlexItem>
+                <Button
+                  variant="primary"
+                  icon={<CodeBranchIcon />}
+                  onClick={handleOpenPRModal}
+                  isDisabled={!canCreatePR}
+                >
+                  Create PR
+                </Button>
+              </FlexItem>
+            </Flex>
+          ) : (
+            <Button
+              variant="primary"
+              icon={<DownloadIcon />}
+              onClick={() => files.forEach((file) => doDownload(file))}
+            >
+              Download all ({files.length}) files
+            </Button>
+          )}
         </StackItem>
+
+        {showGitService && quickstartName && (
+          <CreatePRModal
+            isOpen={prModalOpen}
+            onClose={handleClosePRModal}
+            onConfirm={handleCreatePR}
+            quickstartName={quickstartName}
+            prLoading={prLoading}
+            prResult={prResult}
+            prError={prError}
+          />
+        )}
 
         {files.map((file) => (
           <StackItem key={file.name}>
@@ -325,6 +417,7 @@ const CreatorWizard = ({
   resetCreator,
   onChangeTags,
   onChangeMetadataTags,
+  onChangeMetadataName,
   files,
   filterData,
   quickStart,
@@ -334,8 +427,14 @@ const CreatorWizard = ({
   onChangeKindDirect,
 }: CreatorWizardProps) => {
   const chrome = useChrome();
+  const showGitService = useFlag(
+    'platform.learning-resources.quickstarts.git-service'
+  );
   const [viewMode, setViewMode] = useState<ViewMode>('wizard');
-  const schema = useMemo(() => makeSchema(chrome, filterData), []);
+  const schema = useMemo(
+    () => makeSchema(chrome, filterData, showGitService),
+    [chrome, filterData, showGitService]
+  );
   const availableBundles = useMemo(() => chrome.getAvailableBundles(), []);
 
   // [viewMode] only, including props like quickStart, currentKind, etc would recompute on
@@ -390,6 +489,7 @@ const CreatorWizard = ({
     'lr-task-title-preview': TaskTitlePreview,
     'lr-string-array': StringArrayInput,
     'lr-tag-filter-selector': TagsSelector,
+    'lr-source-selector': SourceSelector,
   };
 
   return (
@@ -444,6 +544,7 @@ const CreatorWizard = ({
                     onChangeTags={onChangeTags}
                     onChangeBundles={onChangeBundles}
                     onChangeQuickStartSpec={onChangeQuickStartSpec}
+                    onChangeMetadataName={onChangeMetadataName}
                   />
                 )}
               </FormSpy>

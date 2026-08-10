@@ -1,5 +1,26 @@
 import React from 'react';
+import { FlagProvider, IConfig } from '@unleash/proxy-client-react';
 import CreatorYAMLView from '../../src/components/creator/CreatorYAMLView';
+
+const unleashConfig: IConfig = {
+  appName: 'test-app',
+  url: 'https://unleash.example.com/api/',
+  clientKey: 'test',
+  refreshInterval: 0,
+  disableRefresh: true,
+  bootstrap: [
+    {
+      name: 'platform.learning-resources.quickstarts.git-service',
+      enabled: false,
+      impressionData: false,
+      variant: { name: 'disabled', enabled: false },
+    },
+  ],
+};
+
+const Wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <FlagProvider config={unleashConfig}>{children}</FlagProvider>
+);
 
 const setMonacoValue = (value: string) => {
   // Retry until Monaco is ready and models are available
@@ -35,7 +56,7 @@ const getMonacoValue = (): Cypress.Chainable<string> => {
 describe('CreatorYAMLView', () => {
   beforeEach(() => {
     // Mount the component before each test
-    cy.mount(<CreatorYAMLView />);
+    cy.mount(<Wrapper><CreatorYAMLView /></Wrapper>);
 
     // This single wait ensures the editor is ready for all tests
     cy.get('.lr-c-creator-yaml-view__editor', { timeout: 10000 }).should('be.visible');
@@ -97,11 +118,13 @@ describe('CreatorYAMLView', () => {
       const onChangeTags = cy.stub().as('onChangeTags');
 
       cy.mount(
-        <CreatorYAMLView
-          onChangeQuickStartSpec={onChangeQuickStartSpec}
-          onChangeBundles={onChangeBundles}
-          onChangeTags={onChangeTags}
-        />
+        <Wrapper>
+          <CreatorYAMLView
+            onChangeQuickStartSpec={onChangeQuickStartSpec}
+            onChangeBundles={onChangeBundles}
+            onChangeTags={onChangeTags}
+          />
+        </Wrapper>
       );
 
       // Wait for editor to initialize
@@ -132,7 +155,9 @@ spec:
       const onChangeQuickStartSpec = cy.stub().as('onChangeQuickStartSpec');
 
       cy.mount(
-        <CreatorYAMLView onChangeQuickStartSpec={onChangeQuickStartSpec} />
+        <Wrapper>
+          <CreatorYAMLView onChangeQuickStartSpec={onChangeQuickStartSpec} />
+        </Wrapper>
       );
 
       cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
@@ -160,7 +185,7 @@ spec:
     });
 
     it('should show error alert for invalid YAML', () => {
-      cy.mount(<CreatorYAMLView />);
+      cy.mount(<Wrapper><CreatorYAMLView /></Wrapper>);
 
       // Wait for editor to be ready
       cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
@@ -185,7 +210,9 @@ spec:
       const onChangeQuickStartSpec = cy.stub().as('onChangeQuickStartSpec');
 
       cy.mount(
-        <CreatorYAMLView onChangeQuickStartSpec={onChangeQuickStartSpec} />
+        <Wrapper>
+          <CreatorYAMLView onChangeQuickStartSpec={onChangeQuickStartSpec} />
+        </Wrapper>
       );
 
       // Wait for editor to initialize
@@ -221,7 +248,7 @@ spec:
     });
 
     it('should recover from error when valid YAML is entered', () => {
-      cy.mount(<CreatorYAMLView />);
+      cy.mount(<Wrapper><CreatorYAMLView /></Wrapper>);
 
       // Wait for editor to be ready
       cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');
@@ -253,7 +280,7 @@ spec:
     });
 
     it('should update editor content via Monaco API', () => {
-      cy.mount(<CreatorYAMLView />);
+      cy.mount(<Wrapper><CreatorYAMLView /></Wrapper>);
 
       // Wait for editor to be ready
       cy.get('.monaco-editor textarea', { timeout: 10000 }).should('exist');

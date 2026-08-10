@@ -12,7 +12,7 @@ const rawItemKindMeta = Object.freeze({
     },
   },
   quickstart: {
-    displayName: 'Quickstart',
+    displayName: 'Quick start',
     tagColor: 'green',
     hasDuration: true,
     fields: {

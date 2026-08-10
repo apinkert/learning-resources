@@ -5,6 +5,7 @@ export const REQUIRED = {
 } as const;
 
 export const NAME_KIND = 'kind';
+export const NAME_METADATA_NAME = 'metadata-name';
 export const NAME_TAGS = 'tags';
 export const NAME_TITLE = 'title';
 export const NAME_BUNDLES = 'bundles';
