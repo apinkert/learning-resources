@@ -230,9 +230,7 @@ const PropUpdater = ({
 };
 
 const FileDownload = () => {
-  const showGitService = useFlag(
-    'platform.learning-resources.quickstarts.git-service'
-  );
+  const showGitService = true; // useFlag('platform.learning-resources.quickstarts.git-service');
   const { files } = useContext(CreatorWizardContext);
 
   const quickstartName = useMemo(() => {
@@ -427,9 +425,7 @@ const CreatorWizard = ({
   onChangeKindDirect,
 }: CreatorWizardProps) => {
   const chrome = useChrome();
-  const showGitService = useFlag(
-    'platform.learning-resources.quickstarts.git-service'
-  );
+  const showGitService = true; // useFlag('platform.learning-resources.quickstarts.git-service');
   const [viewMode, setViewMode] = useState<ViewMode>('wizard');
   const schema = useMemo(
     () => makeSchema(chrome, filterData, showGitService),

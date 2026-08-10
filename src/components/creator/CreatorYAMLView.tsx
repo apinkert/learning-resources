@@ -213,18 +213,23 @@ function serializeToYaml(
 
   // Build document matching the expected YAML structure
   const doc: Record<string, unknown> = {
+    apiVersion: 'console.openshift.io/v1',
     kind: 'QuickStarts',
     metadata: {
       name: quickStart.metadata.name || 'untitled-quickstart',
+      ...(quickStart.metadata.externalDocumentation
+        ? { externalDocumentation: true }
+        : {}),
+      ...(quickStart.metadata.learningPath
+        ? { learningPath: true }
+        : {}),
+      ...(quickStart.metadata.otherResource
+        ? { otherResource: true }
+        : {}),
       ...(allTags.length > 0 ? { tags: allTags } : {}),
     },
     spec: {
-      ...(quickStart.spec.displayName
-        ? { displayName: quickStart.spec.displayName }
-        : {}),
-      ...(quickStart.spec.description
-        ? { description: quickStart.spec.description }
-        : {}),
+      version: 0.1,
       ...(quickStart.spec.type
         ? {
             type: {
@@ -232,6 +237,13 @@ function serializeToYaml(
               color: quickStart.spec.type.color,
             },
           }
+        : {}),
+      ...(quickStart.spec.displayName
+        ? { displayName: quickStart.spec.displayName }
+        : {}),
+      icon: quickStart.spec.icon ?? null,
+      ...(quickStart.spec.description
+        ? { description: quickStart.spec.description }
         : {}),
       ...(quickStart.spec.durationMinutes !== undefined
         ? { durationMinutes: quickStart.spec.durationMinutes }
@@ -256,7 +268,7 @@ function serializeToYaml(
     },
   };
 
-  return YAML.stringify(doc, { lineWidth: 0 });
+  return YAML.stringify(doc, { lineWidth: 0, nullStr: '~' });
 }
 
 /** Bundle entry from chrome.getAvailableBundles() */
@@ -440,9 +452,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 }) => {
   const { files } = useContext(CreatorWizardContext);
 
-  const showCreatePR = useFlag(
-    'platform.learning-resources.quickstarts.git-service'
-  );
+  const showCreatePR = true; // useFlag('platform.learning-resources.quickstarts.git-service');
 
   const [parsedName, setParsedName] = useState<string | null>(null);
   const {
@@ -555,14 +565,21 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
 
       // Build the quickstart object
       const quickstartObj: ExtendedQuickstart = {
+        apiVersion: parsed.apiVersion || 'console.openshift.io/v1',
         metadata: {
           name: metadata.name || 'untitled-quickstart',
           tags: metadata.tags || [],
+          ...(metadata.externalDocumentation
+            ? { externalDocumentation: true }
+            : {}),
+          ...(metadata.learningPath ? { learningPath: true } : {}),
+          ...(metadata.otherResource ? { otherResource: true } : {}),
         },
         spec: {
+          version: spec.version ?? 0.1,
           displayName: spec.displayName || '',
           description: spec.description || '',
-          icon: spec.icon || null,
+          icon: spec.icon ?? null,
           type: spec.type,
           durationMinutes: spec.durationMinutes,
           link: spec.link,
