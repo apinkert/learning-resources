@@ -1,5 +1,11 @@
 .lr-c-catalog__header {
-  &-bundle {
-    color: var(--pf-t--global--text--color--subtle);
+  // Icon sizing to match other settings pages
+  .iconMinWidth-1-2-2 {
+    min-width: 60px;
+
+    img {
+      width: 48px;
+      height: 48px;
+    }
   }
 }

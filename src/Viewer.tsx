@@ -5,11 +5,9 @@ import {
   EmptyState,
   PageGroup,
   PageSection,
-  Pagination,
   Sidebar,
   SidebarContent,
   SidebarPanel,
-  StackItem,
 } from '@patternfly/react-core';
 import CatalogHeader from './components/CatalogHeader';
 import CatalogFilter from './components/CatalogFilter';
@@ -48,11 +46,6 @@ export const Viewer = ({
 
   const { documentation, learningPaths, other, bookmarks, quickStarts } =
     useQuickStarts(allQuickStarts, localFilter);
-  const [pagination, setPagination] = useState({
-    count: bookmarks.length,
-    perPage: 20,
-    page: 1,
-  });
 
   const quickStartsCount =
     quickStarts.length +
@@ -88,16 +81,9 @@ export const Viewer = ({
         hasBodyWrapper={false}
         className="pf-v6-u-p-lg lr-c-catalog__header"
       >
-        <StackItem className="pf-v6-u-mb-md">
-          <CatalogHeader />
-        </StackItem>
-        <StackItem>
-          <CatalogFilter
-            quickStartsCount={quickStartsCount}
-            onSearchInputChange={onSearchInputChange}
-          />
-        </StackItem>
+        <CatalogHeader />
       </PageSection>
+      <Divider />
       <PageSection
         hasBodyWrapper={false}
         className="pf-v6-u-background-color-200 pf-m-fill"
@@ -105,6 +91,12 @@ export const Viewer = ({
         <div className="pf-v6-u-h-100">
           <Sidebar id="content-wrapper" isPanelRight hasGutter>
             <SidebarContent id="quick-starts" hasNoBackground>
+              <div className="pf-v6-u-mb-md">
+                <CatalogFilter
+                  quickStartsCount={quickStartsCount}
+                  onSearchInputChange={onSearchInputChange}
+                />
+              </div>
               {showBookmarks && (
                 <React.Fragment>
                   <CatalogSection
@@ -125,34 +117,8 @@ export const Viewer = ({
                         Bookmarks
                       </span>
                     }
-                    rightTitle={
-                      <Pagination
-                        itemCount={bookmarks.length}
-                        perPage={pagination.perPage}
-                        page={pagination.page}
-                        onSetPage={(_e, newPage) => {
-                          setPagination((pagination) => ({
-                            ...pagination,
-                            page: newPage,
-                          }));
-                        }}
-                        widgetId="pagination-options-menu-top"
-                        onPerPageSelect={(_e, perPage) =>
-                          setPagination((pagination) => ({
-                            ...pagination,
-                            perPage,
-                          }))
-                        }
-                        isCompact
-                      />
-                    }
-                    isExpandable={false}
-                    sectionQuickStarts={bookmarks.slice(
-                      (pagination.page - 1) * pagination.perPage,
-                      pagination.page * (pagination.perPage - 1) + 1
-                    )}
+                    sectionQuickStarts={bookmarks}
                   />
-                  <Divider className="pf-v6-u-mt-lg pf-v6-u-mb-lg" />
                 </React.Fragment>
               )}
               <CatalogSection
@@ -164,7 +130,6 @@ export const Viewer = ({
                 sectionDescription="Technical information for using the service"
                 sectionQuickStarts={documentation}
               />
-              <Divider className="pf-v6-u-mt-lg pf-v6-u-mb-lg" />
               <CatalogSection
                 sectionName="quick-starts"
                 purgeCache={purgeCache}
@@ -174,7 +139,6 @@ export const Viewer = ({
                 sectionDescription="Step-by-step instructions and tasks"
                 sectionQuickStarts={quickStarts}
               />
-              <Divider className="pf-v6-u-mt-lg pf-v6-u-mb-lg" />
               <CatalogSection
                 sectionName="learning-paths"
                 purgeCache={purgeCache}
@@ -184,7 +148,6 @@ export const Viewer = ({
                 sectionDescription="Collections of learning materials contributing to a common use case"
                 sectionQuickStarts={learningPaths}
               />
-              <Divider className="pf-v6-u-mt-lg pf-v6-u-mb-lg" />
               <CatalogSection
                 sectionName="other-content-types"
                 purgeCache={purgeCache}

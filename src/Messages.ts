@@ -459,6 +459,17 @@ const messages = defineMessages({
     id: 'helpPanel.search.favoriteService',
     defaultMessage: 'Favorite {title}',
   },
+
+  // Catalog Header
+  catalogHeaderTitle: {
+    id: 'catalog.header.title',
+    defaultMessage: 'Learning resources',
+  },
+  catalogHeaderDescription: {
+    id: 'catalog.header.description',
+    defaultMessage:
+      'Get quick access to documentation, quick starts, learning paths, and more related to {bundleTitle}. For all learning resources across the Hybrid Cloud Console, browse the <a>All Learning catalog</a>.',
+  },
 });
 
 export default messages;

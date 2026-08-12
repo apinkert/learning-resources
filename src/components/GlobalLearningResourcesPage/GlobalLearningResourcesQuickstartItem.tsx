@@ -71,7 +71,10 @@ const GlobalLearningResourcesQuickstartItem: React.FC<
   };
 
   return (
-    <Card className="lr-c-global-learning-resources-quickstart__card">
+    <Card
+      className="lr-c-global-learning-resources-quickstart__card"
+      isFullHeight
+    >
       <Content className="lr-c-global-learning-resources-quickstart__card--content">
         <CardTitle
           component="div"
