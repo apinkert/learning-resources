@@ -220,12 +220,8 @@ function serializeToYaml(
       ...(quickStart.metadata.externalDocumentation
         ? { externalDocumentation: true }
         : {}),
-      ...(quickStart.metadata.learningPath
-        ? { learningPath: true }
-        : {}),
-      ...(quickStart.metadata.otherResource
-        ? { otherResource: true }
-        : {}),
+      ...(quickStart.metadata.learningPath ? { learningPath: true } : {}),
+      ...(quickStart.metadata.otherResource ? { otherResource: true } : {}),
       ...(allTags.length > 0 ? { tags: allTags } : {}),
     },
     spec: {
@@ -758,16 +754,32 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
       const yamlFile = content.files.find(
         (f) =>
           (f.name.endsWith('.yml') || f.name.endsWith('.yaml')) &&
-          f.name !== 'metadata.yaml'
+          !f.name.startsWith('metadata.')
       );
       if (yamlFile) {
         let finalContent = yamlFile.content;
         try {
           const parsed = YAML.parse(finalContent);
-          if (parsed && !parsed.kind) {
-            const { metadata, spec, ...rest } = parsed;
+          if (parsed) {
+            if (!parsed.metadata) parsed.metadata = {};
+
+            const metadataFile = content.files.find((f) =>
+              f.name.startsWith('metadata.')
+            );
+            if (metadataFile) {
+              const meta = YAML.parse(metadataFile.content);
+              if (Array.isArray(meta?.tags) && meta.tags.length > 0) {
+                parsed.metadata.tags = meta.tags;
+              }
+            }
+
+            if (!parsed.kind) {
+              parsed.kind = 'QuickStarts';
+            }
+
+            const { kind, metadata, spec, ...rest } = parsed;
             finalContent = YAML.stringify(
-              { kind: 'QuickStarts', metadata, spec, ...rest },
+              { kind, metadata, spec, ...rest },
               { lineWidth: 0 }
             );
           }
