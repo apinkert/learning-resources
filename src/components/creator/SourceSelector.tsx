@@ -109,6 +109,7 @@ const SourceSelector = (props: UseFieldApiConfig) => {
     formApi.change(NAME_PANEL_INTRODUCTION, undefined);
     formApi.change(NAME_TASK_TITLES, undefined);
     formApi.change(NAME_TASKS_ARRAY, undefined);
+    formApi.change(NAME_ICON, undefined);
   };
 
   const handleSelectScratch = () => {

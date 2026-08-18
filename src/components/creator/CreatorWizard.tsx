@@ -450,6 +450,7 @@ const CreatorWizard = ({
       [NAME_BUNDLES]: currentBundles,
       [NAME_TAGS]: currentTags,
       [NAME_TITLE]: quickStart.spec.displayName || '',
+      [NAME_ICON]: quickStart.spec.icon ?? null,
       [NAME_DESCRIPTION]: quickStart.spec.description || '',
       [NAME_DURATION]: quickStart.spec.durationMinutes,
       [NAME_URL]: quickStart.spec.link?.href,

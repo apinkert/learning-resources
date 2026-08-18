@@ -213,7 +213,7 @@ function serializeToYaml(
 
   // Build document matching the expected YAML structure
   const doc: Record<string, unknown> = {
-    apiVersion: 'console.openshift.io/v1',
+    apiVersion: quickStart.apiVersion || 'console.openshift.io/v1',
     kind: 'QuickStarts',
     metadata: {
       name: quickStart.metadata.name || 'untitled-quickstart',
@@ -225,7 +225,7 @@ function serializeToYaml(
       ...(allTags.length > 0 ? { tags: allTags } : {}),
     },
     spec: {
-      version: 0.1,
+      version: quickStart.spec.version ?? 0.1,
       ...(quickStart.spec.type
         ? {
             type: {
@@ -780,7 +780,7 @@ const CreatorYAMLView: React.FC<CreatorYAMLViewProps> = ({
             const { kind, metadata, spec, ...rest } = parsed;
             finalContent = YAML.stringify(
               { kind, metadata, spec, ...rest },
-              { lineWidth: 0 }
+              { lineWidth: 0, nullStr: '~' }
             );
           }
         } catch {
