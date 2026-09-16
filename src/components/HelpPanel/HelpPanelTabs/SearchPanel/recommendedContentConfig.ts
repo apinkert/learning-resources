@@ -210,7 +210,7 @@ export const bundleRecommendedContent: Record<string, RecommendedItem[]> = {
       title: 'Setting up User Access',
       description: '',
       type: 'documentation',
-      url: 'https://access.redhat.com/documentation/en-us/red_hat_hybrid_cloud_console/1-latest/html/user_access_configuration_guide_for_role-based_access_control_rbac/index',
+      url: 'https://docs.redhat.com/en/documentation/red_hat_hybrid_cloud_console/1-latest/administer-manage_user_permissions_rbac_models',
       bundleTags: ['iam'],
     },
     {
@@ -239,7 +239,7 @@ export const bundleRecommendedContent: Record<string, RecommendedItem[]> = {
       title: 'Integration with third-party applications',
       description: '',
       type: 'documentation',
-      url: 'https://docs.redhat.com/en/documentation/red_hat_hybrid_cloud_console/1-latest/html/integrating_the_red_hat_hybrid_cloud_console_with_third-party_applications/index',
+      url: 'https://docs.redhat.com/en/documentation/red_hat_hybrid_cloud_console/1-latest/extend-manage_alerts_preferred_platform',
       bundleTags: ['settings'],
     },
     {
