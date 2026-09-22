@@ -1,7 +1,10 @@
 import React from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import QuickstartsRuntime from './QuickstartsRuntime';
-import { getQuickstartsClient } from './quickstartsClient';
+import {
+  type QuickstartsRuntimeClient,
+  getQuickstartsClient,
+} from './quickstartsClient';
 import { resetHelpTopicsStore } from './helpTopicsStore';
 import { resetQuickstartsStore } from './quickstartsStore';
 
@@ -51,7 +54,7 @@ describe('QuickstartsRuntime', () => {
       progressPost: jest.fn().mockResolvedValue({ data: {} }),
       quickstartsGet: jest.fn().mockResolvedValue({ data: { data: [] } }),
       helptopicsGet: jest.fn().mockResolvedValue({ data: [] }),
-    } as ReturnType<typeof getQuickstartsClient>);
+    } as unknown as QuickstartsRuntimeClient);
   });
 
   it('renders children inside the runtime providers', async () => {

@@ -24,12 +24,6 @@ import validateQuickstart from './quickstartValidation';
 import { QuickstartsStoreState, getQuickstartsStore } from './quickstartsStore';
 import { LazyQuickStartCatalog } from './LazyQuickStartCatalog';
 
-/**
- * Subscribe to the Scalprum shared store without importing `@scalprum/react-core`.
- * That package's barrel also exports ScalprumComponent/LoadModule. Importing it from
- * this federated module (which Chrome loads *via* ScalprumComponent) creates a
- * webpack TDZ cycle: `Cannot access '__WEBPACK_DEFAULT_EXPORT__' before initialization`.
- */
 function useQuickstartsStoreState(
   store: ReturnType<typeof getQuickstartsStore>
 ): QuickstartsStoreState {

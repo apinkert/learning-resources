@@ -2,7 +2,10 @@ import { act, renderHook } from '@testing-library/react';
 import helpTopicDataMock from './helpTopicDataMock';
 import useHelpTopicState from './useHelpTopicState';
 import { resetHelpTopicsStore } from './helpTopicsStore';
-import { getQuickstartsClient } from './quickstartsClient';
+import {
+  type QuickstartsRuntimeClient,
+  getQuickstartsClient,
+} from './quickstartsClient';
 
 jest.mock('./quickstartsClient', () => ({
   getQuickstartsClient: jest.fn(),
@@ -20,7 +23,7 @@ describe('useHelpTopicState', () => {
     helptopicsGet.mockReset();
     mockedGetClient.mockReturnValue({
       helptopicsGet,
-    } as ReturnType<typeof getQuickstartsClient>);
+    } as unknown as QuickstartsRuntimeClient);
   });
 
   const initialTopics = helpTopicDataMock.reduce(

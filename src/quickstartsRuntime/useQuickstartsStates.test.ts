@@ -1,7 +1,10 @@
 import { act, renderHook } from '@testing-library/react';
 import { QuickStartState } from '@patternfly/quickstarts';
 import useQuickstartsStates from './useQuickstartsStates';
-import { getQuickstartsClient } from './quickstartsClient';
+import {
+  type QuickstartsRuntimeClient,
+  getQuickstartsClient,
+} from './quickstartsClient';
 import { resetQuickstartsStore } from './quickstartsStore';
 
 jest.mock('./quickstartsClient', () => ({
@@ -26,7 +29,7 @@ describe('useQuickstartsStates', () => {
       progressGet,
       progressPost,
       quickstartsGet,
-    } as ReturnType<typeof getQuickstartsClient>);
+    } as unknown as QuickstartsRuntimeClient);
   });
 
   test('should not call API if no account Id exists', () => {
