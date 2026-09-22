@@ -46,6 +46,8 @@ module.exports = {
       './Creator': path.resolve(__dirname, './src/Creator.tsx'),
       './HelpPanel': path.resolve(__dirname, './src/components/HelpPanel/index.ts'),
       './HelpPanelLink': path.resolve(__dirname, './src/components/HelpPanel/HelpPanelLink.tsx'),
+      './QuickstartsRuntime': path.resolve(__dirname, './src/quickstartsRuntime/QuickstartsRuntimeEntry.tsx'),
+      './QuickStartCatalog': path.resolve(__dirname, './src/quickstartsRuntime/LazyQuickStartCatalog.tsx'),
     },
     exclude: ['react-router-dom'],
     shared: [
