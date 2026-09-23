@@ -68,7 +68,9 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
 
-  const isAvailable = isSubmissionAvailable(chrome.getEnvironment());
+  const isAvailable = chrome?.getEnvironment
+    ? isSubmissionAvailable(chrome.getEnvironment())
+    : false;
 
   useEffect(() => {
     if (checked && chrome?.auth?.getUser) {

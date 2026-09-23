@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { IntlProvider } from 'react-intl';
 import FeedbackForm, { FeedbackFormProps } from './FeedbackForm';
 
@@ -25,60 +26,131 @@ const renderWithIntl = (component: React.ReactElement) => {
   return render(<IntlProvider locale="en">{component}</IntlProvider>);
 };
 
+const mockUser = {
+  identity: {
+    account_number: '12345',
+    user: {
+      username: 'testuser',
+      email: 'test@example.com',
+    },
+  },
+};
+
+const mockAuthChrome = (environment: string) => ({
+  getEnvironment: () => environment,
+  auth: {
+    getUser: jest.fn().mockResolvedValue(mockUser),
+    getToken: jest.fn().mockResolvedValue('mock-token'),
+  },
+});
+
 describe('FeedbackForm - Environment Detection', () => {
+  let fetchMock: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({}),
+    } as Response);
+    global.fetch = fetchMock;
   });
 
-  it('allows submission in production environment', () => {
-    mockUseChrome.mockReturnValue({
-      getEnvironment: () => 'prod',
-      auth: {
-        getUser: jest.fn(),
-        getToken: jest.fn(),
-      },
-    });
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
 
-    renderWithIntl(<FeedbackForm {...defaultProps} />);
+  it('allows submission in production environment', async () => {
+    mockUseChrome.mockReturnValue(mockAuthChrome('prod'));
+    const onSubmit = jest.fn();
 
-    // The warning label should NOT be present when submission is available
+    renderWithIntl(<FeedbackForm {...defaultProps} onSubmit={onSubmit} />);
+
+    // Verify warning label is not present
     expect(
       screen.queryByText(/Feedback can only be submitted in prod and stage/)
     ).not.toBeInTheDocument();
-  });
 
-  it('allows submission in stage environment', () => {
-    mockUseChrome.mockReturnValue({
-      getEnvironment: () => 'stage',
-      auth: {
-        getUser: jest.fn(),
-        getToken: jest.fn(),
-      },
+    // Type feedback and submit
+    const textarea = screen.getByRole('textbox');
+    await userEvent.type(textarea, 'Test feedback');
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    await userEvent.click(submitButton);
+
+    // Verify fetch was called with correct parameters
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        expect.stringContaining('/api/platform-feedback/v1/issues'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer mock-token',
+            'Content-Type': 'application/json',
+          }),
+        })
+      );
     });
 
-    renderWithIntl(<FeedbackForm {...defaultProps} />);
+    // Verify onSubmit callback was called
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalled();
+    });
+  });
 
-    // The warning label should NOT be present when submission is available
+  it('allows submission in stage environment', async () => {
+    mockUseChrome.mockReturnValue(mockAuthChrome('stage'));
+    const onSubmit = jest.fn();
+
+    renderWithIntl(<FeedbackForm {...defaultProps} onSubmit={onSubmit} />);
+
+    // Verify warning label is not present
     expect(
       screen.queryByText(/Feedback can only be submitted in prod and stage/)
     ).not.toBeInTheDocument();
-  });
 
-  it('allows submission in frhStage (federal stage) environment', () => {
-    mockUseChrome.mockReturnValue({
-      getEnvironment: () => 'frhStage',
-      auth: {
-        getUser: jest.fn(),
-        getToken: jest.fn(),
-      },
+    // Type feedback and submit
+    const textarea = screen.getByRole('textbox');
+    await userEvent.type(textarea, 'Test feedback');
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    await userEvent.click(submitButton);
+
+    // Verify fetch was called
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
     });
 
-    renderWithIntl(<FeedbackForm {...defaultProps} />);
+    // Verify onSubmit callback was called
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalled();
+    });
+  });
 
-    // The warning label should NOT be present when submission is available
+  it('allows submission in frhStage (federal stage) environment', async () => {
+    mockUseChrome.mockReturnValue(mockAuthChrome('frhStage'));
+    const onSubmit = jest.fn();
+
+    renderWithIntl(<FeedbackForm {...defaultProps} onSubmit={onSubmit} />);
+
+    // Verify warning label is not present
     expect(
       screen.queryByText(/Feedback can only be submitted in prod and stage/)
     ).not.toBeInTheDocument();
+
+    // Type feedback and submit
+    const textarea = screen.getByRole('textbox');
+    await userEvent.type(textarea, 'Test feedback');
+    const submitButton = screen.getByRole('button', { name: 'Submit' });
+    await userEvent.click(submitButton);
+
+    // Verify fetch was called
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalled();
+    });
+
+    // Verify onSubmit callback was called
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalled();
+    });
   });
 
   it('blocks submission in QA environment', () => {
@@ -127,6 +199,23 @@ describe('FeedbackForm - Environment Detection', () => {
     renderWithIntl(<FeedbackForm {...defaultProps} />);
 
     // The warning label SHOULD be present when submission is not available
+    expect(
+      screen.getByText(/Feedback can only be submitted in prod and stage/)
+    ).toBeInTheDocument();
+  });
+
+  it('blocks submission when getEnvironment is not available', () => {
+    mockUseChrome.mockReturnValue({
+      // getEnvironment is missing
+      auth: {
+        getUser: jest.fn(),
+        getToken: jest.fn(),
+      },
+    });
+
+    renderWithIntl(<FeedbackForm {...defaultProps} />);
+
+    // The warning label SHOULD be present when getEnvironment is unavailable
     expect(
       screen.getByText(/Feedback can only be submitted in prod and stage/)
     ).toBeInTheDocument();

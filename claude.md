@@ -31,14 +31,17 @@ Fixed feedback form submission failure in production by replacing hostname-based
 
 #### `src/components/HelpPanel/HelpPanelTabs/Feedback/FeedbackForm.tsx`
 - **Updated `isSubmissionAvailable()` function**: Changed from checking `window.location.hostname.includes('prod')` to accepting an `environment` parameter and comparing against exact values ('prod', 'stage', 'frhStage')
-- **Updated function call**: Now passes `chrome.getEnvironment()` to `isSubmissionAvailable()`
+- **Added defensive guard**: Checks if `chrome?.getEnvironment` exists before calling it; treats missing method as unavailable (fallback to `false`)
+- **Updated function call**: Now passes `chrome.getEnvironment()` to `isSubmissionAvailable()` with optional chaining
 - **Added JSDoc documentation**: Clarified the function's purpose and parameters
 
 #### `src/components/HelpPanel/HelpPanelTabs/Feedback/FeedbackForm.test.tsx` (new file)
-- **Created comprehensive test suite**: 6 tests covering all environment scenarios
-- **Tests prod, stage, frhStage**: Verifies submission is allowed in production and stage environments
+- **Created comprehensive test suite**: 7 tests covering all environment scenarios and edge cases
+- **Tests prod, stage, frhStage**: Verifies submission works end-to-end (user input → fetch call → onSubmit callback)
 - **Tests qa, ci, ephemeral**: Verifies submission is blocked in non-production environments
+- **Tests missing getEnvironment**: Verifies graceful fallback when Chrome API method is unavailable
 - **Validates UI feedback**: Checks that the warning label appears/disappears correctly based on environment
+- **Mocks fetch API**: Uses Jest mocks to verify API calls are made with correct parameters (auth token, payload structure)
 
 ### Context for Maintainers
 
