@@ -34,9 +34,19 @@ export type FeedbackFormProps = {
   onBreadcrumbClick?: () => void;
 };
 
-const isSubmissionAvailable = () => {
-  const hostname = window.location.hostname;
-  return hostname.includes('prod') || hostname.includes('stage');
+/**
+ * Determines if feedback submission is available in the current environment.
+ * Uses Chrome API's getEnvironment() to detect production/stage environments.
+ * @param environment - Environment string from chrome.getEnvironment() ('prod', 'stage', 'qa', etc.)
+ * @returns true if feedback submission is allowed (prod or stage), false otherwise
+ */
+const isSubmissionAvailable = (environment: string) => {
+  // Allow submission in production and stage environments only
+  return (
+    environment === 'prod' ||
+    environment === 'stage' ||
+    environment === 'frhStage'
+  );
 };
 
 const FeedbackForm: React.FC<FeedbackFormProps> = ({
@@ -58,7 +68,7 @@ const FeedbackForm: React.FC<FeedbackFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
 
-  const isAvailable = isSubmissionAvailable();
+  const isAvailable = isSubmissionAvailable(chrome.getEnvironment());
 
   useEffect(() => {
     if (checked && chrome?.auth?.getUser) {
