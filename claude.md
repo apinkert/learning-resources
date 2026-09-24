@@ -22,6 +22,62 @@ npm run verify           # Full CI check: build + lint + test
 
 This document tracks significant changes made with Claude Code assistance to help future maintainers understand the context and rationale.
 
+## Feedback Form Environment Detection Fix (September 2026)
+
+### Overview
+Fixed feedback form submission failure in production by replacing hostname-based environment detection with Chrome API's `getEnvironment()` method. The original code checked if the hostname included 'prod' or 'stage', but production's hostname `console.redhat.com` doesn't contain 'prod', causing all feedback submissions to be blocked in production.
+
+### Changes Made
+
+#### `src/components/HelpPanel/HelpPanelTabs/Feedback/FeedbackForm.tsx`
+- **Updated `isSubmissionAvailable()` function**: Changed from checking `window.location.hostname.includes('prod')` to accepting an `environment` parameter and comparing against exact values ('prod', 'stage', 'frhStage')
+- **Added defensive guard**: Checks if `chrome?.getEnvironment` exists before calling it; treats missing method as unavailable (fallback to `false`)
+- **Updated function call**: Now passes `chrome.getEnvironment()` to `isSubmissionAvailable()` with optional chaining
+- **Added JSDoc documentation**: Clarified the function's purpose and parameters
+
+#### `src/components/HelpPanel/HelpPanelTabs/Feedback/FeedbackForm.test.tsx` (new file)
+- **Created comprehensive test suite**: 7 tests covering all environment scenarios and edge cases
+- **Tests prod, stage, frhStage**: Verifies submission works end-to-end (user input → fetch call → onSubmit callback)
+- **Tests qa, ci, ephemeral**: Verifies submission is blocked in non-production environments
+- **Tests missing getEnvironment**: Verifies graceful fallback when Chrome API method is unavailable
+- **Validates UI feedback**: Checks that the warning label appears/disappears correctly based on environment
+- **Mocks fetch API**: Uses Jest mocks to verify API calls are made with correct parameters (auth token, payload structure)
+
+### Context for Maintainers
+
+The Chrome API provides a reliable `getEnvironment()` method that returns standardized environment strings:
+- `'prod'` - Production stable (`console.redhat.com`)
+- `'stage'` - Stage environment (`console.stage.redhat.com`)
+- `'frhStage'` - Federal stage environment
+- `'qa'`, `'ci'`, `'ephemeral'` - Non-production environments
+
+This method is the standard way to detect environments across HCC applications and is already used in other parts of this codebase (e.g., `APIPanel.tsx` for generating environment-specific API documentation URLs).
+
+### Why Hostname-Based Detection Failed
+
+The original implementation:
+```javascript
+const hostname = window.location.hostname;
+return hostname.includes('prod') || hostname.includes('stage');
+```
+
+Failed because:
+- **Production**: `console.redhat.com` → does NOT include 'prod' ❌
+- **Stage**: `console.stage.redhat.com` → includes 'stage' ✅
+
+The Chrome API method is more robust and doesn't depend on hostname patterns.
+
+### Related Files
+- `src/components/HelpPanel/HelpPanelTabs/Feedback/FeedbackForm.tsx` - Fixed environment detection logic
+- `src/components/HelpPanel/HelpPanelTabs/Feedback/FeedbackForm.test.tsx` - New test suite for environment detection
+- `src/components/HelpPanel/HelpPanelTabs/APIPanel.tsx` - Reference implementation using `chrome.getEnvironment()`
+
+### Bug Report
+- **Issue**: Feedback submission blocked in production
+- **Acceptance Criteria**: ✅ Feedback form submission works for all three use cases (General feedback, Bug report, Research opportunities) in production stable, resulting in creation of Jira issues in CRCFEEDBK
+
+---
+
 ## Migration to Published @redhat-cloud-services/playwright-test-auth Package (April 2026)
 
 ### Overview
